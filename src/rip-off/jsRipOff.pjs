@@ -1,0 +1,58 @@
+/**
+ * jsRipOff.pjs
+ *
+ * Game render loop based on Processing.js
+ * 
+ * Requires 
+ *     Processing.js
+ *     tools.js
+ *     jsRipOff.js
+ */
+
+/**
+ * Import dependencies
+ */
+//document.getElementsByTagName('head')[0].appendChild(document
+//	.createElement("script")).src = "helper.js";
+
+
+//var tankList = [  ];
+//var frameCount = 0;
+var game = new Game(this);
+
+void setup() {
+  size(640, 480);
+  
+  frameRate(15);
+
+  var tank = new Tank("1", new Pos2(100, 100), 0, new Vec2(0, 0));
+  game.addObject(tank);
+
+  tank = new Tank("2", new Pos2(200, 100), 0, new Vec2(3, -1));
+  tank.scale = 2;
+  tank.turnRate = 2 * DEGREE_TO_RAD;
+  game.addObject(tank);
+  
+  tank = new Tank("3", new Pos2(300, 100), 0, new Vec2(0, 0));
+  tank.scale = 4;
+  tank.turnRate = -2 * DEGREE_TO_RAD;
+  game.addObject(tank);
+}
+
+void mouseClicked() {
+	game.idMap["3"].fire();
+}
+
+void mouseScrolled() {
+	game.idMap["3"].turnRate += DEGREE_TO_RAD*mouseScroll;
+}
+
+void draw()
+{
+	background(51);
+
+	game.step(this);
+	game.draw(this);
+
+	$("#frames").html("" + frameCount);
+}

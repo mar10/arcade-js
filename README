@@ -1,0 +1,33 @@
+
+  A R C A D E . J S  - 0.0.1
+  
+
+  //////////////////////////////////////////////////////////////////////////////
+
+  License           MIT (see included LICENSE)
+  Original Author   Martin Wendt: http://wwWendt.de
+                    see included AUTHORS file for contributer list
+
+  Web Site          http://http://wwWendt.de/jsripoff 
+
+  Join the development team at irc://irc.mozilla.org/processing.js for more info
+
+
+  Arcade.js is ...
+  
+  Part of the distribution is
+  
+  - 2d game engine
+  - trigs library
+  - Rip-off clone
+    A port of the Rip-Off arcade game by Tim Skelly / Cinematronix in 1980.
+
+    //////////////////////////////////////////////////////////////////////////////
+
+  PLATFORM AND BROWSER COMPATIBILITY
+  
+  Arcade.js is explicitly developed for and actively tested on browsers that
+  support the HTML5 <Canvas> element. Processing.js runs in FireFox, Safari, 
+  Chrome and Opera but is not currently supported in Internet Explorer.
+   
+  //////////////////////////////////////////////////////////////////////////////

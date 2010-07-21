@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="jquery.js"></script>
+	<script src="helper.js"></script>
+	<script src="vecmath.js"></script>
+	<script src="jsRipOff.js"></script>
+
+	<link rel="stylesheet" href="jsRipOff.css"/></head>
+	
+	<script src="processing.js"></script>
+	<script type="text/javascript">
+	$(function(){
+		var p = Processing.instances[0]; 
+		$("#btnStop").click(function(){
+			p.noLoop();
+		});
+	});
+	</script>
+<body>
+<h1><a href="#">jsRipOff</a></h1>
+<p>
+	A JavaScript implementation of Rip-Off using 
+	<a href="http://ejohn.org/blog/processingjs/">Processing.js</a>.
+</p>
+
+<p>
+<canvas datasrc="jsRipOff.pjs" width="200" height="200"></canvas>
+</p>
+
+<div>
+	<span id="frames">-</span> frames
+</div>
+<div>
+	<button id="btnStop">Start/Stop</button> 
+</div>
+</body>
+</html>

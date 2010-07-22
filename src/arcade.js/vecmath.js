@@ -96,11 +96,35 @@ function polarToVec(a, r) {
 		     dy: r * Math.sin(a) };
 }
 
-/** Check, if line segment pt1, pt2 is inside this polygon.*/
-function segmentIntersects(pt1, pt2) {
+/** Return intersection point of line segment pt1/pt2 with with segment pt3/pt4.*/
+function segmentsIntersect(pt1, pt2, pt3, pt4) {
 	// TODO: Gems II, 1.2 and page 473
-    return false;
+    return null;
 }
+
+/** Return intersection point of line segment pt1/pt2 with with segment pt3/pt4.
+ *
+ * @returns {pt|null|undefined} intersection point {x:_, y:_} or null if there is no intersection.
+ * undefined is returned, if segments are collinear.
+ */
+function lineIntersection(pt1, pt2, pt3, pt4) {
+	// TODO: 
+    return null;
+}
+
+/** Return shortest distance between a point and a line through ptA/ptB.*/
+function distancePtLine(pt, ptA, ptB) {
+	// TODO: Gems II, 1.3
+    return 0;
+}
+
+/** Return shortest distance between a point and the line segment from ptA to ptB.*/
+function distancePtSegment(pt, ptA, ptB) {
+	// TODO: Gems II, 1.3
+    return 0;
+}
+
+
 /*****************************************************************************/
 
 var Pos2 = Class.extend(
@@ -441,6 +465,11 @@ Polygon2.prototype.isInside = function(pt) {
 /** Check, if this polygon intersects with another polygon.*/
 Polygon2.prototype.intersects = function(polygon) {
 	// TODO:
+    return false;
+}
+/** Check, if line segment pt1, pt2 is inside this polygon.*/
+Polygon2.prototype.segmentIntersects = function (pt1, pt2) {
+	// TODO: Gems II, 1.2 and page 473
     return false;
 }
 /** Check, pos is inside this polygon.*/

@@ -22,6 +22,11 @@ var ArcadeJS = Class.extend(
         this.idMap = {};
         this.typeMap = {};
         this.fps = 15;
+        this.realFps = 0;
+        this.fpsCorrection = 1.0;
+        this._lastSecondTicks = 0;
+        this._lastFrameTicks = 0;
+        this.frameCount = 0;
     },
     toString: function() {
         return "ArcadeJS '" + this.id + "' " + this.pos;
@@ -60,6 +65,19 @@ var ArcadeJS = Class.extend(
     	}
     },
     step: function(p) {
+    	// Some bookkeeping and timings
+    	this.frameCount++;
+    	var ticks = new Date().getTime();
+    	this.fpsCorrection = .001 * this.fps * (ticks - this._lastFrameTicks);
+//    	var actFps = this.fps * 1000.0 / (ticks - this._lastFrameTicks);
+//    	window.console.log("fpsCorr=%s", this.fpsCorrection);
+        this._lastFrameTicks = ticks;
+    	if( (this.frameCount % this.fps) == 0 ){
+        	this.realFps = (ticks > this._lastSecondTicks) ? 1000.0 * this.fps / (ticks - this._lastSecondTicks) : 0;
+//        	window.console.log("realFps=%s", this.realFps);
+            this._lastSecondTicks = ticks;
+    	} 
+
     	var ol = this.objects;
     	for(var i=0; i<ol.length; i++){
     		var o = ol[i];

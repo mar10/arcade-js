@@ -37,8 +37,18 @@ var Tank = Movable.extend({
     step: function(p) {
 		this._super(p);
 		// wrap around screen borders
+		/*
 		this.pos.x = (p.width + this.pos.x) % p.width; 
-		this.pos.y = (p.height + this.pos.y) % p.height; 
+		this.pos.y = (p.height + this.pos.y) % p.height;
+		*/ 
+		if(this.pos.x > p.width) {
+			this.pos.x = p.width;
+			this.move.dx *= -1;
+		} else if(this.pos.x < 0) {
+			this.pos.x = 0;
+			this.move.dx *= -1;
+		}
+		this.pos.y = (p.height + this.pos.y) % p.height;
 //		window.console.log(""+this);
     },
     render: function(p) {

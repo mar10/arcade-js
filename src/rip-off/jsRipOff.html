@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<script src="jquery.js"></script>
-	<script src="helper.js"></script>
-	<script src="vecmath.js"></script>
+	<script src="../depends/jquery.js"></script>
+	<script src="../depends/processing.js"></script>
+
+	<script src="../arcade.js/vecmath.js"></script>
+	<script src="../arcade.js/arcade.js"></script>
+
 	<script src="jsRipOff.js"></script>
 
 	<link rel="stylesheet" href="jsRipOff.css"/></head>
 	
-	<script src="processing.js"></script>
 	<script type="text/javascript">
 	$(function(){
-		var p = Processing.instances[0]; 
 		$("#btnStop").click(function(){
+			var p = Processing.instances[0]; 
 			p.noLoop();
 		});
 	});

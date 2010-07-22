@@ -41,7 +41,13 @@ QUnit.log = function(result, message) {
   if (window.console && window.console.log) {  
       window.console.log(result +' :: '+ message);  
   }  
-}      
+}  
+
+function logMsg(){
+    if (window.console && window.console.log) {  
+        window.console.log.apply(this, arguments);  
+    }  
+}
 
 
 /*******************************************************************************
@@ -50,12 +56,12 @@ QUnit.log = function(result, message) {
 module("Vector math");
 
 function logCartToPol(x, y){
-	var pol = cartToPol(x, y);
+	var pol = vecToPolar(x, y);
     window.console.log("(%s, %s) -> (%s°, %s)", x, y, RAD_TO_DEGREE*pol.a, pol.r);
 }
 
-test("Vector math: Pos2", function() {
-    expect(6);
+test("Vector math: tools", function() {
+    expect(2);
 
     logCartToPol(3, 4);
 	logCartToPol(0, 2);
@@ -68,8 +74,13 @@ test("Vector math: Pos2", function() {
     
     window.console.log("%s", new Polar2(3, 2));
     
-    
-    ok(""+cartToPol(1, 2) == "()");
+    ok(""+vecToPolar(2, 0) == "(0°, 2)", "vecToPolar");
+    ok(""+vecToPolar(0, 2) == "(90°, 2)", "vecToPolar");
+});
+
+
+test("Vector math: Pos2", function() {
+    expect(6);
 
     var p1 = new Pos2(10, 11);
 	ok(p1.x == 10 && p1.y == 11, "Pos2.constructor");
@@ -100,15 +111,29 @@ test("Vector math: Vec2", function() {
 	ok(v1.dx == -3 && v1.dy == -7, "Vec2.rotate");
 });
 
-/*
-timedTest(".click() add10000_deep", function() {
-    $("#dynatree-id-_5").click();
+
+test("Vector math: Matrix3", function() {
+    expect(1);
+    
+    var m = new Matrix3();
+    logMsg("%s", m);
+    m.translate(1, 2);
+    logMsg("%s", m);
 });
 
-test("Load 100 nodes (flat)", function() {
-    var parent  = $("#tree").dynatree("getTree").getNodeByKey("_1");
-//    addNodes(parent, 100, 0, 0)
-    ok( true, "all pass" );
-*/
+
+test("Vector math: Polygon2", function() {
+    expect(1);
+    
+    var pg = new Polygon2([0,0, 1,2, 3,4]);
+    logMsg("PG: %s", pg);
+    logMsg("area: %s", pg.area());
+    var m = rotationMatrix3(0.5 * Math.PI);
+    pg.transform(m);
+    logMsg("PG rotated 90°: %s", pg);
+    pg.revert();
+    logMsg("PG reverted: %s", pg);
+});
+
 /******************************************************************************/
 });

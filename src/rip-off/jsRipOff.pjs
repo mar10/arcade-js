@@ -18,7 +18,7 @@
 
 //var tankList = [  ];
 //var frameCount = 0;
-var game = new Game(this);
+var game = new ArcadeJS(this);
 
 void setup() {
   size(640, 480);

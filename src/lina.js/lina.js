@@ -16,70 +16,6 @@
  * @version 0.0.1
  */
 
-/**
- * Taken from John Resig's http://ejohn.org/blog/simple-javascript-inheritance/
- * Inspired by base2 and Prototype
- */
-(function(){
-  var initializing = false, fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
-
-  // The base Class implementation (does nothing)
-  this.Class = function(){};
- 
-  // Create a new Class that inherits from this class
-  Class.extend = function(prop) {
-    var _super = this.prototype;
-   
-    // Instantiate a base class (but only create the instance,
-    // don't run the init constructor)
-    initializing = true;
-    var prototype = new this();
-    initializing = false;
-   
-    // Copy the properties over onto the new prototype
-    for (var name in prop) {
-      // Check if we're overwriting an existing function
-      prototype[name] = typeof prop[name] == "function" &&
-        typeof _super[name] == "function" && fnTest.test(prop[name]) ?
-        (function(name, fn){
-          return function() {
-            var tmp = this._super;
-           
-            // Add a new ._super() method that is the same method
-            // but on the super-class
-            this._super = _super[name];
-           
-            // The method only need to be bound temporarily, so we
-            // remove it when we're done executing
-            var ret = fn.apply(this, arguments);       
-            this._super = tmp;
-           
-            return ret;
-          };
-        })(name, prop[name]) :
-        prop[name];
-    }
-   
-    // The dummy class constructor
-    function Class() {
-      // All construction is actually done in the init method
-      if ( !initializing && this.init )
-        this.init.apply(this, arguments);
-    }
-   
-    // Populate our constructed prototype object
-    Class.prototype = prototype;
-   
-    // Enforce the constructor to be what we expect
-    Class.constructor = Class;
-
-    // And make this class extendable
-    Class.extend = arguments.callee;
-   
-    return Class;
-  };
-})();
-
 /*******************************************************************************
  * Tools
  */
@@ -186,214 +122,199 @@ function linaCompare(a, b, eps) {
 
 /*****************************************************************************/
 
-var Point2 = Class.extend(
-/** @lends Point2.prototype */
-{
-	/**
-     * Description of constructor.
-     * @class 2D position that has an internal cartesian representation (x/y) 
-     * and support for transformations.
-     * @param {float|Point2|JS-object} x X-coordinate or a Point2 instance or {x:_, y:_}   
-     * @param {float} y Y-coordinate or undefined, if x is a Point2 instance or {x:_, y:_}   
-     * @example 
-     *   var pt1 = new Point2(3, 4);
-     *   pt1.rotate(Math.PI).translate(1, 2);
-     *   var pt2 = new Point2({x:2, y:1});
-     *   var dist = pt1.distanceTo(pt2)
-     * @constructs
-     */
-    init: function(x, y) {
-		this.set(x, y);
-	},
-    /** Return string representation '(x/y)'. */
-    toString: function() {
-        return "(" + this.x + "/" + this.y  + ")";
-    },
-    /** Set coordinates.
-     * @param {float|Point2|JS-object} x X-coordinate or a Point2 instance or {x:_, y:_}   
-     * @param {float} y Y-coordinate or undefined, if x is a Point2 instance or {x:_, y:_}   
-     */
-    set: function(x, y) {
-		if(y === undefined){
-			// Copy from Point2
-	        this.x = +x.x;
-	        this.y = +x.y;
-		} else {
-	        this.x = +x;
-	        this.y = +y;
-		}
-		return this;
-    },
-    /** Return distance from this to pos2. */
-    distanceTo: function(pos2) {
-    	var dx = this.x - pos2.x;
-    	var dy = this.y - pos2.y;
-        return Math.sqrt(dx*dx + dy*dy);
-    },
-    /** Return distance from this to pos2. 
-     * @param {float} a Angle in radians.   
-     * @param {Point2} pt (optional) center of rotation, if not (0/0).   
-     */
-    rotate: function(a, pt) {
-    	if(pt === undefined){
-    		// rotate about 0/0
-    	}else {
-    		throw "not implemented";
-    	}
-    	return this;
-    },
-    /** Translate point (in-place) and return this instance. 
-     * @param {float|Vec2} dx x-offset or offset vector
-     * @param {float|ubdefined} dy y-offset (omit this parameter, if x is a Vec2)
-     */
-    translate: function(dx, dy) {
-    	if(dy === undefined){
-    		this.x += dx.dx; 
-    		this.y += dx.dy; 
-    	}else{
-    		this.x += dx; 
-    		this.y += dy; 
-    	}
-    },
-    // --- end of class
-    lastentry: undefined
-});
-
-
-/*****************************************************************************/
-
-var Vec2 = Class.extend(
-/** @lends Vec2.prototype */
-{
-	/**
-     * Description of constructor.
-     * @class 2D vector that has an internal cartesian representation (dx/dy) 
-     * and support for transformations.
-     * @example 
-     *   var v = new Vec2(3, 4);
-     *   v.rotate(Math.PI).translate(1, 2);
-     * @constructs
-     */
-    init: function(dx, dy) {
-		this.set(dx, dy);
-    },
-    /** Return string representation '(dx, dy)'. */
-    toString: function() {
-        return "(" + this.dx + ", " + this.dy  + ")";
-    },
-    set: function(dx, dy) {
-		if(dy === undefined){
-			if(dx.a !== undefined){
-				// Copy from Polar2
-				this.dx = dx.r * Math.cos(dx.a);
-    		    this.dy = dx.r * Math.sin(dx.a);
-			}else{
-				// Copy from Vec2
-		        this.dx = +dx.dx;
-		        this.dy = +dx.dy;
-			}
-		} else {
-	        this.dx = +dx;
-	        this.dy = +dy;
-		}
-		return this;
-    },
-    rotate: function(a) {
-    	var s = Math.sin(a), c = Math.cos(a);
-    	this.dx = this.dx * c - this.dy * s;
-    	this.dy = this.dy * c + this.dx * s;
-    },
-    normalize: function() {
-    	// Convert to unit vector.
-    	var l = this.length();
-    	if(l) {
-    		this.dx /= l;
-    		this.dy /= l;
-    	}
-    },
-    length: function() {
-    	try {
-			return Math.sqrt(this.dx * this.dx + this.dy * this.dy);
-		} catch (e) {
-			return 0;
-		}
-    },
-    scale: function(f) {
-		this.dx *= f;
-		this.dy *= f;
-    },
-    setLength: function(l) {
-    	this.scale(l / this.length());
-    },
-    getPolar: function() {
-    	// Return {a:rad, r:length}
+/**
+ * Creates a new Point2 object.
+ * Point in 2D space that has an internal cartesian representation (x/y) 
+ * and support for transformations.
+ * @constructor
+ * @param {float|Point2|JS-object} x X-coordinate or a Point2 instance or {x:_, y:_}   
+ * @param {float} y Y-coordinate or undefined, if x is a Point2 instance or {x:_, y:_}   
+ * @example 
+ *   var pt1 = new Point2(3, 4);
+ *   pt1.rotate(Math.PI).translate(1, 2);
+ *   var pt2 = new Point2({x:2, y:1});
+ *   var dist = pt1.distanceTo(pt2)
+ * 
+ */
+Point2 = function(x, y){
+	this.set(x, y);
+}
+/** Return string representation '(x/y)'. */
+Point2.prototype.toString = function() {
+    return "(" + this.x + "/" + this.y  + ")";
+}
+/** Set coordinates.
+ * @param {float|Point2|JS-object} x X-coordinate or a Point2 instance or {x:_, y:_}   
+ * @param {float} y Y-coordinate or undefined, if x is a Point2 instance or {x:_, y:_}   
+ */
+Point2.prototype.set = function(x, y) {
+	if(y === undefined){
+		// Copy from Point2
+        this.x = +x.x;
+        this.y = +x.y;
+	} else {
+        this.x = +x;
+        this.y = +y;
+	}
+	return this;
+}
+/** Return distance from this to pos2. */
+Point2.prototype.distanceTo = function(pos2) {
+	var dx = this.x - pos2.x;
+	var dy = this.y - pos2.y;
+    return Math.sqrt(dx*dx + dy*dy);
+},
+/** Return distance from this to pos2. 
+ * @param {float} a Angle in radians.   
+ * @param {Point2} pt (optional) center of rotation, if not (0/0).   
+ */
+Point2.prototype.rotate = function(a, pt) {
+	if(pt === undefined){
+		// rotate about 0/0
+	}else {
 		throw "not implemented";
-    },
-    // --- end of class
-    lastentry: undefined
-});
+	}
+	return this;
+}
+/** Translate point (in-place) and return this instance. 
+ * @param {float|Vec2} dx x-offset or offset vector
+ * @param {float|ubdefined} dy y-offset (omit this parameter, if x is a Vec2)
+ */
+Point2.prototype.translate = function(dx, dy) {
+	if(dy === undefined){
+		this.x += dx.dx; 
+		this.y += dx.dy; 
+	}else{
+		this.x += dx; 
+		this.y += dy; 
+	}
+}
 
-/******************************************************************************/
 
-var Polar2 = Class.extend(
-/** @lends Polar2.prototype */
-{
-	/**
-     * Create a new vector in polar coordinates.
-     * @class 2d vector that has an internal polar coordinate representation:
+/**
+ * 2D vector that has an internal cartesian representation (dx, dy) 
+ * and support for transformations.
+ * @constructor
+ * @param {float|Vec2|JS-object} dx X-coordinate or a Vec2 instance or {dx:_, dy:_}   
+ * @param {float} dy Y-coordinate or undefined, if x is a Vec2 instance or {dx:_, dy:_}   
+ * @example 
+ *   var v = new Vec2(3, 4);
+ *   v.rotate(Math.PI).translate(1, 2);
+ * 
+ */
+Vec2 = function(dx, dy){
+	this.set(dx, dy);
+}
+/** Return string representation '(dx, dy)'. */
+Vec2.prototype.toString = function() {
+    return "(" + this.dx + ", " + this.dy  + ")";
+}
+Vec2.prototype.set = function(dx, dy) {
+	if(dy === undefined){
+		if(dx.a !== undefined){
+			// Copy from Polar2
+			this.dx = dx.r * Math.cos(dx.a);
+		    this.dy = dx.r * Math.sin(dx.a);
+		}else{
+			// Copy from Vec2
+	        this.dx = +dx.dx;
+	        this.dy = +dx.dy;
+		}
+	} else {
+        this.dx = +dx;
+        this.dy = +dy;
+	}
+	return this;
+}
+Vec2.prototype.rotate = function(a) {
+	var s = Math.sin(a), c = Math.cos(a);
+	this.dx = this.dx * c - this.dy * s;
+	this.dy = this.dy * c + this.dx * s;
+}
+Vec2.prototype.normalize = function() {
+	// Convert to unit vector.
+	var l = this.length();
+	if(l) {
+		this.dx /= l;
+		this.dy /= l;
+	}
+}
+Vec2.prototype.length = function() {
+	try {
+		return Math.sqrt(this.dx * this.dx + this.dy * this.dy);
+	} catch (e) {
+		return 0;
+	}
+}
+Vec2.prototype.scale = function(f) {
+	this.dx *= f;
+	this.dy *= f;
+}
+Vec2.prototype.setLength = function(l) {
+	this.scale(l / this.length());
+}
+Vec2.prototype.getPolar = function() {
+	// Return {a:rad, r:length}
+	throw "not implemented";
+}
+
+/**
+ * 2d vector that has an internal polar coordinate representation:
      * `a`: angle in radians
      * `r`: distance 
      * and support for transformations.
-     * @constructs
+ * @constructor
      * @param {radians|Polar2|JS-object} a
      * @param {distance|undefined} r
-     */
-    init: function(a, r) {
-		this.set(a, r);
-    },
-    /** Return string representation '(a=_°, r=_)'. */
-    toString: function() {
-        return "(a=" + RAD_TO_DEGREE*this.a + "°, r=" + this.r  + ")";
-    },
-    set: function(a, r) {
-		if(r === undefined){
-			if(a.a !== undefined){
-				// Copy from Polar2
-		        this.a = +a.a;
-		        this.r = +a.r;
-			}else{
-				// Copy from Vec2
-				this.a = Math.atan2(a.dy, a.dx);
-		    	this.r = Math.sqrt(a.dx * a.dx + a.dy * a.dy);
-			}
-		} else {
-	        this.a = +a;
-	        this.r = +r;
+ * @example 
+ *   var v = new Polar2(Math.PI, 2);
+ *   v.rotate(0.5*Math.PI).translate(1, 2);
+ * 
+ */
+Polar2 = function(a, r){
+	this.set(a, r);
+}
+
+/** Return string representation '(a=_°, r=_)'. */
+Polar2.prototype.toString = function() {
+    return "(a=" + RAD_TO_DEGREE*this.a + "°, r=" + this.r  + ")";
+}
+Polar2.prototype.set = function(a, r) {
+	if(r === undefined){
+		if(a.a !== undefined){
+			// Copy from Polar2
+	        this.a = +a.a;
+	        this.r = +a.r;
+		}else{
+			// Copy from Vec2
+			this.a = Math.atan2(a.dy, a.dx);
+	    	this.r = Math.sqrt(a.dx * a.dx + a.dy * a.dy);
 		}
-		if( r === 0.0 )
-			throw "invalid argument";
-		return this;
-    },
-    getCartesian: function() {
-    	// Return {x:.., y:..}
-    	return {x: this.r * Math.cos(a),
-    		    y: this.r * Math.sin(a) };
-    },
-    rotate: function(a) {
-		this.a += a;
-    },
-    normalize: function() {
-		this.r = 1;
-    },
-    scale: function(f) {
-		this.r *= 1;
-    },
-    setLength: function(l) {
-		this.r = l;
-    },
-    // --- end of class
-    lastentry: undefined
-});
+	} else {
+        this.a = +a;
+        this.r = +r;
+	}
+	if( r === 0.0 )
+		throw "invalid argument";
+	return this;
+}
+Polar2.prototype.getCartesian = function() {
+	// Return {x:.., y:..}
+	return {x: this.r * Math.cos(a),
+		    y: this.r * Math.sin(a) };
+}
+Polar2.prototype.rotate = function(a) {
+	this.a += a;
+}
+Polar2.prototype.normalize = function() {
+	this.r = 1;
+}
+Polar2.prototype.scale = function(f) {
+	this.r *= 1;
+}
+Polar2.prototype.setLength = function(l) {
+	this.r = l;
+}
 
 /*******************************************************************************
  * Class Matrix3
@@ -543,11 +464,7 @@ Matrix3.prototype.mult = function(mb) {
 }
 /** Return transformed x and y as JS-object {x:x', y:y'}.*/
 Matrix3.prototype.transformXY = function(x, y) {
-	/*
-	 * TODO: optimize
-	 * TODO: this assumes last col is [0,0,1]
-	 * See Newman, p.64
-	 */
+	//TODO: this assumes last col is [0,0,1]
 	var m = this.m;
     return {
     	x: m[0]*x + m[3]*y + m[6],

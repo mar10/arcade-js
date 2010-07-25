@@ -55,11 +55,11 @@ function logMsg(){
  */
 module("Vector math");
 
-test("Vector math: tools", function() {
+test("basic", function() {
     expect(2);
 
-    ok(""+vecToPolar(2, 0) == "(0°, 2)", "vecToPolar");
-    ok(""+vecToPolar(0, 2) == "(90°, 2)", "vecToPolar");
+	var game = new ArcadeJS();
+    ok(game.fps == 15, "Construct ArcadeJS");
 });
 
 

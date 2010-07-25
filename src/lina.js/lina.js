@@ -1,8 +1,19 @@
 /**
- * @fileOverview 2d vector math helpers.
- * @author <a href="mailto:moogle17@wwwendt.de">Martin Wendt</a>
+ * lina.js
+ * Copyright (c) 2010,  Martin Wendt (http://wwWendt.de)
+ * 
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://code.google.com/p/arcade-js/wiki/LicenseInfo
+ *
+ * A current version and some documentation is available at
+ *     http://arcade-js.googlecode.com/
+ * 
+ * @fileOverview An independent object oriented library for points, vectors, 
+ * and homogeneous transformations in 2D space.
+ * A polygon class helps with collision detection and hit testing.
+ * 
+ * @author Martin Wendt
  * @version 0.0.1
- * Vector math helpers
  */
 
 /**
@@ -69,7 +80,6 @@
   };
 })();
 
-
 /*******************************************************************************
  * Tools
  */
@@ -124,22 +134,71 @@ function distancePtSegment(pt, ptA, ptB) {
     return 0;
 }
 
+/** Return true, if lina.js objects a and b are the same (within eps).
+ * This function is not optimized for speed, but handy for unit tests.
+ * @param a {float|Point2|Vec2|Matrix3,JS-Object,...}  
+ * @param b must have the same type as a  
+ * @param eps {float} Maximum accepted difference, defaults to 0.00001
+ */
+
+function linaCompare(a, b, eps) {
+	var eps = eps === undefined ? 1e-6 : eps;
+	if( a === undefined || b === undefined ){
+		// undefined is equal to nothing! 
+		return false;
+	} else if( a.m !== undefined || b.m !== undefined){
+		// Matrix3 (also allow comparison to an array)
+		a = a.m || a;
+		b = b.m || b;
+		return linaCompare(a, b, eps);
+	} else if( a.xyList !== undefined || b.xyList !== undefined){
+		// Polygon2 (also allow comparison to an array)
+		a = a.xyList || a;
+		b = b.xyList || b;
+		return linaCompare(a, b, eps);
+	} else if( typeof a !== typeof b ){
+			return false;
+	} else if( typeof a === "string" ){
+		return a === b;
+	} else if( typeof a === "number" ){
+		return Math.abs(a-b) <= eps;
+	} else if( a && a.constructor === Array ){
+		if( a.length !== b.length)
+			return false;
+		for(var i=0; i<a.length; i++)
+			if(!linaCompare(a[i], b[i], eps))
+				return false;
+	} else if( a.x !== undefined ){
+		return linaCompare(a.x, b.x, eps) && linaCompare(a.y, b.y, eps);
+	} else if( a.dx !== undefined ){
+		return linaCompare(a.dx, b.dx, eps) && linaCompare(a.dy, b.dy, eps);
+	} else if( a.a !== undefined ){
+		return linaCompare(a.a, b.a, eps) && linaCompare(a.r, b.r, eps);
+	} else if( a.xyList !== undefined ){
+		// Polygon2
+		return linaCompare(a.xyList, b.xyList, eps);
+	} else {
+		alert("linaCompare: unsupported types\n  " + a + "("+(typeof a)+"),\n  " + b+ "("+(typeof b)+")");
+	}
+    return true;
+}
+
 
 /*****************************************************************************/
 
-var Pos2 = Class.extend(
-/** @lends Pos2.prototype */
+var Point2 = Class.extend(
+/** @lends Point2.prototype */
 {
 	/**
      * Description of constructor.
      * @class 2D position that has an internal cartesian representation (x/y) 
      * and support for transformations.
-     * @param {float|Pos2|JS-object} x X-coordinate or a Pos2 instance or {x:_, y:_}   
-     * @param {float} y Y-coordinate or undefined, if x is a Pos2 instance or {x:_, y:_}   
+     * @param {float|Point2|JS-object} x X-coordinate or a Point2 instance or {x:_, y:_}   
+     * @param {float} y Y-coordinate or undefined, if x is a Point2 instance or {x:_, y:_}   
      * @example 
-     *   var pt1 = new Pos2(3, 4);
+     *   var pt1 = new Point2(3, 4);
      *   pt1.rotate(Math.PI).translate(1, 2);
-     *   var pt2 = new Pos2({x:2, y:1});
+     *   var pt2 = new Point2({x:2, y:1});
      *   var dist = pt1.distanceTo(pt2)
      * @constructs
      */
@@ -151,12 +210,12 @@ var Pos2 = Class.extend(
         return "(" + this.x + "/" + this.y  + ")";
     },
     /** Set coordinates.
-     * @param {float|Pos2|JS-object} x X-coordinate or a Pos2 instance or {x:_, y:_}   
-     * @param {float} y Y-coordinate or undefined, if x is a Pos2 instance or {x:_, y:_}   
+     * @param {float|Point2|JS-object} x X-coordinate or a Point2 instance or {x:_, y:_}   
+     * @param {float} y Y-coordinate or undefined, if x is a Point2 instance or {x:_, y:_}   
      */
     set: function(x, y) {
 		if(y === undefined){
-			// Copy from Pos2
+			// Copy from Point2
 	        this.x = +x.x;
 	        this.y = +x.y;
 		} else {
@@ -173,7 +232,7 @@ var Pos2 = Class.extend(
     },
     /** Return distance from this to pos2. 
      * @param {float} a Angle in radians.   
-     * @param {Pos2} pt (optional) center of rotation, if not (0/0).   
+     * @param {Point2} pt (optional) center of rotation, if not (0/0).   
      */
     rotate: function(a, pt) {
     	if(pt === undefined){
@@ -350,17 +409,23 @@ function identityMatrix3(a) {
 function rotationMatrix3(a) {
 	var s = Math.sin(a);
 	var c = Math.cos(a);
-	return new Matrix3([c, -s, 0, s, c, 0, 0, 0, 1]);
+	return new Matrix3([ c, s, 0, 
+	                    -s, c, 0, 
+	                     0, 0, 1]);
 }
 /** Return a new Matrix3 that represents a translation. */
 function translationMatrix3(dx, dy) {
-	return new Matrix3([1, 0, dx, 0, 1, dy, 0, 0, 1]);
+	return new Matrix3([ 1,  0, 0, 
+	                     0,  1, 0, 
+	                    dx, dy, 1]);
 }
 /** Return a new Matrix3 that represents a scaling about (0/0). */
 function scaleMatrix3(fx, fy) {
 	if(fy === undefined)
 		fy = +fx;
-	return new Matrix3([fx, 0, 0, 0, fy, 0, 0, 0, 1]);
+	return new Matrix3([fx,  0, 0, 
+	                     0, fy, 0, 
+	                     0,  0, 1]);
 }
 
 
@@ -368,6 +433,24 @@ function scaleMatrix3(fx, fy) {
  * Creates a new 3x3 matrix for transforming in 2d space.
  * @constructor
  * @param {undefined|Matrix3|float[9]} m
+ * 
+ * Translation:
+ * @example
+ * [1  0  0,
+ *  0  1  0,
+ *  Tx Ty 1]
+ *  
+ * Scale:
+ * @example
+ * [Sx 0  0,
+ *  0  Sy 0,
+ *  0  0  1]
+ *  
+ * Rotation:
+ * @example
+ * [ c  s 0,
+ *  -s  c 0,
+ *   0  0 1]
  */
 Matrix3 = function(m){
 	this.set(m);
@@ -394,29 +477,105 @@ Matrix3.prototype.copy = function() {
 }
 /** Apply translation (in-place) and return this instance.*/
 Matrix3.prototype.translate = function(dx, dy) {
-    this.m[2] += dx;
-    this.m[5] += dy;
+	/* TODO: optimize 
+	 * for last column = [0, 0, 1] this simplifies to 
+	 *   this.m[6] += dx;
+	 *   this.m[7] += dy;
+	 */
+	var m = this.m;
+	m[0] += dx*m[2];    m[1] += dy*m[2];
+	m[3] += dx*m[5];    m[4] += dy*m[5];
+	m[6] += dx*m[8];    m[7] += dy*m[8];
     return this;
 }
 /** Apply scaling (in-place) and return this instance.*/
 Matrix3.prototype.scale = function(fx, fy) {
 	if(fy === undefined)
 		fy = +fx;
-    this.m[0] *= fx;
-    this.m[4] *= fy;
+	var m = this.m;
+    m[0] *= fx;    m[1] *= y;
+    m[3] *= fx;    m[4] *= y;
+    m[6] *= fx;    m[7] *= y;
     return this;
 }
 /** Apply rotation (in-place) and return this instance.*/
 Matrix3.prototype.rotate = function(a, pt) {
-	// TODO
-    return this;
+	if( pt === undefined ){
+//		return this.mult(rotationMatrix3(a));
+		var c = Math.cos(a);
+		var s = Math.sin(a);
+		var m = this.m;
+		var t = m.slice(0, 9); // Temporary copy
+		m[0] = c*t[0] - s*t[1];    m[1] = s*t[0] + c*t[1];
+		m[3] = c*t[3] - s*t[4];    m[4] = s*t[3] + c*t[4];
+		m[6] = c*t[6] - s*t[7];    m[7] = s*t[6] + c*t[7];
+		return this;
+	}else{
+		return this.translate(-pt.x, -pt.y)
+			.rotate(a)
+			.translate(pt.x, pt.y);
+	}
 }
 /** Apply transformation (in-place) and return this instance.*/
-Matrix3.prototype.mult = function(m) {
-    this.m[0] *= dx;
-    this.m[4] *= dy;
+Matrix3.prototype.mult = function(mb) {
+	/* TODO: optimize 
+	 * http://www.euclideanspace.com/maths/algebra/matrix/resources/code/index.htm#mul3
+	 * Newman, p.62ff
+	 * 
+	 */
+	var ma = this.m;
+	var mb = mb.length ? mb : mb.m;
+	var mc = [0,0,0, 0,0,0, 0,0,0];
+//	alert(ma+"\n*"+mb);
+	for(var row=0; row<3; row++) {
+		for(var col=0; col<3; col++) {
+			var c = 3*row + col;
+			for(var i=0; i<3; i++) {
+				var a = 3*row + i;
+				var b = 3*i + col;
+				mc[c] += ma[a] * mb[b];   
+			}
+		}
+	}
+//	alert(ma+"\n*"+mb+"\n="+mc);
+	this.set(mc);
     return this;
 }
+/** Return transformed x and y as JS-object {x:x', y:y'}.*/
+Matrix3.prototype.transformXY = function(x, y) {
+	/*
+	 * TODO: optimize
+	 * TODO: this assumes last col is [0,0,1]
+	 * See Newman, p.64
+	 */
+	var m = this.m;
+    return {
+    	x: m[0]*x + m[3]*y + m[6],
+    	y: m[1]*x + m[4]*y + m[7]
+    };
+}
+/** Transpose (in-place) and return this instance.*/
+Matrix3.prototype.transpose = function() {
+	var m = this.m, t;
+	t = m[1]; m[1] = m[3]; m[3] = t;
+	t = m[2]; m[2] = m[6]; m[6] = t;
+	t = m[5]; m[5] = m[7]; m[7] = t;
+    return this;
+}
+/** Invert (in-place) and return this instance.*/
+Matrix3.prototype.invert = function() {
+	// TODO
+	alert("Not implemented: Matrix3.invert()");
+    return this;
+}
+/** Calculate the determinant.*/
+Matrix3.prototype.det = function() {
+	// TODO
+	alert("Not implemented: Matrix3.det()");
+    return 0;
+}
+
+
 
 
 /**
@@ -449,46 +608,76 @@ Polygon2.prototype.copy = function() {
 }
 /** Apply transformation matrix (in-place) and return this instance.*/
 Polygon2.prototype.transform = function(m) {
-	// TODO:
+	var xy = this.xyList; 
+	for(var i=0; i<xy.length; i+=2){
+		pt2 = m.transformXY(xy[i], xy[i+1]);
+		xy[i] = pt2.x;
+		xy[i+1] = pt2.y;
+	}
     return this;
 }
 /** Revert vertex list (in-place) and return this instance.*/
 Polygon2.prototype.revert = function() {
-	// TODO:
+	var xy = this.xyList, t;
+	var len = xy.length;
+	for(var i=0; i<(len-1)/2; i+=2){
+		var j = len - i - 2;
+		t = xy[i]; xy[i] = xy[j]; xy[j] = t;
+		t = xy[i+1]; xy[i+1] = xy[j+1]; xy[j+1] = t;
+	}
     return this;
 }
 /** Check, if pt is inside this polygon.*/
 Polygon2.prototype.isInside = function(pt) {
 	// TODO:
+	alert("Not implemented: Polygon2.isInside()");
     return false;
 }
 /** Check, if this polygon intersects with another polygon.*/
 Polygon2.prototype.intersects = function(polygon) {
 	// TODO:
+	alert("Not implemented: Polygon2.intersects()");
     return false;
 }
 /** Check, if line segment pt1, pt2 is inside this polygon.*/
 Polygon2.prototype.segmentIntersects = function (pt1, pt2) {
 	// TODO: Gems II, 1.2 and page 473
+	alert("Not implemented: Polygon2.segmentIntersects()");
     return false;
 }
 /** Check, pos is inside this polygon.*/
 Polygon2.prototype.area = function() {
 	// TODO: Gems II, 1.1
+	alert("Not implemented: Polygon2.area()");
     return 0;
 }
 /** Check, if this polygon has a counterclocwise vertex order.*/
 Polygon2.prototype.isCCW = function() {
 	// TODO:
+	alert("Not implemented: Polygon2.isCCW()");
     return 0;
 }
 /** Return the smallest bounding circle as {center: {x:_,y:_}, r:_}.*/
 Polygon2.prototype.getBoundingCircle = function() {
 	// TODO: Gems II, 1.4
+	alert("Not implemented: Polygon2.getBoundingCircle()");
     return 0;
 }
 /** Return the bounding box as {min: {x:_,y:_}, max: {x:_,y:_}}.*/
 Polygon2.prototype.getBoundingBox = function() {
 	// TODO: 
+	alert("Not implemented: Polygon2.getBoundingBox()");
     return 0;
+}
+/** Return a new polygon that connects the extreme points of this polygon.*/
+Polygon2.prototype.getBoundingPolygon = function() {
+	// TODO: 
+	alert("Not implemented: Polygon2.getBoundingPolygon()");
+    return null;
+}
+/** Return a new polygon that draws along the outer lines of this polygon.*/
+Polygon2.prototype.getShapePolygon = function() {
+	// TODO: 
+	alert("Not implemented: Polygon2.getBoundingPolygon()");
+    return null;
 }

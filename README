@@ -17,10 +17,16 @@
   
   Part of the distribution is
   
-  - 2d game engine
-  - trigs library
+  - lina.js
+    An independent object oriented library for points, vectors, and homogeneous 
+    transformations in 2D space.
+    A polygon class helps with collision detection and hit testing.
+  - arcade.js
+    A 2D game engine that provides a render loop and support for multiple
+    moving objects. 
   - Rip-off clone
-    A port of the Rip-Off arcade game by Tim Skelly / Cinematronix in 1980.
+    A port of the Rip-Off arcade game written by Tim Skelly / Cinematronix in 
+    1980.
 
 Rip-off
 =======

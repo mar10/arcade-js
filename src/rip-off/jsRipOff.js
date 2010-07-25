@@ -63,7 +63,7 @@ var Tank = Movable.extend({
     },
     fire: function() {
     	var aim = polarToVec(this.orientation - 0.5 * Math.PI, 10);
-    	var bullet = new Bullet(new Pos2(this.pos), aim, 100);
+    	var bullet = new Bullet(new Point2(this.pos), aim, 100);
     	this.game.addObject(bullet);
     },
     // --- end of class

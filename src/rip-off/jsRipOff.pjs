@@ -23,7 +23,9 @@ var game = new ArcadeJS(this);
 void setup() {
   size(640, 480);
   
-  frameRate(100);
+  var fps = 100;
+  frameRate(fps);
+  game.fps = fps;
 
   var tank = new Tank("1", new Pos2(100, 100), 0, new Vec2(0, 0));
   game.addObject(tank);
@@ -54,5 +56,5 @@ void draw()
 	game.step(this);
 	game.draw(this);
 
-	$("#frames").html("Frame #" + frameCount + ", FpS: " + game.realFps + " (want: " + frameRate + ")");
+	$("#frames").html("Frame #" + frameCount + ", FpS: " + game.realFps + " (want: " + game.fps + ")");
 }

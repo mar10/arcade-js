@@ -203,7 +203,7 @@ var Movable = Class.extend(
         this.ttl = -1;
     },
     toString: function() {
-        return "Movable '" + this.id + "' " + this.pos + ", " + RAD_TO_DEGREE * this.orientation + "°";
+        return "Movable '" + this.id + "' " + this.pos + ", " + LinaJS.DEG_TO_RAD * this.orientation + "°";
     },
     draw: function(p) {
     	if( this.hidden ) {

@@ -18,7 +18,9 @@ var Bullet = Movable.extend({
         return "Bullet(" + this.id + ")";
     },
     render: function(p) {
-    	p.point(0, 0);
+//    	p.point(0, 0);
+    	var v
+    	p.line(this.move.dx,this.move.dy, 0,0);
     },
     getBoundingRadius: function() {
     	return 0.1;
@@ -63,8 +65,45 @@ var Tank = Movable.extend({
     },
     fire: function() {
     	var aim = polarToVec(this.orientation - 0.5 * Math.PI, 10);
-    	var bullet = new Bullet(new Point2(this.pos), aim, 100);
+    	var bullet = new Bullet(new Point2(this.pos), aim, 50);
     	this.game.addObject(bullet);
+    },
+    // --- end of class
+    lastentry: undefined
+});
+
+/*******************************************************************************
+ * Class Asteroid
+ */
+var Asteroid = Movable.extend({
+    init: function(id, pos, orientation, move) {
+        this._super("asteroid", id, pos, orientation, move);
+        this.pg = new Polygon2([4, 0,
+                                2.5, 1.5,
+                                1.5, 3.5,
+                                -1.5, 2.5,
+                                -4, 0,
+                                -1.5, -3.5,
+                                2, -3.5,
+                                4, 0]);
+        this.pg.transform(scaleMatrix3(8, -8));
+    },
+    step: function(p) {
+		this._super(p);
+		this.pos.x = (p.width + this.pos.x) % p.width; 
+		this.pos.y = (p.height + this.pos.y) % p.height;
+    },
+    render: function(p) {
+		p.noFill();
+		p.stroke(255, 255, 255);
+
+		p.beginShape();
+		for(var i=0; i<this.pg.xyList.length; i+=2)
+			p.vertex(this.pg.xyList[i], this.pg.xyList[i+1]);
+		p.endShape(p.CLOSE);
+    },
+    getBoundingRadius: function() {
+    	return 8;
     },
     // --- end of class
     lastentry: undefined

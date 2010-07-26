@@ -1,5 +1,6 @@
 /**
  * lina.js
+
  * Copyright (c) 2010,  Martin Wendt (http://wwWendt.de)
  * 
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -19,10 +20,29 @@
 /*******************************************************************************
  * Tools
  */
-/** @constant */
-var RAD_TO_DEGREE = 180.0 / Math.PI;
-/** @constant */
-var DEGREE_TO_RAD = Math.PI / 180.0;
+
+/**
+ * @namespace Namespace for global constants and functions.
+*/
+LinaJS = {
+}
+
+/** Factor that converts radians to degree. 
+ * @constant 
+ */
+LinaJS.RAD_TO_DEG = 180.0 / Math.PI;
+/** Factor that converts degree to radians. 
+ * @constant 
+ */
+LinaJS.DEG_TO_RAD = Math.PI / 180.0;
+/** Default epsilon value use in some comparisons.
+ * @constant 
+ */
+LinaJS.EPS = 1e-5;
+/** Squared LinaJS.EPS.
+ * @constant 
+ */
+LinaJS.EPS_SQUARED = LinaJS.EPS * LinaJS.EPS;
 
 /** Return polar coordinates {a:_, r:_} for a cartesian vector or point. */
 function vecToPolar(x, y) {
@@ -78,7 +98,7 @@ function distancePtSegment(pt, ptA, ptB) {
  */
 
 function linaCompare(a, b, eps) {
-	var eps = eps === undefined ? 1e-6 : eps;
+	var eps = eps === undefined ? LinaJS.EPS : eps;
 	if( a === undefined || b === undefined ){
 		// undefined is equal to nothing! 
 		return false;
@@ -123,9 +143,9 @@ function linaCompare(a, b, eps) {
 /*****************************************************************************/
 
 /**
- * Creates a new Point2 object.
  * Point in 2D space that has an internal cartesian representation (x/y) 
  * and support for transformations.
+ * When applying transformations, a point is handled as [x, y, 1]. 
  * @constructor
  * @param {float|Point2|JS-object} x X-coordinate or a Point2 instance or {x:_, y:_}   
  * @param {float} y Y-coordinate or undefined, if x is a Point2 instance or {x:_, y:_}   
@@ -158,27 +178,54 @@ Point2.prototype.set = function(x, y) {
 	}
 	return this;
 }
-/** Return distance from this to pos2. */
-Point2.prototype.distanceTo = function(pos2) {
-	var dx = this.x - pos2.x;
-	var dy = this.y - pos2.y;
+/** Return distance from this to pt2. . 
+ * @param {Point2|JS-Object} pt2 Second point.   
+ * @returns {float}   
+ */
+Point2.prototype.distanceToPt = function(pt2) {
+	var dx = this.x - pt2.x;
+	var dy = this.y - pt2.y;
     return Math.sqrt(dx*dx + dy*dy);
 },
-/** Return distance from this to pos2. 
+/** Return squared distance from this to pt2. . 
+ * @param {Point2|JS-Object} pt2 Second point.   
+ * @returns {float}   
+ */
+Point2.prototype.sqrDistanceToPt = function(pt2) {
+	var dx = this.x - pt2.x;
+	var dy = this.y - pt2.y;
+    return dx*dx + dy*dy;
+},
+/** Check if pt2 is (aproximately) equal to this. 
+ * @param {Point2|JS-Object} pt2 Second point.   
+ * @param {float} eps (optional) accepted maximum distance.   
+ * @returns {boolean}   
+ */
+Point2.prototype.isEqual = function(pt2, eps) {
+	eps = ( eps === undefined ) ? LinaJS.EPS_SQUARED : eps * eps;
+    return this.sqrDistanceToPt(pt2) <= eps;
+},
+/** Rotate this point (in-place) and return this instance. 
  * @param {float} a Angle in radians.   
- * @param {Point2} pt (optional) center of rotation, if not (0/0).   
+ * @param {Point2} pt (optional) center of rotation, defaults to (0/0).   
  */
 Point2.prototype.rotate = function(a, pt) {
+	var c = Math.cos(a);
+	var s = Math.sin(a);
+	var prevX = this.x;
 	if(pt === undefined){
 		// rotate about 0/0
+    	this.x = c*prevX - s*this.y;
+    	this.y = s*prevX + c*this.y;
 	}else {
+		// TODO
 		throw "not implemented";
 	}
 	return this;
 }
 /** Translate point (in-place) and return this instance. 
  * @param {float|Vec2} dx x-offset or offset vector
- * @param {float|ubdefined} dy y-offset (omit this parameter, if x is a Vec2)
+ * @param {float|undefined} dy y-offset (omit this parameter, if x is a Vec2)
  */
 Point2.prototype.translate = function(dx, dy) {
 	if(dy === undefined){
@@ -194,6 +241,7 @@ Point2.prototype.translate = function(dx, dy) {
 /**
  * 2D vector that has an internal cartesian representation (dx, dy) 
  * and support for transformations.
+ * When applying transformations, a vector is handled as [dx, dy, 0]. 
  * @constructor
  * @param {float|Vec2|JS-object} dx X-coordinate or a Vec2 instance or {dx:_, dy:_}   
  * @param {float} dy Y-coordinate or undefined, if x is a Vec2 instance or {dx:_, dy:_}   
@@ -209,6 +257,11 @@ Vec2 = function(dx, dy){
 Vec2.prototype.toString = function() {
     return "(" + this.dx + ", " + this.dy  + ")";
 }
+/** Set coordinates.
+ * @param {float|Vec2|JS-object} dx X-coordinate or a Vec2 instance or {dx:_, dy:_}   
+ * @param {float} dy Y-coordinate or undefined, if y is a Vec2 instance or {dx:_, dy:_}   
+ * @returns {Vec2}   
+ */
 Vec2.prototype.set = function(dx, dy) {
 	if(dy === undefined){
 		if(dx.a !== undefined){
@@ -226,11 +279,25 @@ Vec2.prototype.set = function(dx, dy) {
 	}
 	return this;
 }
+/** Rotate this vector (in-place) and return this instance. 
+ * @param {float} a Angle in radians.   
+ * @returns {Vec2}   
+ */
 Vec2.prototype.rotate = function(a) {
 	var s = Math.sin(a), c = Math.cos(a);
 	this.dx = this.dx * c - this.dy * s;
 	this.dy = this.dy * c + this.dx * s;
+	return this;
 }
+/** Return a new copy of this vector. 
+ * @returns {Vec2}   
+ */
+Vec2.prototype.copy = function() {
+	return new Vec2(this.dx, this.dy);
+}
+/** Normalize this vector (in-place) and return this instance. 
+ * @returns {Vec2}   
+ */
 Vec2.prototype.normalize = function() {
 	// Convert to unit vector.
 	var l = this.length();
@@ -238,7 +305,18 @@ Vec2.prototype.normalize = function() {
 		this.dx /= l;
 		this.dy /= l;
 	}
+	return this;
 }
+/** Return vector length ^2.
+ * This is faster than calling length(). 
+ * @returns {float}   
+ */
+Vec2.prototype.sqrLength = function() {
+	return this.dx * this.dx + this.dy * this.dy;
+}
+/** Return vector length.
+ * @returns {float}   
+ */
 Vec2.prototype.length = function() {
 	try {
 		return Math.sqrt(this.dx * this.dx + this.dy * this.dy);
@@ -246,16 +324,56 @@ Vec2.prototype.length = function() {
 		return 0;
 	}
 }
+/** Multiply vector length by a factor (in-place) and return this instance.
+ * @param {float} f Scaling factor.   
+ * @returns {Vec2}   
+ */
 Vec2.prototype.scale = function(f) {
 	this.dx *= f;
 	this.dy *= f;
+	return this;
 }
+/** Set vector length (in-place) and return this instance.
+ * @param {float} l New length.
+ * @returns {Vec2}   
+ */
 Vec2.prototype.setLength = function(l) {
 	this.scale(l / this.length());
+	return this;
 }
+/** Return polar coordinates for this vector.
+ * @returns {JS-Object} {a:angle in rad, r: radius}.   
+ */
 Vec2.prototype.getPolar = function() {
-	// Return {a:rad, r:length}
-	throw "not implemented";
+	// TODO
+	alert("Not implemented: Vec2.getPolar()");
+}
+/** Set vector orientation to perpendicular of itself (in-place) and return this 
+ * instance.
+ * This is equivalent to a rotation by 90°, only faster.
+ * @returns {Vec2}   
+ */
+Vec2.prototype.perp = function() {
+	var t = this.dx;
+	this.dx = -this.dy;
+	this.dy = t;
+	return this;
+}
+
+/** Calculate the dot product (inner product) of this vector and v2.
+ * @param {Vec2|JS-Object} v2 Other vector.   
+ * @returns {float}   
+ */
+Vec2.prototype.dot = function(v2) {
+	return this.dx * v2.dx + this.dy * v2.dy;
+}
+
+/** Check if v2 is perpendicular to this vector.
+ * @param {Vec2|JS-Object} v2 Other vector.   
+ * @returns {boolaen}   
+ */
+Vec2.prototype.isPerp = function(v2) {
+	return Math.abs(this.dot(v2)) < LinaJS.EPS;
 }
 
 /**
@@ -277,7 +395,7 @@ Polar2 = function(a, r){
 
 /** Return string representation '(a=_°, r=_)'. */
 Polar2.prototype.toString = function() {
-    return "(a=" + RAD_TO_DEGREE*this.a + "°, r=" + this.r  + ")";
+    return "(a=" + LinaJS.DEG_TO_RAD*this.a + "°, r=" + this.r  + ")";
 }
 Polar2.prototype.set = function(a, r) {
 	if(r === undefined){
@@ -376,21 +494,44 @@ function scaleMatrix3(fx, fy) {
 Matrix3 = function(m){
 	this.set(m);
 }
-/** Return string representation '[[0, 1, 2], [3, 4, 5], [6, 7, 8]]'.*/
+/**Return string representation '[[0, 1, 2], [3, 4, 5], [6, 7, 8]]'.
+ * @returns {string}  
+ */
 Matrix3.prototype.toString = function() {
 	var m = this.m;
     return "[["+m[0]+", "+m[1]+", "+m[2]+"], ["+m[3]+", "+m[4]+", "+m[5]+"], ["+m[6]+", "+m[7]+", "+m[8]+"]]";
 }
-/** Return string representation '[[0, 1, 2], [3, 4, 5], [6, 7, 8]]'.*/
+/**Set the current matrix.
+ *  @param {Matrix3|float[9]) m (optional) defaults to identity matrix [1, 0, 0, 0, 1, 0, 0, 0, 1]
+ *  @returns {Matrix3}
+ */
 Matrix3.prototype.set = function(m) {
-	if( m === undefined) {
+	if( m === undefined ) {
+		/**Matrix value stored as array of 9 floats. 
+		 * @type float[9] */
 		this.m = [1, 0, 0, 0, 1, 0, 0, 0, 1];
-	}else if( m.length ) {
-		this.m = m.slice(0, 9);
+		/**Defines, if this matrix is non-perspective, i.e. the right column is 
+		 * [0, 0, 1] so that m[2] = m[5] = 0 and m[8] = 1.
+		 * In this case transformations can be processed more efficiently. 
+		 * Default: true.
+		 * @type boolean */
+		this.isAffine = true;
+	}else if( m.length === 9 ) {
+		// Set from float[9]
+		this.m = m.slice();
+		this.isAffine = (m[2] == 0) && (m[5] == 0) && (m[8] == 1);
 	}else{
-		this.m = m.m.slice(0, 9);
+		// Set from Matrix3
+		this.m = m.m.slice();
+		this.isAffine = m.isAffine;
 	}
 	return this;
+}
+/**Reset the current matrix to identity.
+ *  @returns {Matrix3}
+ */
+Matrix3.prototype.reset = function() {
+	return this.set();
 }
 /** Create an return a copy of this matrix.*/
 Matrix3.prototype.copy = function() {
@@ -414,9 +555,9 @@ Matrix3.prototype.scale = function(fx, fy) {
 	if(fy === undefined)
 		fy = +fx;
 	var m = this.m;
-    m[0] *= fx;    m[1] *= y;
-    m[3] *= fx;    m[4] *= y;
-    m[6] *= fx;    m[7] *= y;
+    m[0] *= fx;    m[1] *= fy;
+    m[3] *= fx;    m[4] *= fy;
+    m[6] *= fx;    m[7] *= fy;
     return this;
 }
 /** Apply rotation (in-place) and return this instance.*/
@@ -426,7 +567,7 @@ Matrix3.prototype.rotate = function(a, pt) {
 		var c = Math.cos(a);
 		var s = Math.sin(a);
 		var m = this.m;
-		var t = m.slice(0, 9); // Temporary copy
+		var t = m.slice(); // Temporary copy
 		m[0] = c*t[0] - s*t[1];    m[1] = s*t[0] + c*t[1];
 		m[3] = c*t[3] - s*t[4];    m[4] = s*t[3] + c*t[4];
 		m[6] = c*t[6] - s*t[7];    m[7] = s*t[6] + c*t[7];
@@ -463,13 +604,41 @@ Matrix3.prototype.mult = function(mb) {
     return this;
 }
 /** Return transformed x and y as JS-object {x:x', y:y'}.*/
-Matrix3.prototype.transformXY = function(x, y) {
-	//TODO: this assumes last col is [0,0,1]
+Matrix3.prototype.transformPt = function(x, y) {
+	// Since a point is [x, y, 1], the translation part is applied.
 	var m = this.m;
-    return {
-    	x: m[0]*x + m[3]*y + m[6],
-    	y: m[1]*x + m[4]*y + m[7]
-    };
+	if(this.isAffine){
+	    return {
+	    	x: m[0]*x + m[3]*y + m[6],
+	    	y: m[1]*x + m[4]*y + m[7]
+	    };
+	}else{
+		//TODO: untested
+		var w = m[2]*x + m[5]*y + m[8];
+	    return {
+	    	x: (m[0]*x + m[3]*y + m[6]) / w,
+	    	y: (m[1]*x + m[4]*y + m[7]) / w
+	    };
+	}
+}
+/** Return transformed dx and dy as JS-object {dx:dx', dy:dy'}.*/
+Matrix3.prototype.transformVec = function(dx, dy) {
+	// Since a vector is [dx, dy, 0], the translation part is ignored.
+	//TODO: this assumes isAffine == true
+	var m = this.m;
+	if(this.isAffine){
+	    return {
+	    	dx: m[0]*dx + m[3]*dy,
+	    	dy: m[1]*dx + m[4]*dy
+	    };
+	}else{
+		//TODO: untested
+		var w = m[2]*x + m[5]*y;
+	    return {
+	    	x: (m[0]*x + m[3]*y + m[6]) / w,
+	    	y: (m[1]*x + m[4]*y + m[7]) / w
+	    };
+	}
 }
 /** Transpose (in-place) and return this instance.*/
 Matrix3.prototype.transpose = function() {
@@ -479,20 +648,45 @@ Matrix3.prototype.transpose = function() {
 	t = m[5]; m[5] = m[7]; m[7] = t;
     return this;
 }
-/** Invert (in-place) and return this instance.*/
+/**Calculate the determinant.
+ * @returns {float} 
+ */
+Matrix3.prototype.det = function() {
+	var m = this.m;
+	if(this.isAffine){
+	    return m[0]*m[4] - m[1]*m[3];
+	} else {
+		// Rule of Sarrus
+	    return m[0]*m[4]*m[8] + m[1]*m[5]*m[6] + m[2]*m[3]*m[7]
+	    	- m[0]*m[5]*m[7] - m[1]*m[3]*m[8] - m[2]*m[4]*m[6];
+	}
+}
+
+/** Invert (in-place) and return this instance.
+* @returns {Matrix3} 
+* @throws "Cannot invert", if det(m) == 0
+*/
 Matrix3.prototype.invert = function() {
-	// TODO
-	alert("Not implemented: Matrix3.invert()");
+    var det = this.det();
+    if ( Math.abs(det) < LinaJS.EPS ) {
+    	throw "Cannot invert " + this;
+    }
+    var m = this.m;
+    var t = new Array(9); // make a copy
+    // http://en.wikipedia.org/wiki/Invertible_matrix
+    var invdet = 1.0 / det;
+    t[0] =  (m[4]*m[8] - m[7]*m[5]) * invdet;
+    t[1] = -(m[1]*m[8] - m[2]*m[7]) * invdet;
+    t[2] =  (m[1]*m[5] - m[2]*m[4]) * invdet;
+    t[3] = -(m[3]*m[8] - m[5]*m[6]) * invdet;
+    t[4] =  (m[0]*m[8] - m[2]*m[6]) * invdet;
+    t[5] = -(m[0]*m[5] - m[3]*m[2]) * invdet;
+    t[6] =  (m[3]*m[7] - m[6]*m[4]) * invdet;
+    t[7] = -(m[0]*m[7] - m[6]*m[1]) * invdet;
+    t[8] =  (m[0]*m[4] - m[3]*m[1]) * invdet;
+    this.m = t;
     return this;
 }
-/** Calculate the determinant.*/
-Matrix3.prototype.det = function() {
-	// TODO
-	alert("Not implemented: Matrix3.det()");
-    return 0;
-}
-
-
 
 
 /**
@@ -527,7 +721,7 @@ Polygon2.prototype.copy = function() {
 Polygon2.prototype.transform = function(m) {
 	var xy = this.xyList; 
 	for(var i=0; i<xy.length; i+=2){
-		pt2 = m.transformXY(xy[i], xy[i+1]);
+		pt2 = m.transformPt(xy[i], xy[i+1]);
 		xy[i] = pt2.x;
 		xy[i+1] = pt2.y;
 	}
@@ -562,17 +756,24 @@ Polygon2.prototype.segmentIntersects = function (pt1, pt2) {
 	alert("Not implemented: Polygon2.segmentIntersects()");
     return false;
 }
-/** Check, pos is inside this polygon.*/
+/** @private */
+Polygon2.prototype._signedDoubleArea = function() {
+	var xy = this.xyList;
+	var res = 0;
+	for(var i=0; i<xy.length-3; i+=2){
+		res += xy[i]*xy[i+3] - xy[i+1]*xy[i+2]; 
+	}
+    return res;
+}
+/** Return polygons area. 
+ * This assumes an implicitly closed, non self-intersecting polygon.
+ */
 Polygon2.prototype.area = function() {
-	// TODO: Gems II, 1.1
-	alert("Not implemented: Polygon2.area()");
-    return 0;
+    return 0.5 * Math.abs(this._signedDoubleArea());
 }
 /** Check, if this polygon has a counterclocwise vertex order.*/
 Polygon2.prototype.isCCW = function() {
-	// TODO:
-	alert("Not implemented: Polygon2.isCCW()");
-    return 0;
+    return this._signedDoubleArea() > 0;
 }
 /** Return the smallest bounding circle as {center: {x:_,y:_}, r:_}.*/
 Polygon2.prototype.getBoundingCircle = function() {

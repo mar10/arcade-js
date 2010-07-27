@@ -100,6 +100,9 @@ var ArcadeJS = Class.extend(
     init: function(p) {
         // constructor
 		this.p = p;
+    	this.canvas = this.p.canvas;
+    	this.context = this.p.context;
+
         this.objects = [];
         this.idMap = {};
         this.typeMap = {};
@@ -118,6 +121,7 @@ var ArcadeJS = Class.extend(
     		throw "addObject("+o.id+"): duplicate entry";
     	}
     	o.game = this;
+    	
         this.objects.push(o);
         this.idMap[o.id] = o;
         if( this.typeMap[o.type] ) {
@@ -132,10 +136,14 @@ var ArcadeJS = Class.extend(
     	}
     	// TODO
     },
-    purge: function(o) {
+    purge: function() {
     	var ol = this.objects;
+    	this.objects = [];
+        this.idMap = {};
+        this.typeMap = {};
     	for(var i=0; i<ol.length; i++){
-    		// TODO
+    		if( !o.dead )
+    			this.addObject(o);
     	}
     },
     draw: function(p) {
@@ -196,14 +204,17 @@ var Movable = Class.extend(
         this.pos = pos;  // Point2
         this.orientation = +orientation;  // rad
         this.move = move || new Vec2(0, 0);
-        this.turnRate = 0.0 * DEGREE_TO_RAD;  // rad / tick
+        this.turnRate = 0.0 * LinaJS.DEG_TO_RAD;  // rad / tick
         this.scale = 1.0;
         this.hidden = false;
         this.dead = false;
         this.ttl = -1;
+        
+        this.mc2wc = new Matrix3();
+        this.wc2mc = new Matrix3();
     },
     toString: function() {
-        return "Movable '" + this.id + "' " + this.pos + ", " + LinaJS.DEG_TO_RAD * this.orientation + "°";
+        return "Movable '" + this.id + "' " + this.pos + ", " + LinaJS.RAD_TO_DEG * this.orientation + "°";
     },
     draw: function(p) {
     	if( this.hidden ) {
@@ -220,11 +231,15 @@ var Movable = Class.extend(
     	p.popMatrix();
     },
     step: function(p) {
+        //alert("G:STEP"+this.game);
+
     	if( this.ttl > 0) {
     		this.ttl--;
     		if( this.ttl == 0) {
     			this.dead = true;
     			this.hidden = true;
+    			if( this.onDie )
+    				this.onDie();
     		}
     	}
     	this.orientation += this.turnRate; 
@@ -238,7 +253,7 @@ var Movable = Class.extend(
     	}
     	return undefined;
     },
-    /** @function Callback, triggered when this object dies.
+    /**@function Callback, triggered when this object dies.
      * @param x a parms 
      */
     onDie: undefined,

@@ -23,29 +23,29 @@ var game = new ArcadeJS(this);
 void setup() {
   size(640, 480);
   
-  var fps = 15;
+  var fps = 100;
   frameRate(fps);
+  
   game.fps = fps;
+  
 
   var tank = new Tank("1", new Point2(100, 100), 0, new Vec2(0, 0));
   game.addObject(tank);
 
   tank = new Tank("2", new Point2(200, 100), 0, new Vec2(3, -1));
   tank.scale = 2;
-  tank.turnRate = 2 * DEGREE_TO_RAD;
+  tank.turnRate = 2 * LinaJS.DEG_TO_RAD;
   game.addObject(tank);
   
   tank = new Tank("3", new Point2(300, 100), 0, new Vec2(0, 0));
   tank.scale = 4;
-  tank.turnRate = -2 * DEGREE_TO_RAD;
+  tank.turnRate = -2 * LinaJS.DEG_TO_RAD;
   game.addObject(tank);
   
   obj = new Asteroid("JannesAlterStein", new Point2(320, 200), 0, new Vec2(3, 4));
 //  obj.scale = 4;
-  obj.turnRate = -3 * DEGREE_TO_RAD;
+  obj.turnRate = -3 * LinaJS.DEG_TO_RAD;
   game.addObject(obj);
-  
-  Asteroid
 }
 
 void mouseClicked() {
@@ -53,7 +53,7 @@ void mouseClicked() {
 }
 
 void mouseScrolled() {
-	game.idMap["3"].turnRate += DEGREE_TO_RAD*mouseScroll;
+	game.idMap["3"].turnRate += LinaJS.DEG_TO_RAD*mouseScroll;
 }
 
 void draw()

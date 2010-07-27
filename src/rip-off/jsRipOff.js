@@ -86,7 +86,7 @@ var Asteroid = Movable.extend({
                                 -1.5, -3.5,
                                 2, -3.5,
                                 4, 0]);
-        this.pg.transform(scaleMatrix3(8, -8));
+        this.pg.transform(LinaJS.scale33(8, -8));
     },
     step: function(p) {
 		this._super(p);

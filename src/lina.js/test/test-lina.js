@@ -29,30 +29,30 @@ function timedTest(testName, loopCount, callback) {
     test(testName, makeBenchWrapper(testName, loopCount, callback));
 }
 
-// Alias for linaCompare(a, b, eps);
-cmp = linaCompare;
+// Alias for LinaJS.compare(a, b, eps);
+cmp = LinaJS.compare;
 
 function assertEqual(a, b, msg) {
     //_makeCompareWrapper(testName, callback).call();
-	var res = linaCompare(a, b);
+	var res = LinaJS.compare(a, b);
 	if(res){
 		ok(true, msg);
 	}else{
 		msg = msg || "no info";
 		ok(false, msg + " (expected " + b + ", got " + a + ")");
-		logMsg("linaCompare failed: expected %o, got %o", b, a);
+		logMsg("LinaJS.compare failed: expected %o, got %o", b, a);
 	}
 }
 
 function assertNotEqual(a, b, msg) {
     //_makeCompareWrapper(testName, callback).call();
-	var res = linaCompare(a, b);
+	var res = LinaJS.compare(a, b);
 	if(!res){
 		ok(true, msg);
 	}else{
 		msg = msg || "no info";
 		ok(false, msg + " (expected NOT " + b + ", got " + a + ")");
-		logMsg("linaCompare accepted %o === %o", b, a);
+		logMsg("LinaJS.compare accepted %o === %o", b, a);
 	}
 }
 
@@ -78,7 +78,7 @@ function logMsg(){
  */
 module("Vector math");
 
-test("linaCompare", function() {
+test("LinaJS.compare", function() {
     expect(20);
 
     ok(!cmp(undefined, undefined), "undefined != undefined");
@@ -116,8 +116,8 @@ test("linaCompare", function() {
 
 test("tools", function() {
     expect(2);
-    assertEqual(vecToPolar(2, 0), {a:0, r:2}, "vecToPolar");
-    assertEqual(vecToPolar(0, 2), {a:Math.PI/2, r:2}, "vecToPolar");
+    assertEqual(LinaJS.vecToPolar(2, 0), {a:0, r:2}, "LinaJS.vecToPolar");
+    assertEqual(LinaJS.vecToPolar(0, 2), {a:Math.PI/2, r:2}, "LinaJS.vecToPolar");
 });
 
 
@@ -186,17 +186,17 @@ test("Matrix3", function() {
                      3, 6, 9], "Matrix3.transpose");
     
     var a = 0;
-    assertEqual(identityMatrix3().rotate(a),
-    		rotationMatrix3(a),
-    		"m.rotate() == rotationMatrix3()");
+    assertEqual(LinaJS.identity33().rotate(a),
+    		LinaJS.rotation33(a),
+    		"m.rotate() == rotation33()");
     a = Math.PI;
-    assertEqual(identityMatrix3().rotate(a),
-    		rotationMatrix3(a),
-    		"m.rotate() == rotationMatrix3()");
+    assertEqual(LinaJS.identity33().rotate(a),
+    		LinaJS.rotation33(a),
+    		"m.rotate() == rotation33()");
     a = Math.PI / 4;
-    assertEqual(identityMatrix3().rotate(a),
-    		rotationMatrix3(a),
-    		"m.rotate() == rotationMatrix3()");
+    assertEqual(LinaJS.identity33().rotate(a),
+    		LinaJS.rotation33(a),
+    		"m.rotate() == rotation33()");
 
     
     var m = new Matrix3();
@@ -229,7 +229,7 @@ test("Matrix3", function() {
 
 
 test("Transformation benchmarks", function() {
-    expect(2);
+    expect(3);
     
     var loopCount = 10000;
     benchmark(loopCount + " x Matrix3.mult", loopCount, function(){
@@ -286,7 +286,7 @@ test("Polygon2", function() {
     assertEqual(pgRevert.area(), 1.0, "area()");
     ok(!pgRevert.isCCW(), "isCCW()");
     // rotate 90° ccw
-    var m = rotationMatrix3(0.5 * Math.PI);
+    var m = LinaJS.rotation33(0.5 * Math.PI);
     logMsg("M90: %s", m);
     var pg2 = pg.copy().transform(m);
     logMsg("pg: %s", pg);

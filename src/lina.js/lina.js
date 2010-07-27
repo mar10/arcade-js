@@ -700,6 +700,90 @@ Matrix3.prototype = {
 } 
 
 
+/******************************************************************************/
+
+
+/**
+ * Creates 3x3 homogenous transformation that also maintains its own inversion.
+ * @constructor
+ * @param {undefined|Matrix3|float[9]} m
+ */
+BiTran2 = function(m){
+	this.set(m);
+}
+BiTran2.prototype = {
+	/**Return string representation '[[0, 1, 2], [3, 4, 5], [6, 7, 8]]'.
+	 * @returns {string}  
+	 */
+	toString: function() {
+		return this.matrix.toString() + " - Inverse: " + this.inverse.toString();
+	},
+	/**Set the current matrix.
+	 *  @param {Matrix3|float[9]} m (optional) defaults to identity matrix [1, 0, 0, 0, 1, 0, 0, 0, 1]
+	 *  @returns {Matrix3}
+	 */
+	set: function(m) {
+		if( m === undefined ) {
+			/**Matrix3 that stores the transformation. 
+			 * @type Matrix3 */
+			this.matrix = new Matrix3();
+			/**Matrix3 that stores the inverse transformation. 
+			 * @type Matrix3 */
+			this.inverse = new Matrix3();
+		}else{
+			this.matrix = new Matrix3(m);
+			this.inverse = this.matrix.copy().invert();
+		}
+		return this;
+	},
+	/**Reset the current matrix to identity.
+	 *  @returns {BiTran2}
+	 */
+	reset: function() {
+		return this.set();
+	},
+	/** Create and return a copy of this matrix.*/
+	copy: function() {
+	    return new BiTran2(this.matrix);
+	},
+	/** Apply translation (in-place) and return this instance.*/
+	translate: function(dx, dy) {
+		/* TODO: optimize 
+		 * for last column = [0, 0, 1] this simplifies to 
+		 *   this.m[6] += dx;
+		 *   this.m[7] += dy;
+		 */
+		this.matrix.translate(dx, dy);
+		// TODO: pre-concatenate the transformation inline.
+		this.inverse = this.matrix.copy().invert();
+	    return this;
+	},
+	/** Apply scaling (in-place) and return this instance.*/
+	scale: function(fx, fy) {
+		this.matrix.scale(fx, fy);
+		// TODO: pre-concatenate the transformation inline.
+		this.inverse = this.matrix.copy().invert();
+	    return this;
+	},
+	/** Apply rotation (in-place) and return this instance.*/
+	rotate: function(a, pt) {
+		this.matrix.rotate(a, pt);
+		// TODO: pre-concatenate the transformation inline.
+		this.inverse = this.matrix.copy().invert();
+	    return this;
+	},
+	/** Apply transformation (in-place) and return this instance.*/
+	mult: function(mb) {
+		this.matrix.mult(mb);
+		// TODO: pre-concatenate the transformation inline.
+		this.inverse = this.matrix.copy().invert();
+	    return this;
+	},
+	lastEntry: undefined
+} 
+
+/******************************************************************************/
+
 /**
  * Create a new 2d polygon.
  * @constructor

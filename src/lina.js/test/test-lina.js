@@ -228,6 +228,24 @@ test("Matrix3", function() {
 });
 
 
+test("BiTran2", function() {
+    expect(2);
+    
+    t = new BiTran2();
+    t.translate(1, 2)
+    	.scale(2)
+    	.rotate(2*LinaJS.DEG_TO_RAD);
+    alert(t);
+    
+    assertEqual(t.matrix.copy().mult(t.inverse),
+    		LinaJS.identity33(),
+    		"BiTran2.matrix * Bitran2.inverse == I");
+    assertEqual(t.inverse.copy().mult(t.matrix),
+    		LinaJS.identity33(),
+    		"BiTran2.inverse * Bitran2.matrix == I");
+});
+
+
 test("Transformation benchmarks", function() {
     expect(3);
     

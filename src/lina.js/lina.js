@@ -705,6 +705,7 @@ Matrix3.prototype = {
 
 /**
  * Creates 3x3 homogenous transformation that also maintains its own inversion.
+ * This is usually more effient than calling m.invert().
  * @constructor
  * @param {undefined|Matrix3|float[9]} m
  */

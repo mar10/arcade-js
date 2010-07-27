@@ -92,29 +92,103 @@ var ArcadeJS = Class.extend(
 /** @lends ArcadeJS.prototype */
 {
 	/**
-     * Create a new 2d arcade game.
+     * Create a new 2d 	arcade game.
      * @class A canvas based 2d game engine.
      * @constructs
      * @param {Processing} p
      */
-    init: function(p) {
+    init: function(canvas, opts) {
         // constructor
-		this.p = p;
-    	this.canvas = this.p.canvas;
-    	this.context = this.p.context;
+		this.canvas = canvas;
+		this.context = canvas.getContext("2d");
+		this.opts = $.extend(true, {}, ArcadeJS.defaultOpts, opts);
 
+		$(this.canvas).css("backgroundColor", "black");
+		
         this.objects = [];
         this.idMap = {};
         this.typeMap = {};
-        this.fps = 15;
+        
         this.realFps = 0;
         this.fpsCorrection = 1.0;
         this._lastSecondTicks = 0;
         this._lastFrameTicks = 0;
         this.frameCount = 0;
+
+        this._runLoopId = null;
+        
     },
     toString: function() {
-        return "ArcadeJS '" + this.id + "' " + this.pos;
+        return "ArcadeJS '" + this.name + "' ";
+        
+    },
+    _renderLoop: function(){
+//        try {
+//        	p.focused = document.hasFocus();
+//		} catch(e) {}
+		try {
+		    this.stepAll();
+		    this.redrawAll();
+		} catch(e) {
+		   this.stopLoop();
+		   throw e;
+		}
+    },
+    stepAll: function() {
+    	// Some bookkeeping and timings
+    	this.frameCount++;
+    	var ticks = new Date().getTime();
+    	this.fpsCorrection = .001 * this.opts.fps * (ticks - this._lastFrameTicks);
+//    	var actFps = this.fps * 1000.0 / (ticks - this._lastFrameTicks);
+    	window.console.log("fpsCorr=%s", this.fpsCorrection);
+        this._lastFrameTicks = ticks;
+    	if( (this.frameCount % this.opts.fps) == 0 ){
+        	this.realFps = (ticks > this._lastSecondTicks) ? 1000.0 * this.opts.fps / (ticks - this._lastSecondTicks) : 0;
+//        	window.console.log("realFps=%s", this.realFps);
+            this._lastSecondTicks = ticks;
+    	} 
+    	if(this.opts.onBeginStep)
+    		this.opts.onBeginStep();
+    	
+    	var ol = this.objects;
+    	for(var i=0; i<ol.length; i++){
+    		var o = ol[i];
+    		if( !o.dead )
+    			o.step();
+    	}
+    },
+    redrawAll: function() {
+    	var ctx = this.context;
+//    	ctx.
+    	if(this.opts.onBeginDraw)
+    		this.opts.onBeginDraw();
+    	ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    	var ol = this.objects;
+    	for(var i=0; i<ol.length; i++){
+    		var o = ol[i];
+    		if( !o.dead && !o.hidden ) {
+    			ctx.save();
+    			o.redraw(ctx);
+    			ctx.restore();
+    		}
+    	}
+    	if(this.opts.onEndDraw)
+    		this.opts.onEndDraw();
+    },
+    startLoop: function(){
+    	if( !this._runLoopId) {
+    		var self = this;
+    	    this._runLoopId = window.setInterval(
+    	    	function(){
+    	    		self._renderLoop()
+    	    	}, 1000/this.opts.fps);
+    	}
+    },
+    stopLoop: function(){
+    	if(this._runLoopId) {
+    		window.clearInterval(this._runLoopId);
+    		this._runLoopId = null;
+    	}
     },
     addObject: function(o) {
     	if( this.idMap[o.id] ) {
@@ -129,6 +203,7 @@ var ArcadeJS = Class.extend(
         } else {
         	this.typeMap[o.type] = [ o ];
         }
+        return o;
     },
     removeObject: function(o) {
     	if( this.idMap[o] ) {
@@ -146,40 +221,17 @@ var ArcadeJS = Class.extend(
     			this.addObject(o);
     	}
     },
-    draw: function(p) {
-    	var ol = this.objects;
-    	for(var i=0; i<ol.length; i++){
-    		var o = ol[i];
-    		if( !o.dead && !o.hidden )
-    			o.draw(p);
-    	}
-    },
-    step: function(p) {
-    	// Some bookkeeping and timings
-    	this.frameCount++;
-    	var ticks = new Date().getTime();
-    	this.fpsCorrection = .001 * this.fps * (ticks - this._lastFrameTicks);
-//    	var actFps = this.fps * 1000.0 / (ticks - this._lastFrameTicks);
-    	window.console.log("fpsCorr=%s", this.fpsCorrection);
-        this._lastFrameTicks = ticks;
-    	if( (this.frameCount % this.fps) == 0 ){
-        	this.realFps = (ticks > this._lastSecondTicks) ? 1000.0 * this.fps / (ticks - this._lastSecondTicks) : 0;
-//        	window.console.log("realFps=%s", this.realFps);
-            this._lastSecondTicks = ticks;
-    	} 
-
-    	var ol = this.objects;
-    	for(var i=0; i<ol.length; i++){
-    		var o = ol[i];
-    		if( !o.dead )
-    			o.step(p);
-    	}
-    },
     // --- end of class
     lastentry: undefined
 });
 
 ArcadeJS.nextId = 1;
+ArcadeJS.defaultOpts = {
+	name: "Generic ArcadeJS game",
+	fps: 15,
+	debugLevel: 1,
+	lastEntry: undefined
+}
 
 /******************************************************************************/
 
@@ -210,27 +262,12 @@ var Movable = Class.extend(
         this.dead = false;
         this.ttl = -1;
         
-        this.mc2wc = new Matrix3();
-        this.wc2mc = new Matrix3();
+        this.tran = new BiTran2();
     },
     toString: function() {
         return "Movable '" + this.id + "' " + this.pos + ", " + LinaJS.RAD_TO_DEG * this.orientation + "°";
     },
-    draw: function(p) {
-    	if( this.hidden ) {
-    		return;
-    	}
-    	p.pushMatrix();
-    	p.translate(this.pos.x, this.pos.y);
-    	if( this.scale != 1.0 )
-    		p.scale(this.scale);
-    	p.rotate(this.orientation);
-
-    	this.render(p);
-    	
-    	p.popMatrix();
-    },
-    step: function(p) {
+    step: function() {
         //alert("G:STEP"+this.game);
 
     	if( this.ttl > 0) {
@@ -245,6 +282,17 @@ var Movable = Class.extend(
     	this.orientation += this.turnRate; 
 		this.pos.x += this.move.dx;
 		this.pos.y += this.move.dy;
+    },
+    redraw: function(ctx) {
+    	if( this.hidden ) {
+    		return;
+    	}
+    	ctx.translate(this.pos.x, this.pos.y);
+    	if( this.scale && this.scale != 1.0 )
+    		ctx.scale(this.scale);
+    	ctx.rotate(this.orientation);
+
+    	this.render(ctx);
     },
     intersectsWith: function(otherObject) {
     	if( this.getBoundingRadius && otherObject.getBoundingRadius) {

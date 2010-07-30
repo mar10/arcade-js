@@ -206,23 +206,27 @@ Point2.prototype = {
 		}
 		return this;
 	},
-	/** Return distance from this to pt2. . 
-	 * @param {Point2|JS-Object} pt2 Second point.   
-	 * @returns {float}   
-	 */
-	distanceToPt: function(pt2) {
-		var dx = this.x - pt2.x;
-		var dy = this.y - pt2.y;
-	    return Math.sqrt(dx*dx + dy*dy);
-	},
 	/** Return squared distance from this to pt2. . 
 	 * @param {Point2|JS-Object} pt2 Second point.   
 	 * @returns {float}   
 	 */
-	sqrDistanceToPt: function(pt2) {
-		var dx = this.x - pt2.x;
-		var dy = this.y - pt2.y;
+	sqrDistanceTo: function(ptOrX, y) {
+		var dx, dy;
+		if(y === undefined) {
+			dx = this.x - ptOrX.x;
+			dy = this.y - ptOrX.y;
+		}else{
+			dx = this.x - ptOrX;
+			dy = this.y - y;
+		}
 	    return dx*dx + dy*dy;
+	},
+	/** Return distance from this to pt2. . 
+	 * @param {Point2|JS-Object} pt2 Second point.   
+	 * @returns {float}   
+	 */
+	distanceTo: function(ptOrX, y) {
+	    return Math.sqrt(this.sqrDistanceTo(ptOrX, y));
 	},
 	/** Check if pt2 is (aproximately) equal to this. 
 	 * @param {Point2|JS-Object} pt2 Second point.   
@@ -262,6 +266,18 @@ Point2.prototype = {
 		}else{
 			this.x += dx; 
 			this.y += dy; 
+		}
+	},
+	/** Return vector from this to pt2. . 
+	 * @param {Point2|JS-Object} pt2 Second point.   
+	 * @returns {Vec2}   
+	 */
+	sub: function(ptOrX, y) {
+		var dx, dy;
+		if(y === undefined) {
+			return new Vec2(this.x - ptOrX.x, this.y - ptOrX.y);
+		}else{
+			return new Vec2(this.x - ptOrX, this.y);
 		}
 	},
 	lastEntry : undefined

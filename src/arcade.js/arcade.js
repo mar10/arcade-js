@@ -101,12 +101,14 @@ var ArcadeJS = Class.extend(
         // constructor
 		this.canvas = canvas;
 		this.context = canvas.getContext("2d");
-		this.opts = $.extend(true, {}, ArcadeJS.defaultOpts, opts);
+		this.opts = $.extend(true, {}, ArcadeJS.defaultGameOptions, opts);
 
 		$(this.canvas).css("backgroundColor", "black");
 		
         this.objects = [];
         this.idMap = {};
+        this.keyListeners = []
+        this.mouseListeners = [];
         this.typeMap = {};
         
         this.realFps = 0;
@@ -117,10 +119,51 @@ var ArcadeJS = Class.extend(
 
         this._runLoopId = null;
         
+        // Bind keyboard events
+        var self = this;
+        $(document).bind("keyup keydown keypress", function(e){
+        	self.debug("e:%o", e);
+        	for( var i=0; i<self.keyListeners.length; i++) {
+        		var obj = self.keyListeners[i];
+        		if(e.type == "keypress" && obj.onKeypress)
+        			obj.onKeypress(e);
+        	}
+        });
+        // Bind mouse events
+        // Note: jquery.mousehweel.js plugin is required for Mousewheel events
+        $(document).bind("mousemove mousedown mouseup mousewheel", function(e){
+        	self.mousePos = new Point2(e.clientX-e.target.offsetLeft, e.clientY-e.target.offsetTop);
+        	switch (e.type) {
+			case "mousedown":
+        		self.clickPos = new Point2(self.mousePos);
+				self._dragging = false;
+				break;
+			case "mouseup":
+        		self.clickPos = null;
+				self._dragging = false;
+				break;
+			case "mousemove":
+				if(self._dragging || self.clickPos && self.clickPos.distanceTo(self.mousePos) > 4 ){
+					self._dragging = true;
+	        		self.debug("draggin: %s", self.mousePos.sub(self.clickPos));
+				}
+				break;
+			}
+        	for( var i=0; i<self.mouseListeners.length; i++) {
+        		var obj = self.mouseListeners[i];
+        		if(e.type == "mousewheel" && obj.onMousewheel)
+        			obj.onMousewheel(arguments[0], arguments[1]);
+        	}
+        });
     },
     toString: function() {
         return "ArcadeJS '" + this.name + "' ";
         
+    },
+    debug: function() {
+        if (window.console && window.console.log) {  
+            window.console.log.apply(this, arguments);  
+        }  
     },
     _renderLoop: function(){
 //        try {
@@ -140,7 +183,7 @@ var ArcadeJS = Class.extend(
     	var ticks = new Date().getTime();
     	this.fpsCorrection = .001 * this.opts.fps * (ticks - this._lastFrameTicks);
 //    	var actFps = this.fps * 1000.0 / (ticks - this._lastFrameTicks);
-    	window.console.log("fpsCorr=%s", this.fpsCorrection);
+//    	this.debug("fpsCorr=%s", this.fpsCorrection);
         this._lastFrameTicks = ticks;
     	if( (this.frameCount % this.opts.fps) == 0 ){
         	this.realFps = (ticks > this._lastSecondTicks) ? 1000.0 * this.opts.fps / (ticks - this._lastSecondTicks) : 0;
@@ -194,10 +237,22 @@ var ArcadeJS = Class.extend(
     	if( this.idMap[o.id] ) {
     		throw "addObject("+o.id+"): duplicate entry";
     	}
+    	// 
     	o.game = this;
     	
         this.objects.push(o);
         this.idMap[o.id] = o;
+        if( typeof o.onKeydown === "function" 
+        	|| typeof o.onKeypress === "function" 
+        	|| typeof o.onKeyup === "function") {
+        	this.keyListeners.push(o);
+        }
+        if( typeof o.onMousedown === "function" 
+        	|| typeof o.onMousemove === "function" 
+        	|| typeof o.onMouseup === "function"
+        	|| typeof o.onMousewheel === "function") {
+        	this.mouseListeners.push(o);
+        }
         if( this.typeMap[o.type] ) {
         	this.typeMap[o.type].push(0);
         } else {
@@ -214,6 +269,8 @@ var ArcadeJS = Class.extend(
     purge: function() {
     	var ol = this.objects;
     	this.objects = [];
+    	this.keyListeners = [];
+    	this.mouseListeners = [];
         this.idMap = {};
         this.typeMap = {};
     	for(var i=0; i<ol.length; i++){
@@ -226,10 +283,24 @@ var ArcadeJS = Class.extend(
 });
 
 ArcadeJS.nextId = 1;
-ArcadeJS.defaultOpts = {
+ArcadeJS.defaultGameOptions = {
 	name: "Generic ArcadeJS game",
 	fps: 15,
 	debugLevel: 1,
+	lastEntry: undefined
+}
+ArcadeJS.defaultObjectOptions = {
+//	type: undefined,
+//	id: undefined,
+//	tags: [],
+	collisionList: [], // list of types and tags that will report collisions
+	eventList: [], // list of event names that this object wants
+	
+	debug: {
+		level: 1,
+		showLabel: false,
+		showBBox: false
+	},
 	lastEntry: undefined
 }
 
@@ -256,7 +327,7 @@ var Movable = Class.extend(
         this.pos = pos;  // Point2
         this.orientation = +orientation;  // rad
         this.move = move || new Vec2(0, 0);
-        this.turnRate = 0.0 * LinaJS.DEG_TO_RAD;  // rad / tick
+        this.rotationalSpeed = 0.0 * LinaJS.DEG_TO_RAD;  // rad / tick
         this.scale = 1.0;
         this.hidden = false;
         this.dead = false;
@@ -279,7 +350,7 @@ var Movable = Class.extend(
     				this.onDie();
     		}
     	}
-    	this.orientation += this.turnRate; 
+    	this.orientation += this.rotationalSpeed; 
 		this.pos.x += this.move.dx;
 		this.pos.y += this.move.dy;
     },

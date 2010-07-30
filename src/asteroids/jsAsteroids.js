@@ -22,19 +22,19 @@ var AsteroidsGame = ArcadeJS.extend({
         var obj;
         obj = this.addObject(new Asteroid())
         obj.move = new Vec2(3, 4);
-        obj.turnRate = LinaJS.DEG_TO_RAD * 2;
+        obj.rotationalSpeed = LinaJS.DEG_TO_RAD * 2;
 
         obj = this.addObject(new Asteroid())
         obj.move = new Vec2(-3, -1);
-        obj.turnRate = LinaJS.DEG_TO_RAD * 2;
+        obj.rotationalSpeed = LinaJS.DEG_TO_RAD * 2;
 
         obj = this.addObject(new Asteroid())
         obj.move = new Vec2(-3, 3);
-        obj.turnRate = LinaJS.DEG_TO_RAD * 2;
+        obj.rotationalSpeed = LinaJS.DEG_TO_RAD * 2;
 
         obj = this.addObject(new Asteroid())
         obj.move = new Vec2(1, -4);
-        obj.turnRate = LinaJS.DEG_TO_RAD * 2;
+        obj.rotationalSpeed = LinaJS.DEG_TO_RAD * 2;
 
         // Start render loop
         this.startLoop()
@@ -160,6 +160,13 @@ var Asteroid = Movable.extend({
     },
     getBoundingRadius: function() {
     	return 8;
+    },
+    onKeypress: function(e) {
+    	//alert("onKeypress" + e + ", t="+ this);
+    },
+    onMousewheel: function(e, delta) {
+    	//alert("onMousewheel" + e + ", t="+ this);
+    	this.game.debug("onMousewheel: %o, %s", e, delta);
     },
     // --- end of class
     lastentry: undefined

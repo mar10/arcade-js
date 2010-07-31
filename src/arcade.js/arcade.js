@@ -84,18 +84,17 @@
 })();
 
 
-/*******************************************************************************
- * Class ArcadeJS
- */
+/******************************************************************************/
+
 
 var ArcadeJS = Class.extend(
 /** @lends ArcadeJS.prototype */
 {
 	/**
-     * Create a new 2d 	arcade game.
-     * @class A canvas based 2d game engine.
+     * A canvas based 2d game engine.
+     * @param {canvas} canvas
+     * @param {dictionary} opts
      * @constructs
-     * @param {Processing} p
      */
     init: function(canvas, opts) {
         // constructor
@@ -116,17 +115,28 @@ var ArcadeJS = Class.extend(
         this._lastSecondTicks = 0;
         this._lastFrameTicks = 0;
         this.frameCount = 0;
+        this.frameCache = {};
+		this._deadCount = 0;
 
         this._runLoopId = null;
         
         // Bind keyboard events
         var self = this;
         $(document).bind("keyup keydown keypress", function(e){
-        	self.debug("e:%o", e);
-        	for( var i=0; i<self.keyListeners.length; i++) {
+//        	self.debug("e:%o", e);
+
+        	if( e.type === "keyup"){
+        		// TODO: only if no keys are still pressed
+            	self.key = null;
+            	self.keyCode = null;
+        	}else{
+            	self.keyCode = e.keyCode;
+            	self.key = ArcadeJS.niceCharCode(e);
+        	}
+        	for(var i=0; i<self.keyListeners.length; i++) {
         		var obj = self.keyListeners[i];
         		if(e.type == "keypress" && obj.onKeypress)
-        			obj.onKeypress(e);
+        			obj.onKeypress(e, self.key);
         	}
         });
         // Bind mouse events
@@ -170,49 +180,46 @@ var ArcadeJS = Class.extend(
 //        	p.focused = document.hasFocus();
 //		} catch(e) {}
 		try {
-		    this.stepAll();
-		    this.redrawAll();
+		    this._stepAll();
+		    this._redrawAll();
 		} catch(e) {
 		   this.stopLoop();
 		   throw e;
 		}
     },
-    stepAll: function() {
+    _stepAll: function() {
     	// Some bookkeeping and timings
     	this.frameCount++;
     	var ticks = new Date().getTime();
     	this.fpsCorrection = .001 * this.opts.fps * (ticks - this._lastFrameTicks);
-//    	var actFps = this.fps * 1000.0 / (ticks - this._lastFrameTicks);
 //    	this.debug("fpsCorr=%s", this.fpsCorrection);
         this._lastFrameTicks = ticks;
     	if( (this.frameCount % this.opts.fps) == 0 ){
         	this.realFps = (ticks > this._lastSecondTicks) ? 1000.0 * this.opts.fps / (ticks - this._lastSecondTicks) : 0;
-//        	window.console.log("realFps=%s", this.realFps);
             this._lastSecondTicks = ticks;
     	} 
-    	if(this.opts.onBeginStep)
+        this.frameCache = {};
+
+        if(this.opts.onBeginStep)
     		this.opts.onBeginStep();
-    	
+
     	var ol = this.objects;
     	for(var i=0; i<ol.length; i++){
     		var o = ol[i];
-    		if( !o.dead )
-    			o.step();
+    		if( !o._dead )
+    			o._step();
     	}
     },
-    redrawAll: function() {
+    _redrawAll: function() {
     	var ctx = this.context;
-//    	ctx.
     	if(this.opts.onBeginDraw)
     		this.opts.onBeginDraw();
     	ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     	var ol = this.objects;
     	for(var i=0; i<ol.length; i++){
     		var o = ol[i];
-    		if( !o.dead && !o.hidden ) {
-    			ctx.save();
-    			o.redraw(ctx);
-    			ctx.restore();
+    		if( !o._dead && !o.hidden ) {
+    			o._redraw(ctx);
     		}
     	}
     	if(this.opts.onEndDraw)
@@ -240,6 +247,8 @@ var ArcadeJS = Class.extend(
     	// 
     	o.game = this;
     	
+    	this.purge(false);
+    	
         this.objects.push(o);
         this.idMap[o.id] = o;
         if( typeof o.onKeydown === "function" 
@@ -266,17 +275,29 @@ var ArcadeJS = Class.extend(
     	}
     	// TODO
     },
-    purge: function() {
+    /**Purge dead objects from object list.
+     * @param: {boolean} force false: only if opts.purgeRate is reached. 
+     */
+    purge: function(force) {
+    	// TODO: this should be a locked section!
     	var ol = this.objects;
+    	if( ol.length < 1 
+    		|| !force && (this._deadCount/ol.length) < this.opts.purgeRate )
+    		return false;
+    	//alert("Purging objects: " + this._deadCount + "/" + ol.length + " dead.");
+    	this.debug("Purging objects: " + this._deadCount + "/" + ol.length + " dead.");
     	this.objects = [];
     	this.keyListeners = [];
     	this.mouseListeners = [];
         this.idMap = {};
         this.typeMap = {};
     	for(var i=0; i<ol.length; i++){
-    		if( !o.dead )
+    		var o = ol[i];
+    		if( !o._dead )
     			this.addObject(o);
     	}
+		this._deadCount = 0;
+		return true;
     },
     // --- end of class
     lastentry: undefined
@@ -285,85 +306,262 @@ var ArcadeJS = Class.extend(
 ArcadeJS.nextId = 1;
 ArcadeJS.defaultGameOptions = {
 	name: "Generic ArcadeJS game",
-	fps: 15,
+	fps: 30,
 	debugLevel: 1,
+	purgeRate: 0.5,
 	lastEntry: undefined
 }
-ArcadeJS.defaultObjectOptions = {
-//	type: undefined,
-//	id: undefined,
-//	tags: [],
-	collisionList: [], // list of types and tags that will report collisions
-	eventList: [], // list of event names that this object wants
-	
-	debug: {
-		level: 1,
-		showLabel: false,
-		showBBox: false
-	},
-	lastEntry: undefined
-}
+
 
 /******************************************************************************/
 
+
+/**Render a Polygon2 to a canvas.
+ * 
+ * @param ctx canvas 2D context  
+ * @param {Polygon2} polygon  
+ * @param {string} mode 'outline' (default), 'line', 'solid' 
+ */
+ArcadeJS.renderPg = function(ctx, pg, mode)
+{
+	var xy = pg.xyList;
+	ctx.beginPath();  
+	ctx.moveTo(xy[0], xy[1]);  
+	for(var i=2; i<xy.length; i+=2)
+		ctx.lineTo(xy[i], xy[i+1]);
+	switch (mode) {
+	case "line":
+		ctx.stroke();
+		break;
+	case "solid":
+		ctx.fill();
+		break;
+	default:
+		ctx.closePath();
+		ctx.stroke();
+	}
+}
+
+/**Render a circle to a canvas.
+ * 
+ * @param ctx canvas 2D context  
+ * @param {Point2} center  
+ * @param {string} mode 'outline' (default),'solid' 
+ */
+ArcadeJS.renderCircle = function(ctx, center, r, mode)
+{
+	ctx.beginPath();
+	ctx.arc(center.x, center.y, r, 0, 2 * Math.PI, true);
+	switch (mode) {
+	case "solid":
+		ctx.fill();
+		break;
+	default:
+		ctx.closePath();
+		ctx.stroke();
+	}
+}
+
+/**
+ * Return a nice string for a keyboard event. This function was inspired by
+ * progressive.js.
+ * 
+ * @param {Event}
+ *            e A jQuery event object.
+ * @returns {string} 'a' for the key 'a', 'A' for Shift+a, '^a' for Ctrl+a,
+ *          '[shift]' for
+ */
+ArcadeJS.niceCharCode = function(e) {
+	var code = e.charCode || e.keyCode;
+	var shift = !!e.shiftKey;
+	var key = null;
+	
+	// Map "shift + keyCode" to this code
+	var shiftMap = {
+		// Numbers
+		48: 41, // )
+		49: 33, // !
+		50: 64, // @
+		51: 35, // #
+		52: 36, // $
+		53: 37, // %
+		54: 94, // ^
+		55: 38, // &
+		56: 42, // *
+		57: 40, // (
+		// Symbols and their shift-symbols
+		107: 43,  // +
+		219: 123, // {
+		221: 125, // }
+		222: 34   // "
+	};
+	// Coded keys
+	var codeMap = {
+			188: 44, // ,
+			109: 45, // -
+			190: 46, // .
+			191: 47, // /
+			192: 96, // ~
+			219: 91, // [
+			220: 92, // \
+			221: 93, // ]
+			222: 39  // '
+		};
+	var specialMap = {
+		8: "backspace",
+		9: "tab",
+		10: "enter",
+		13: "return",
+		16: "shift",
+		17: "control",
+		18: "alt",
+		27: "esc",
+		37: "left",
+		38: "up",
+		39: "right",
+		40: "down",
+		127: "delete"
+		};
+
+	// Letters
+	if ( code >= 65 && code <= 90) { // A-Z
+		// Keys return ASCII for upcased letters.
+		// Convert to downcase if shiftKey is not pressed.
+		if ( !shift )
+			code = code + 32;
+		shift = false;
+		key = String.fromCharCode(code);
+	} else if (shiftMap[code]) {
+		code = shiftMap[code];
+		shift = false;
+		key = String.fromCharCode(code);
+	} else if (codeMap[code]) {
+		code = codeMap[code];
+		key = String.fromCharCode(code);
+	} else if (specialMap[code]) {
+		key = specialMap[code];
+	} else {
+		key = String.fromCharCode(code);
+	}
+	var prefix = "";
+	if(shift)
+		prefix = "shift+" + prefix;
+	if(e.metaKey)
+		prefix = "meta+" + prefix;
+	if(e.ctrlKey)
+		prefix = "ctrl+" + prefix;
+	if(e.altKey)
+		prefix = "alt+" + prefix;
+
+	window.console.log("charCode:%s, keyCode:%s -> using %s, '%s'", e.charCode, e.keyCode,  code, prefix + key);
+
+	return prefix + key;
+}
+
+/** *************************************************************************** */
+
 var Movable = Class.extend(
-/** @lends Movable.prototype */
 {
 	/**
-     * Create a new movable game object.
-     * @class Represents a game object with kinetic properties.
-     * @constructs
-     */
-    init: function(type, id, pos, orientation, move) {
-        // constructor
-		if(!pos || pos.x ===  undefined) { // missing args or passing 'Point2' instead of 'new Point2'
-			throw "Movable requires Point2";
-		}
-		if(!move || move.dx === undefined) { // missing args or passing 'Vec2' instead of 'new Vec2'
-			throw "Movable requires Vec2";
-		}
+	 * Create a new movable game object.
+	 * 
+	 * @class Represents a game object with kinetic properties.
+	 * @constructs
+	 */
+    init: function(type, id, opts) {
 		this.type = type;
-        this.id = id || "#" + ArcadeJS.nextId++;
-        this.pos = pos;  // Point2
-        this.orientation = +orientation;  // rad
-        this.move = move || new Vec2(0, 0);
-        this.rotationalSpeed = 0.0 * LinaJS.DEG_TO_RAD;  // rad / tick
-        this.scale = 1.0;
-        this.hidden = false;
-        this.dead = false;
-        this.ttl = -1;
+	    this.id = id || "#" + ArcadeJS.nextId++;
+	    this.hidden = false;
+	    this._dead = false;
+	    // Set options
+	    this.opts = $.extend(true, {}, Movable.defaultOptions, opts);
+		opts = this.opts; 
+		// Copy some options as direct attributes
+        this.pos = opts.pos ? new Point2(opts.pos) : new Point2(0, 0);
+        this.scale = opts.scale ? +opts.scale : 1.0;
+        this.orientation = opts.orientation ? +opts.orientation : 0;
+        this.move = opts.move ? new Vec2(opts.move) : null;
+        this.rotationalSpeed = opts.rotationalSpeed || null; //0.0 * LinaJS.DEG_TO_RAD;  // rad / tick
+        this.screenModeX = opts.screenModeX || "none";
+        this.screenModeY = opts.screenModeY || "none";
+        this.timeout = opts.timeout;
+        this.ttl = opts.ttl;
         
-        this.tran = new BiTran2();
+//        this.tran = new BiTran2();.translate();
     },
     toString: function() {
         return "Movable '" + this.id + "' " + this.pos + ", " + LinaJS.RAD_TO_DEG * this.orientation + "°";
     },
-    step: function() {
-        //alert("G:STEP"+this.game);
-
-    	if( this.ttl > 0) {
-    		this.ttl--;
-    		if( this.ttl == 0) {
-    			this.dead = true;
-    			this.hidden = true;
-    			if( this.onDie )
-    				this.onDie();
+    /**
+     * 
+     */
+    _step: function() {
+    	// Fire timeout event, if one was scheduled
+      	if( this.timeout > 0 && this.onTimeout ) {
+    		this.timeout--;
+    		if( this.timeout == 0) {
+				this.onTimeout();
     		}
     	}
-    	this.orientation += this.rotationalSpeed; 
-		this.pos.x += this.move.dx;
-		this.pos.y += this.move.dy;
+    	// Kill this instance and fire 'die' event, if time-to-live has expired
+      	if( this.ttl > 0) {
+    		this.ttl--;
+    		if( this.ttl == 0) {
+    			this.die();
+    		}
+    	}
+      	// Update MC-to-WC transformation
+      	this.prevOrientation = this.orientation;
+      	this.prevMove = this.move;
+      	
+    	this.orientation += this.rotationalSpeed;
+    	if(this.move) {
+    		this.pos.translate(this.move);
+			// wrap around at screen borders
+    		var canvas = this.game.canvas;
+    		if(this.screenModeX == "wrap"){
+    			this.pos.x = (canvas.width + this.pos.x) % canvas.width; 
+    		}
+    		if(this.screenModeY == "wrap"){
+    			this.pos.y = (canvas.height + this.pos.y) % canvas.height;
+    		}
+    	}
+      	// Update MC-to-WC transformation
     },
-    redraw: function(ctx) {
+    _redraw: function(ctx) {
     	if( this.hidden ) {
     		return;
     	}
+    	// Push current transformation and rendering context
+		ctx.save();
+		// Apply object translation, rotation and scale
     	ctx.translate(this.pos.x, this.pos.y);
     	if( this.scale && this.scale != 1.0 )
-    		ctx.scale(this.scale);
-    	ctx.rotate(this.orientation);
-
+    		ctx.scale(this.scale, this.scale);
+    	if( this.orientation )
+    		ctx.rotate(this.orientation);
+    	// Let object render itself
     	this.render(ctx);
+    	// Render optional debug infos
+    	ctx.strokeStyle = "#80ff00";
+    	if(this.opts.debug.showBCircle && typeof this.getB){
+    		var r = this.getBoundingRadius();
+    		ArcadeJS.renderCircle(ctx, {x:0, y:0}, r);
+    	}
+    	// Restore previous transformation and rendering context
+		ctx.restore();
+    },
+    die: function() {
+    	if( this._dead )
+    		return;
+		this._dead = true;
+		this.hidden = true;
+		if( this.onDie )
+			this.onDie();
+		if(this._dead){
+			this.game._deadCount++;
+			this.game.purge(false);
+		}
     },
     intersectsWith: function(otherObject) {
     	if( this.getBoundingRadius && otherObject.getBoundingRadius) {
@@ -372,11 +570,62 @@ var Movable = Class.extend(
     	}
     	return undefined;
     },
+    /**@function Override this to apply additional transformations.
+     */
+    step: undefined,
+    /**@function Draw the object to the canvas.
+     * The objects transformation is already applied to the canvas when this
+     * function is called. Drawing commands should use modeling coordinates. 
+     * @param ctx Canvas 2D context.
+     */
+    render: undefined,
+    /**@function Return bounding circle for fast a-priory collision checking.
+     * @returns {float} radius of bounding circle. Center is assumed at (0/0)
+     * in modelling coordinates.
+     */
+    getBoundingRadius: undefined,
+    /**@function Return bounding box for fast a-priory collision checking.
+     * @returns {BBox2}
+     * in modelling coordinates.
+     */
+    getBoundingBox: undefined,
     /**@function Callback, triggered when this object dies.
-     * @param x a parms 
+     * @param {Event} e
+     */
+    onKeypress: undefined,
+    /**@function Callback, triggered when mouse wheel was used.
+     * Note: this requires to include the jquery.mouseweheel.js plugin.
+     * @param {Event} e
+     * @param {int} delta +1 or -1
+     */
+    onMousewheel: undefined,
+    /**@function Callback, triggered when timeout counter reaches zero.
+     */
+    onTimeout: undefined,
+    /**@function Callback, triggered when this object dies.
      */
     onDie: undefined,
     // --- end of class
     lastentry: undefined
 });
+
+/**Default options used when a Movable or derived object is constructed.*/
+Movable.defaultOptions = {
+//		type: undefined,
+//		id: undefined,
+//		tags: [],
+	collisionList: [], // list of types and tags that will report collisions
+//	eventList: [], // list of event names that this object wants
+	pos: null,
+	/**@field {string} 'wrap', 'bounce', 'collision', or 'none'.*/
+	screenModeX: "wrap",
+	screenModeY: "wrap",
+	debug: {
+		level: 1,
+		showLabel: false,
+		showBBox: false,
+		showBCircle: true
+	},
+	lastEntry: undefined
+}
 

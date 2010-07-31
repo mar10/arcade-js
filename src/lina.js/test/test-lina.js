@@ -235,7 +235,7 @@ test("BiTran2", function() {
     t.translate(1, 2)
     	.scale(2)
     	.rotate(2*LinaJS.DEG_TO_RAD);
-    alert(t);
+    //alert(t);
     
     assertEqual(t.matrix.copy().mult(t.inverse),
     		LinaJS.identity33(),

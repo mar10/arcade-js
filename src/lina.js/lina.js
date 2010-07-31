@@ -206,6 +206,12 @@ Point2.prototype = {
 		}
 		return this;
 	},
+	/** Return a new copy of this point. 
+	 * @returns {Point2}   
+	 */
+	copy: function() {
+		return new Point2(this.x, this.y);
+	},
 	/** Return squared distance from this to pt2. . 
 	 * @param {Point2|JS-Object} pt2 Second point.   
 	 * @returns {float}   
@@ -326,6 +332,12 @@ Vec2.prototype = {
 		}
 		return this;
 	},
+	/** Return a new copy of this vector. 
+	 * @returns {Vec2}   
+	 */
+	copy: function() {
+		return new Vec2(this.dx, this.dy);
+	},
 	/** Rotate this vector (in-place) and return this instance. 
 	 * @param {float} a Angle in radians.   
 	 * @returns {Vec2}   
@@ -335,12 +347,6 @@ Vec2.prototype = {
 		this.dx = this.dx * c - this.dy * s;
 		this.dy = this.dy * c + this.dx * s;
 		return this;
-	},
-	/** Return a new copy of this vector. 
-	 * @returns {Vec2}   
-	 */
-	copy: function() {
-		return new Vec2(this.dx, this.dy);
 	},
 	/** Normalize to a unit vector (in-place) and return this instance. 
 	 * @returns {Vec2}   
@@ -422,7 +428,21 @@ Vec2.prototype = {
 	isPerp: function(v2) {
 		return Math.abs(this.dot(v2)) < LinaJS.EPS;
 	},
-	lastEntry: undefined
+	/**Translate this point by vector offset.. 
+	 * @param {Point2|JS-Object} vecOrDx Second point.   
+	 * @returns {Vec2}   
+	 */
+	add: function(vecOrDx, dy) {
+		if(dy === undefined) {
+			this.dx += vecOrDx.dx;
+			this.dy += vecOrDx.dy;
+		}else{
+			this.dx += dx;
+			this.dy += dy;
+		}
+		return this;
+	},
+	lastEntry : undefined
 }
 
 /**

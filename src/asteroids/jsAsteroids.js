@@ -40,6 +40,7 @@ var AsteroidsGame = ArcadeJS.extend({
         	move: new Vec2(1, -4).setLength(speed),
         	rotationalSpeed: LinaJS.DEG_TO_RAD * 2
         }));
+
         // Start render loop
         this.startLoop()
     },
@@ -97,6 +98,32 @@ var Rocket = Movable.extend({
         this.pg.transform(LinaJS.scale33(2, -2));
     },
     step: function() {
+		var c1 = {
+    			x: this.pos.x,
+    			y: this.pos.y,
+    			vx: this.move.dx,
+    			vy: this.move.dy,
+    			r: this.getBoundingRadius()
+    		}
+    	var asteroids = this.game.typeMap["asteroid"];
+    	for(var i=0; i<asteroids.length; i++) {
+    		var a = asteroids[i];
+    		if( this.pos.distanceTo(a.pos) > (a.getBoundingRadius() + c1.r))
+    			continue;
+    		var c2 = {
+    			x: a.pos.x,
+    			y: a.pos.y,
+    			vx: a.move.dx,
+    			vy: a.move.dy,
+    			r: a.getBoundingRadius()
+    		}
+    		var coll = LinaJS.intersectMovingCircles(c1, c2, 5);
+//    		this.game.debug("rocket %o vs. %o: %o", c1, c2, coll);
+    		if( coll && Math.abs(coll.t) <= 1  ){
+        		this.game.debug("rocket %o vs. %o: %o", c1, c2, coll);
+        		this.game.stopLoop();
+    		}
+    	}
     },
     render: function(ctx) {
 		ctx.strokeStyle = "white"; //"rgb(255, 255, 255)";
@@ -106,6 +133,21 @@ var Rocket = Movable.extend({
     	return 13;
     },
     onKeypress: function(e, key) {
+    	this.game.debug("%s: %s, %o", e.type, key, this.game.downKeys);
+    	if(this.game.isKeyDown(" ")){
+    		this.fire();
+    	}
+    	if(this.game.isKeyDown("left")){
+    		this.orientation -= 5 * LinaJS.DEG_TO_RAD;
+    	}else if(this.game.isKeyDown("right")){
+    		this.orientation += 5 * LinaJS.DEG_TO_RAD;
+    	}
+    	if(this.game.isKeyDown("up")){
+    		var vAccel = LinaJS.polarToVec(this.orientation - 90*LinaJS.DEG_TO_RAD, 0.1);
+    		this.move.add(vAccel);
+    		e.stopPropagation();
+    	}
+    	/*
     	switch(key){
     	case " ":
     		this.fire();
@@ -119,12 +161,15 @@ var Rocket = Movable.extend({
     	case "up":
     		var vAccel = LinaJS.polarToVec(this.orientation - 90*LinaJS.DEG_TO_RAD, 0.1);
     		this.move.add(vAccel);
+    		e.stopPropagation();
     		break;
     	}
+    	*/
     },
     onMousewheel: function(e, delta) {
     	this.game.debug("onMousewheel: %o, %s", e, delta);
     	this.rotationalSpeed += delta * LinaJS.DEG_TO_RAD;
+		e.stopPropagation();
     },
     fire: function() {
     	var aim = LinaJS.polarToVec(this.orientation - 0.5 * Math.PI, 10);

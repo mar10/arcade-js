@@ -106,9 +106,10 @@ var ArcadeJS = Class.extend(
 		
         this.objects = [];
         this.idMap = {};
-        this.keyListeners = []
+        this.keyListeners = [];
         this.mouseListeners = [];
         this.typeMap = {};
+        this.downKeys = [];
         
         this.realFps = 0;
         this.fpsCorrection = 1.0;
@@ -129,9 +130,19 @@ var ArcadeJS = Class.extend(
         		// TODO: only if no keys are still pressed
             	self.key = null;
             	self.keyCode = null;
-        	}else{
+            	var idx = self.downKeys.indexOf(ArcadeJS.keyCodeToString(e));
+            	if(idx >= 0)
+            		self.downKeys.splice(idx, 1);
+            	self.debug("up %s: %o", ArcadeJS.keyCodeToString(e), self.downKeys);
+        	} else if( e.type === "keydown"){
             	self.keyCode = e.keyCode;
-            	self.key = ArcadeJS.niceCharCode(e);
+            	self.key = ArcadeJS.keyCodeToString(e);
+            	if( self.downKeys.indexOf(self.key) < 0)
+            		self.downKeys.push(self.key);
+        	} else {
+        		// keypress
+//            	self.keyCode = e.keyCode;
+//            	self.key = ArcadeJS.keyCodeToString(e);
         	}
         	for(var i=0; i<self.keyListeners.length; i++) {
         		var obj = self.keyListeners[i];
@@ -263,7 +274,7 @@ var ArcadeJS = Class.extend(
         	this.mouseListeners.push(o);
         }
         if( this.typeMap[o.type] ) {
-        	this.typeMap[o.type].push(0);
+        	this.typeMap[o.type].push(o);
         } else {
         	this.typeMap[o.type] = [ o ];
         }
@@ -298,6 +309,13 @@ var ArcadeJS = Class.extend(
     	}
 		this._deadCount = 0;
 		return true;
+    },
+    /**Return true, if a key is currently pressed.
+     * @param: {string} key 
+     * @see ArcadeJS.keyCodeToString() 
+     */
+    isKeyDown: function(key) {
+		return this.downKeys.indexOf(key) >= 0;
     },
     // --- end of class
     lastentry: undefined
@@ -371,8 +389,8 @@ ArcadeJS.renderCircle = function(ctx, center, r, mode)
  * @returns {string} 'a' for the key 'a', 'A' for Shift+a, '^a' for Ctrl+a,
  *          '[shift]' for
  */
-ArcadeJS.niceCharCode = function(e) {
-	var code = e.charCode || e.keyCode;
+ArcadeJS.keyCodeToString = function(e) {
+	var code = e.keyCode; //e.charCode || e.keyCode;
 	var shift = !!e.shiftKey;
 	var key = null;
 	
@@ -453,7 +471,7 @@ ArcadeJS.niceCharCode = function(e) {
 	if(e.altKey)
 		prefix = "alt+" + prefix;
 
-	window.console.log("charCode:%s, keyCode:%s -> using %s, '%s'", e.charCode, e.keyCode,  code, prefix + key);
+	window.console.log("keyCode:%s -> using %s, '%s'", e.keyCode,  code, prefix + key);
 
 	return prefix + key;
 }
@@ -461,11 +479,9 @@ ArcadeJS.niceCharCode = function(e) {
 /** *************************************************************************** */
 
 var Movable = Class.extend(
+/** @lends Movable.prototype */
 {
-	/**
-	 * Create a new movable game object.
-	 * 
-	 * @class Represents a game object with kinetic properties.
+	/**Represents a game object with kinetic properties.
 	 * @constructs
 	 */
     init: function(type, id, opts) {
@@ -510,10 +526,12 @@ var Movable = Class.extend(
     			this.die();
     		}
     	}
-      	// Update MC-to-WC transformation
+      	// Save previous values
+      	this.prevPos = this.pos;
       	this.prevOrientation = this.orientation;
       	this.prevMove = this.move;
-      	
+    	this.prevRotationalSpeed = this.rotationalSpeed;
+      	// Update MC-to-WC transformation
     	this.orientation += this.rotationalSpeed;
     	if(this.move) {
     		this.pos.translate(this.move);
@@ -526,6 +544,9 @@ var Movable = Class.extend(
     			this.pos.y = (canvas.height + this.pos.y) % canvas.height;
     		}
     	}
+    	// Let derived class change it
+    	if(typeof this.step == "function")
+    		this.step();
       	// Update MC-to-WC transformation
     },
     _redraw: function(ctx) {
@@ -591,6 +612,7 @@ var Movable = Class.extend(
     getBoundingBox: undefined,
     /**@function Callback, triggered when this object dies.
      * @param {Event} e
+     * @param {String} key stringified key.
      */
     onKeypress: undefined,
     /**@function Callback, triggered when mouse wheel was used.

@@ -113,7 +113,41 @@ LinaJS = {
 		// TODO: Gems II, 1.3
 	    return 0;
 	},
-
+	/**Intersection of two moving circles.
+	 * @param c1 {x, y, vx, vy, r}
+	 * @param c2 {x, y, vx, vy, r}
+	 * @param {float} maxT
+	 * @returns {ptColl, vColl, t} or null
+	 */
+	intersectMovingCircles: function(c1, c2, maxT) {
+		// See http://compsci.ca/v3/viewtopic.php?t=14897
+		maxT = maxT || 1;
+		// Breaking down the formula for t
+	    var A = c1.vx*c1.vx + c1.vy*c1.vy - 2*c1.vx*c2.vx + c2.vx*c2.vx 
+	    		- 2*c1.vy*c2.vy + c2.vy*c2.vy;
+	    var B = -c1.x*c1.vx - c1.y*c1.vy + c1.vx*c2.x + c1.vy*c2.y + c1.x*c2.vx 
+	    		- c2.x*c2.vx + c1.y*c2.vy - c2.y*c2.vy;
+	    var C = c1.vx*c1.vx + c1.vy*c1.vy - 2*c1.vx*c2.vx + c2.vx*c2.vx 
+	    		- 2*c1.vy*c2.vy + c2.vy*c2.vy;
+	    var D = c1.x*c1.x + c1.y*c1.y - c1.r*c1.r - 2*c1.x*c2.x + c2.x*c2.x 
+	    		- 2*c1.y*c2.y + c2.y*c2.y - 2*c1.r*c2.r - c2.r*c2.r;
+	    var DISC = (-2 * B) * (-2 * B) - 4 * C * D;
+	    // If the discriminent is non negative, a collision will occur and
+        // we must compare the time to our current time of collision. We
+        // update the time if we find a collision that has occurred earlier
+        // than the previous one.                                          
+        if (DISC < 0 ){
+        	return null;
+        }
+        // We want the smallest time
+        var t = Math.min(0.5 * (2 * B - Math.sqrt(DISC)) / A, 
+         		0.5 * (2 * B + Math.sqrt(DISC)) / A);
+        return {
+        	ptColl: null,
+        	vColl: null,
+        	t: t
+        }
+	},
 	/** Return true, if lina.js objects a and b are the same (within eps).
 	 * This function is not optimized for speed, but handy for unit tests.
 	 * @param a {float|Point2|Vec2|Matrix3,JS-Object,...}  

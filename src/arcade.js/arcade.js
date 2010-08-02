@@ -87,6 +87,89 @@
 /******************************************************************************/
 
 
+/**
+ * Sound support
+
+ */
+AudioJS = function(opts){
+	if(typeof opts == "string")
+		opts = {url: opts};
+	this.opts = $.extend({}, AudioJS.defaultOpts, opts);
+	this.audio = AudioJS.load(opts.url);
+}
+// Static members
+$.extend(AudioJS, {
+	_soundElement: null,
+	_audioList: {},
+	audioObjSupport: undefined,
+	basicAudioSupport: undefined,
+	loopSupport: undefined,
+	defaultOpts: {
+		loop: false,
+		volume: 1
+	},
+	/**Load and cache audio element for this URL.
+	 *  @param {string} url 
+	 *  @param {booelan} loop 
+	 */
+	load: function(url) {
+		var audio = this._audioList[url];
+		if( !audio ) {
+			if( !this._soundElement ) {
+				this._soundElement = document.createElement("div");
+				this._soundElement.setAttribute("id", "AudioJS-sounds");
+				this._soundElement.setAttribute("hidden", true);
+				document.body.appendChild(this._soundElement);		
+			}
+			audio = this._audioList[url] = document.createElement("audio");
+//			audio.setAttribute("autoplay", true);
+			audio.setAttribute("preload", true);
+			audio.setAttribute("src", url);
+			this._soundElement.appendChild(audio);		
+			$(audio).bind('ended',{}, function() {
+//			  	$(this).trigger('play');
+				window.console.log("AudioJS("+url+") ended");
+			});
+		}
+		return audio;
+	}
+});
+try {
+	var audio = new Audio("");
+	AudioJS.audioObjSupport = !!(audio.canPlayType);
+	AudioJS.basicAudioSupport = !!(!AudioJS.audioObjSupport ? audio.play : false);
+} catch (e) {
+	AudioJS.audioObjSupport = false;
+	AudioJS.basicAudioSupport = false;
+}
+
+AudioJS.prototype = {
+	/**Return string representation.
+	 * @returns {string}  
+	 */
+	toString: function() {
+	    return "AudioJS("+this.opts.url+")";
+	},
+	/**Play this sound.
+	 *  @param {booelan} loop 
+	 */
+	play: function(loop) {
+		if(this.audio.ended){
+			this.audio.play();
+		}else{
+			// Interrupt currently playing sound
+			//this.audio.pause();
+			this.audio.currentTime = 0;
+			this.audio.play();
+		}
+	},
+	lastEntry: undefined
+}
+
+
+/** *************************************************************************** */
+
+
 var ArcadeJS = Class.extend(
 /** @lends ArcadeJS.prototype */
 {
@@ -109,7 +192,7 @@ var ArcadeJS = Class.extend(
         this.keyListeners = [];
         this.mouseListeners = [];
         this.typeMap = {};
-        this.downKeys = [];
+        this.downKeyCodes = [];
         
         this.realFps = 0;
         this.fpsCorrection = 1.0;
@@ -130,15 +213,17 @@ var ArcadeJS = Class.extend(
         		// TODO: only if no keys are still pressed
             	self.key = null;
             	self.keyCode = null;
-            	var idx = self.downKeys.indexOf(ArcadeJS.keyCodeToString(e));
+//            	var idx = self.downKeyCodes.indexOf(ArcadeJS.keyCodeToString(e));
+            	var idx = self.downKeyCodes.indexOf(e.keyCode);
             	if(idx >= 0)
-            		self.downKeys.splice(idx, 1);
-            	self.debug("up %s: %o", ArcadeJS.keyCodeToString(e), self.downKeys);
+            		self.downKeyCodes.splice(idx, 1);
+            	self.debug("Keyup %s: %o", ArcadeJS.keyCodeToString(e), self.downKeyCodes);
         	} else if( e.type === "keydown"){
             	self.keyCode = e.keyCode;
             	self.key = ArcadeJS.keyCodeToString(e);
-            	if( self.downKeys.indexOf(self.key) < 0)
-            		self.downKeys.push(self.key);
+            	if( self.downKeyCodes.indexOf(self.keyCode) < 0)
+            		self.downKeyCodes.push(self.keyCode);
+            	self.debug("Keydown %s: %o", self.key, self.downKeyCodes);
         	} else {
         		// keypress
 //            	self.keyCode = e.keyCode;
@@ -292,10 +377,11 @@ var ArcadeJS = Class.extend(
     purge: function(force) {
     	// TODO: this should be a locked section!
     	var ol = this.objects;
-    	if( ol.length < 1 
+    	if( this._purging
+    		|| ol.length < 1 
     		|| !force && (this._deadCount/ol.length) < this.opts.purgeRate )
     		return false;
-    	//alert("Purging objects: " + this._deadCount + "/" + ol.length + " dead.");
+    	this._purging = true;
     	this.debug("Purging objects: " + this._deadCount + "/" + ol.length + " dead.");
     	this.objects = [];
     	this.keyListeners = [];
@@ -308,14 +394,15 @@ var ArcadeJS = Class.extend(
     			this.addObject(o);
     	}
 		this._deadCount = 0;
+    	this._purging = false;
 		return true;
     },
     /**Return true, if a key is currently pressed.
      * @param: {string} key 
      * @see ArcadeJS.keyCodeToString() 
      */
-    isKeyDown: function(key) {
-		return this.downKeys.indexOf(key) >= 0;
+    isKeyDown: function(keyCode) {
+		return this.downKeyCodes.indexOf(keyCode) >= 0;
     },
     // --- end of class
     lastentry: undefined

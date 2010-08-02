@@ -23,7 +23,7 @@ var AsteroidsGame = ArcadeJS.extend({
         // Player rocket
         obj = this.addObject(new Rocket())
         // Asteroids
-        var speed = 1;
+        var speed = 0.5;
         obj = this.addObject(new Asteroid({
         	move: new Vec2(3, 4).setLength(speed),
         	rotationalSpeed: LinaJS.DEG_TO_RAD * 2
@@ -40,7 +40,9 @@ var AsteroidsGame = ArcadeJS.extend({
         	move: new Vec2(1, -4).setLength(speed),
         	rotationalSpeed: LinaJS.DEG_TO_RAD * 2
         }));
-
+        // Cache sounds
+        this.gunSound = new AudioJS("shot.wav");
+        this.explosionSound = new AudioJS("damage.wav");
         // Start render loop
         this.startLoop()
     },
@@ -62,6 +64,17 @@ var Bullet = Movable.extend({
     },
     toString: function() {
         return "Bullet(" + this.id + ")";
+    },
+    step: function() {
+    	var asteroids = this.game.typeMap["asteroid"];
+    	for(var i=0; i<asteroids.length; i++) {
+    		var a = asteroids[i];
+    		if( this.pos.distanceTo(a.pos) < a.getBoundingRadius() ){
+        		this.game.debug("bullet hits %s", a);
+            	this.game.explosionSound.play();
+        		this.game.stopLoop();
+    		}
+    	}
     },
     render: function(ctx) {
 		ctx.strokeStyle = "#ffffff";
@@ -121,6 +134,7 @@ var Rocket = Movable.extend({
 //    		this.game.debug("rocket %o vs. %o: %o", c1, c2, coll);
     		if( coll && Math.abs(coll.t) <= 1  ){
         		this.game.debug("rocket %o vs. %o: %o", c1, c2, coll);
+            	this.game.explosionSound.play();
         		this.game.stopLoop();
     		}
     	}
@@ -133,38 +147,20 @@ var Rocket = Movable.extend({
     	return 13;
     },
     onKeypress: function(e, key) {
-    	this.game.debug("%s: %s, %o", e.type, key, this.game.downKeys);
-    	if(this.game.isKeyDown(" ")){
+    	this.game.debug("%s: '%s', %o", e.type, key, this.game.downKeyCodes);
+    	if(this.game.isKeyDown(32)){ // Space
     		this.fire();
     	}
-    	if(this.game.isKeyDown("left")){
+    	if(this.game.isKeyDown(37)){ // Left
     		this.orientation -= 5 * LinaJS.DEG_TO_RAD;
-    	}else if(this.game.isKeyDown("right")){
+    	}else if(this.game.isKeyDown(39)){ // Right
     		this.orientation += 5 * LinaJS.DEG_TO_RAD;
     	}
-    	if(this.game.isKeyDown("up")){
+    	if(this.game.isKeyDown(38)){ // Up
     		var vAccel = LinaJS.polarToVec(this.orientation - 90*LinaJS.DEG_TO_RAD, 0.1);
     		this.move.add(vAccel);
     		e.stopPropagation();
     	}
-    	/*
-    	switch(key){
-    	case " ":
-    		this.fire();
-    		break;
-    	case "left":
-    		this.orientation -= 5 * LinaJS.DEG_TO_RAD;
-    		break;
-    	case "right":
-    		this.orientation += 5 * LinaJS.DEG_TO_RAD;
-    		break;
-    	case "up":
-    		var vAccel = LinaJS.polarToVec(this.orientation - 90*LinaJS.DEG_TO_RAD, 0.1);
-    		this.move.add(vAccel);
-    		e.stopPropagation();
-    		break;
-    	}
-    	*/
     },
     onMousewheel: function(e, delta) {
     	this.game.debug("onMousewheel: %o, %s", e, delta);
@@ -179,6 +175,7 @@ var Rocket = Movable.extend({
     		ttl: 20,
     		move: aim
     		}));
+    	this.game.gunSound.play();
     },
     // --- end of class
     lastentry: undefined

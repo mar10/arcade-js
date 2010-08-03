@@ -251,7 +251,7 @@ var ArcadeJS = Class.extend(
 			case "mousemove":
 				if(self._dragging || self.clickPos && self.clickPos.distanceTo(self.mousePos) > 4 ){
 					self._dragging = true;
-	        		self.debug("draggin: %s", self.mousePos.sub(self.clickPos));
+	        		self.debug("dragging: %s", self.mousePos.vectorTo(self.clickPos));
 				}
 				break;
 			}

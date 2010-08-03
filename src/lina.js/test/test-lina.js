@@ -145,7 +145,7 @@ test("Point2", function() {
 
 
 test("Vec2", function() {
-    expect(5);
+    expect(6);
 
 	var v1 = new Vec2(3, 7); 
 	ok(v1.dx == 3 && v1.dy == 7, "Vec2.constructor");
@@ -157,6 +157,10 @@ test("Vec2", function() {
 
 	v1.rotate(Math.PI);
 	assertEqual(v1, {dx:-3, dy:-7}, "Vec2.rotate");
+	
+	var v1 = new Vec2(1, 1);
+	var v2 = new Vec2(-1, 1);
+	assertEqual(v1.angle(v2), 90*LinaJS.DEG_TO_RAD, "Vec2.angle");
 });
 
 
@@ -290,7 +294,7 @@ test("Transformation benchmarks", function() {
 
 
 test("Polygon2", function() {
-    expect(8);
+    expect(14);
     
     var pg = new Polygon2([0,0, 1,0, 1,1, 0,1]);
 
@@ -314,6 +318,19 @@ test("Polygon2", function() {
     pg2.transform(m);
     assertEqual(pg2, [0,0, -1,0, -1,-1, 0,-1], "transform() another 90° ccw");
     logMsg("PG rotated by 90°: %s", pg2);
+
+    assertEqual(pg.getXY(0), {x:0, y:0}, "getXY()");
+    assertEqual(pg.getXY(3), {x:0, y:1}, "getXY()");
+//    logMsg("Edge 3: %o", pg.getEdge(3));
+    
+
+    var pt = new Point2(.5, .5);
+    ok(pg.hasInside(pt), "hasInside");
+    ok(pgRevert.hasInside(pt), "hasInside");
+    pt = new Point2(1.1, .5);
+    ok(!pg.hasInside(pt), "hasInside");
+    pt = new Point2(-.1, .5);
+    ok(!pg.hasInside(pt), "hasInside");
 });
 
 /******************************************************************************/

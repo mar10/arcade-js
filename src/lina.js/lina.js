@@ -89,6 +89,7 @@ LinaJS = {
 	/** Return intersection point of line segment pt1/pt2 with with segment pt3/pt4.*/
 	segmentsIntersect: function(pt1, pt2, pt3, pt4) {
 		// TODO: Gems II, 1.2 and page 473
+		alert("Not implemented: segmentsIntersect()");
 	    return null;
 	},
 
@@ -99,18 +100,21 @@ LinaJS = {
 	 */
 	lineIntersection: function(pt1, pt2, pt3, pt4) {
 		// TODO: 
+		alert("Not implemented: lineIntersection()");
 	    return null;
 	},
 
 	/** Return shortest distance between a point and a line through ptA/ptB.*/
 	distancePtLine: function(pt, ptA, ptB) {
 		// TODO: Gems II, 1.3
+		alert("Not implemented: distancePtLine()");
 	    return 0;
 	},
 
 	/** Return shortest distance between a point and the line segment from ptA to ptB.*/
 	distancePtSegment: function(pt, ptA, ptB) {
 		// TODO: Gems II, 1.3
+		alert("Not implemented: distancePtSegment()");
 	    return 0;
 	},
 	/**Intersection of two moving circles.
@@ -308,11 +312,11 @@ Point2.prototype = {
 			this.y += dy; 
 		}
 	},
-	/** Return vector from this to pt2. . 
+	/** Return vector from this to pt2.
 	 * @param {Point2|JS-Object} pt2 Second point.   
 	 * @returns {Vec2}   
 	 */
-	sub: function(ptOrX, y) {
+	vectorTo: function(ptOrX, y) {
 		var dx, dy;
 		if(y === undefined) {
 			return new Vec2(this.x - ptOrX.x, this.y - ptOrX.y);
@@ -411,6 +415,20 @@ Vec2.prototype = {
 			return 0;
 		}
 	},
+	/**Return the angle between this vector and v2.
+	   @returns {float}  [-pi .. pi], ccw
+	*/
+	angle: function(v2){
+	   var theta1 = Math.atan2(this.dy, this.dx),
+	   	   theta2 = Math.atan2(v2.dy, v2.dx),
+	   	   dtheta = theta2 - theta1;
+	   while (dtheta > Math.PI)
+	      dtheta -= 2 * Math.PI;
+	   while (dtheta < -Math.PI)
+	      dtheta += 2 * Math.PI;
+	   return dtheta;
+	},
+
 	/** Multiply vector length by a factor (in-place) and return this instance.
 	 * @param {float} f Scaling factor.   
 	 * @returns {Vec2}   
@@ -905,14 +923,79 @@ Polygon2.prototype = {
 		}
 	    return this;
 	},
-	/** Check, if pt is inside this polygon.*/
-	isInside: function(pt) {
-		// TODO:
-		alert("Not implemented: Polygon2.isInside()");
-	    return false;
+	/**Return polygon point by index.
+	 * @param {int} idx
+	 * @returns {x:_, y:_}
+	 */
+	getXY: function(idx) {
+		idx *= 2;
+		if(idx > this.xyList.length-2)
+			throw("Polygon2.getXY: Index out of bounds");
+		return {x: this.xyList[idx], y: this.xyList[idx+1]};
 	},
-	/** Check, if this polygon intersects with another polygon.*/
-	intersects: function(polygon) {
+	/**Return polygon edge by index.
+	 * If idx == last then the closing edge is returned.
+	 * @param {int} idx Index of first point
+	 * @returns {x0:_, y0:_, x1:_, y1:_}
+	 */
+	getEdge: function(idx0) {
+		idx0 *= 2;
+		if(idx0 >= this.xyList.length)
+			throw("Polygon2.getEdge: Index out of bounds");
+		var idx1 = (idx0 + 2) % this.xyList.length;
+		return {x0: this.xyList[idx0], y0: this.xyList[idx0+1],
+				x1: this.xyList[idx1], y1: this.xyList[idx1+1]};
+	},
+	/**Check, if pt is inside this polygon.
+	 * @param pt 
+	 */
+	hasInside: function(pt) {
+		// Check if pt is on the same side of all PG edges.
+		// TODO: this only works for convex PGs(?)
+		// Ray-testing may be better:
+		// see http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
+		// and http://stackoverflow.com/questions/217578/point-in-polygon-aka-hit-test  
+		// for a better solution
+		/*
+		 int pnpoly(int npol, float *xp, float *yp, float x, float y)
+	    {
+	      int i, j, c = 0;
+	      for (i = 0, j = npol-1; i < npol; j = i++) {
+	        if ((((yp[i] <= y) && (y < yp[j])) ||
+	             ((yp[j] <= y) && (y < yp[i]))) &&
+	            (x < (xp[j] - xp[i]) * (y - yp[i]) / (yp[j] - yp[i]) + xp[i]))
+	          c = !c;
+	      }
+	      return c;
+	    }
+
+		 */
+		var x = pt.x, 
+			y = pt.y,
+			sign, // >0: pt is on the left of a segment
+			pt0, pt1,
+			xy = this.xyList, 
+			len = xy.length;
+		// sign = (y - y0)*(x1 - x0) - (x - x0)*(y1 - y0)
+		// Start with last (closing) segment
+		pt0 = {x: xy[len-2], y: xy[len-1]};
+		for(var i=0; i<=len-2; i+=2){
+			pt1 = {x: xy[i], y: xy[i+1]};
+			var s = (y - pt0.y) * (pt1.x - pt0.x) - (x - pt0.x) * (pt1.y - pt0.y);
+			if( s === 0){
+				return true;
+			} else if( sign === undefined){
+				sign = (s > 0);
+			} else if( (s>0) !== sign ) {
+				return false;
+			}
+			pt0 = pt1;
+		}
+	    return true;
+	},
+	/** Check, if this polygon intersects with another polygon.
+	 */
+	intersects: function(pg2, velocity) {
 		// TODO:
 		alert("Not implemented: Polygon2.intersects()");
 	    return false;
@@ -958,12 +1041,14 @@ Polygon2.prototype = {
 	    return 0;
 	},
 	/** Return the bounding box as {min: {x:_,y:_}, max: {x:_,y:_}}.*/
-	getBoundingBox: function() {
+	getBoundingBox: function(forceRecalc) {
 		// TODO: 
 		alert("Not implemented: Polygon2.getBoundingBox()");
 	    return 0;
 	},
-	/** Return a new polygon that connects the extreme points of this polygon.*/
+	/** Return a new polygon that connects the extreme points of this polygon.
+	 *	The result will be convex, non-intersecting. 
+	 */
 	getBoundingPolygon: function() {
 		// TODO: 
 		alert("Not implemented: Polygon2.getBoundingPolygon()");
@@ -972,7 +1057,7 @@ Polygon2.prototype = {
 	/** Return a new polygon that draws along the outer lines of this polygon.*/
 	getShapePolygon: function() {
 		// TODO: 
-		alert("Not implemented: Polygon2.getBoundingPolygon()");
+		alert("Not implemented: Polygon2.getShapePolygon()");
 	    return null;
 	},
 	lastEntry: undefined

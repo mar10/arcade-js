@@ -115,9 +115,13 @@ test("LinaJS.compare", function() {
 
 
 test("tools", function() {
-    expect(2);
+    expect(3);
     assertEqual(LinaJS.vecToPolar(2, 0), {a:0, r:2}, "LinaJS.vecToPolar");
     assertEqual(LinaJS.vecToPolar(0, 2), {a:Math.PI/2, r:2}, "LinaJS.vecToPolar");
+    
+    assertEqual(LinaJS.distancePtLine({x:0, y:0}, {x:0, y:1}, {x:1, y:0}),
+    		0.5*Math.sqrt(2),
+    		"LinaJS.distancePtLine")
 });
 
 

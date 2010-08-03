@@ -397,9 +397,15 @@ var ArcadeJS = Class.extend(
     	this._purging = false;
 		return true;
     },
+    /**Return an array of objects with a given type.
+     * @param: {string} type 
+     */
+    getObjectsByType: function(type) {
+		return this.typeMap[type] ? this.typeMap[type] : [];
+    },
     /**Return true, if a key is currently pressed.
-     * @param: {string} key 
-     * @see ArcadeJS.keyCodeToString() 
+     * @param: {int} keyCode 
+     * @returns {boolean} 
      */
     isKeyDown: function(keyCode) {
 		return this.downKeyCodes.indexOf(keyCode) >= 0;
@@ -583,7 +589,7 @@ var Movable = Class.extend(
         this.pos = opts.pos ? new Point2(opts.pos) : new Point2(0, 0);
         this.scale = opts.scale ? +opts.scale : 1.0;
         this.orientation = opts.orientation ? +opts.orientation : 0;
-        this.move = opts.move ? new Vec2(opts.move) : null;
+        this.move = opts.move ? new Vec2(opts.move) : new Vec2(0, 0);
         this.rotationalSpeed = opts.rotationalSpeed || null; //0.0 * LinaJS.DEG_TO_RAD;  // rad / tick
         this.screenModeX = opts.screenModeX || "none";
         this.screenModeY = opts.screenModeY || "none";

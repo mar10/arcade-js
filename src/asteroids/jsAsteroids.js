@@ -66,13 +66,15 @@ var Bullet = Movable.extend({
         return "Bullet(" + this.id + ")";
     },
     step: function() {
-    	var asteroids = this.game.typeMap["asteroid"];
+    	var asteroids = this.game.getObjectsByType("asteroid");
     	for(var i=0; i<asteroids.length; i++) {
     		var a = asteroids[i];
     		if( this.pos.distanceTo(a.pos) < a.getBoundingRadius() ){
         		this.game.debug("bullet hits %s", a);
+        		this.die();
+        		a.die();
             	this.game.explosionSound.play();
-        		this.game.stopLoop();
+        		//this.game.stopLoop();
     		}
     	}
     },
@@ -118,7 +120,7 @@ var Rocket = Movable.extend({
     			vy: this.move.dy,
     			r: this.getBoundingRadius()
     		}
-    	var asteroids = this.game.typeMap["asteroid"];
+    	var asteroids = this.game.getObjectsByType("asteroid");
     	for(var i=0; i<asteroids.length; i++) {
     		var a = asteroids[i];
     		if( this.pos.distanceTo(a.pos) > (a.getBoundingRadius() + c1.r))

@@ -1172,10 +1172,11 @@ Polygon2.prototype = {
 	    return 0;
 	},
 	/** Return a new polygon that connects the extreme points of this polygon.
+	 * Also known as 'convex hull'.
 	 *	The result will be convex, non-intersecting. 
 	 */
 	getBoundingPolygon: function() {
-		// TODO: 
+		// TODO: file:///C:/Prj/eclipse-ws/arcade-js/res/Math/Geometry%20Concepts%20Line%20Intersection%20and%20its%20Applications/tc.htm
 		alert("Not implemented: Polygon2.getBoundingPolygon()");
 	    return null;
 	},

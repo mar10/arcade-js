@@ -47,6 +47,30 @@ LinaJS = {
 	EPS_SQUARED: 1e-5 * 1e-5,
 
 
+	/**Return random float value f, with min <= f <= max').
+	 * @example
+	 * random(10); // return 0.00 .. 10.00 
+	 * random(2, 5); // return 2.00 .. 5.00 
+	 */
+	random: function(min, max) {
+		if( max === undefined ){
+			max = min;
+			min = 0;
+		}
+		return min + (max-min) * Math.random();
+	},
+	/**Return random integer value i, with min <= i <= max').
+	 * @example
+	 * randomInt(10); // return 0..10 
+	 * randomInt(2, 5); // return 2..5 
+	 */
+	randomInt: function(min, max) {
+		if( max === undefined ){
+			max = min;
+			min = 0;
+		}
+		return min + Math.floor((max-min+1) * Math.random());
+	},
 	/** Return a new Matrix3 (same as 'new Matrix3()'). */
 	identity33: function() {
 		return new Matrix3();
@@ -86,153 +110,96 @@ LinaJS = {
 			     dy: r * Math.sin(a) };
 	},
 
+	/** @private */
+	_segmentsIntersect: function(pt1x, pt1y, pt2x, pt2y, pt3x, pt3y, pt4x, pt4y) {
+		// public domain function by Darel Rex Finley, 2006
+		// Return null, if the segments are colinear, even if they overlap.
+	    // Fail if either line segment is zero-length.
+	    if (pt1x==pt2x && pt1y==pt2y || pt3x==pt4x && pt3y==pt4y) 
+		    return null;
+	    // Fail if the segments share an end-point.
+	    if (pt1x==pt3x && pt1y==pt3y || pt2x==pt3x && pt2y==pt3y
+	    	||  pt1x==pt4x && pt1y==pt4y || pt2x==pt4x && pt2y==pt4y) {
+	    	return null; 
+	    }
+ 	    // (1) Translate the system so that point A is on the origin.
+	    pt2x -= pt1x; pt2y -= pt1y;
+	    pt3x -= pt1x; pt3y -= pt1y;
+	    pt4x -= pt1x; pt4y -= pt1y;
+  	    // Discover the length of segment A-B.
+	    var distAB = Math.sqrt(pt2x*pt2x + pt2y*pt2y);
+	    // (2) Rotate the system so that point B is on the positive X axis.
+	    var theCos = pt2x / distAB;
+	    var theSin = pt2y / distAB;
+	    var newX = pt3x * theCos + pt3y * theSin;
+	    pt3y = pt3y * theCos - pt3x * theSin; 
+	    pt3x = newX;
+	    newX = pt4x * theCos + pt4y * theSin;
+	    pt4y = pt4y * theCos - pt4x * theSin; 
+	    pt4x = newX;
+	    // Fail if segment C-D doesn't cross line A-B.
+	    if (pt3y<0 && pt4y<0 || pt3y>=0 && pt4y>=0 ) 
+	    	return null;
+	    // (3) Discover the position of the intersection point along line A-B.
+	    var ABpos = pt4x + (pt3x - pt4x) * pt4y / (pt4y - pt3y);
+  	    // Fail if segment C-D crosses line A-B outside of segment A-B.
+	    if (ABpos < 0 || ABpos > distAB ) 
+	    	return null;
+	    // (4) Apply the discovered position to line A-B in the original coordinate system.
+	    return {x: pt1x + ABpos * theCos,
+		        y: pt1y + ABpos * theSin}; 
+	},
 	/** Return intersection point of line segment pt1/pt2 with with segment pt3/pt4.*/
 	segmentsIntersect: function(pt1, pt2, pt3, pt4) {
-		// TODO: Gems II, 1.2 and page 473
-		alert("Not implemented: segmentsIntersect()");
-		/*
-If you need to find out only when (and where) the line segments intersect, you can modify the function as follows:
-
-//  public domain function by Darel Rex Finley, 2006
-
-
-
-//  Determines the intersection point of the line segment defined by points A and B
-//  with the line segment defined by points C and D.
-//
-//  Returns YES if the intersection point was found, and stores that point in X,Y.
-//  Returns NO if there is no determinable intersection point, in which case X,Y will
-//  be unmodified.
-
-bool lineSegmentIntersection(
-double Ax, double Ay,
-double Bx, double By,
-double Cx, double Cy,
-double Dx, double Dy,
-double *X, double *Y) {
-
-  double  distAB, theCos, theSin, newX, ABpos ;
-
-  //  Fail if either line segment is zero-length.
-  if (Ax==Bx && Ay==By || Cx==Dx && Cy==Dy) return NO;
-
-  //  Fail if the segments share an end-point.
-  if (Ax==Cx && Ay==Cy || Bx==Cx && By==Cy
-  ||  Ax==Dx && Ay==Dy || Bx==Dx && By==Dy) {
-    return NO; }
-
-  //  (1) Translate the system so that point A is on the origin.
-  Bx-=Ax; By-=Ay;
-  Cx-=Ax; Cy-=Ay;
-  Dx-=Ax; Dy-=Ay;
-
-  //  Discover the length of segment A-B.
-  distAB=sqrt(Bx*Bx+By*By);
-
-  //  (2) Rotate the system so that point B is on the positive X axis.
-  theCos=Bx/distAB;
-  theSin=By/distAB;
-  newX=Cx*theCos+Cy*theSin;
-  Cy  =Cy*theCos-Cx*theSin; Cx=newX;
-  newX=Dx*theCos+Dy*theSin;
-  Dy  =Dy*theCos-Dx*theSin; Dx=newX;
-
-  //  Fail if segment C-D doesn't cross line A-B.
-  if (Cy<0. && Dy<0. || Cy>=0. && Dy>=0.) return NO;
-
-  //  (3) Discover the position of the intersection point along line A-B.
-  ABpos=Dx+(Cx-Dx)*Dy/(Dy-Cy);
-
-  //  Fail if segment C-D crosses line A-B outside of segment A-B.
-  if (ABpos<0. || ABpos>distAB) return NO;
-
-  //  (4) Apply the discovered position to line A-B in the original coordinate system.
-  *X=Ax+ABpos*theCos;
-  *Y=Ay+ABpos*theSin;
-
-  //  Success.
-  return YES; }
-
-Important:  Both of the above functions return NO if the segments are colinear, even if they overlap.
-		 */
-	    return null;
+		return LinaJS._segmentsIntersect(pt1.x, pt1.y, pt2.x, pt2.y, 
+				pt3.x, pt3.y, pt4.x, pt4.y); 
 	},
-
+	/** @private */
+	_linesIntersect: function(pt1x, pt1y, pt2x, pt2y, pt3x, pt3y, pt4x, pt4y) {
+		// public domain function by Darel Rex Finley, 2006
+		// Return null, if the segments are colinear, even if they overlap.
+	    // Fail if either line segment is zero-length.
+	    if (pt1x==pt2x && pt1y==pt2y || pt3x==pt4x && pt3y==pt4y) 
+		    return null;
+ 	    // (1) Translate the system so that point A is on the origin.
+	    pt2x -= pt1x; pt2y -= pt1y;
+	    pt3x -= pt1x; pt3y -= pt1y;
+	    pt4x -= pt1x; pt4y -= pt1y;
+  	    // Discover the length of segment A-B.
+	    var distAB = Math.sqrt(pt2x*pt2x + pt2y*pt2y);
+	    // (2) Rotate the system so that point B is on the positive X axis.
+	    var theCos = pt2x / distAB;
+	    var theSin = pt2y / distAB;
+	    var newX = pt3x * theCos + pt3y * theSin;
+	    pt3y = pt3y * theCos - pt3x * theSin; 
+	    pt3x = newX;
+	    newX = pt4x * theCos + pt4y * theSin;
+	    pt4y = pt4y * theCos - pt4x * theSin; 
+	    pt4x = newX;
+		//  Fail if the lines are parallel.
+		if (pt4y == pt3y) 
+		    return null;
+	    // (3) Discover the position of the intersection point along line A-B.
+	    var ABpos = pt4x + (pt3x - pt4x) * pt4y / (pt4y - pt3y);
+	    // (4) Apply the discovered position to line A-B in the original coordinate system.
+	    return {x: pt1x + ABpos * theCos,
+		        y: pt1y + ABpos * theSin}; 
+	},
 	/** Return intersection point of line segment pt1/pt2 with with segment pt3/pt4.
 	 *
 	 * @returns {pt|null|undefined} intersection point {x:_, y:_} or null if there is no intersection.
 	 * undefined is returned, if segments are collinear.
 	 */
-	lineIntersection: function(pt1, pt2, pt3, pt4) {
-		// TODO: 
-		alert("Not implemented: lineIntersection()");
-		/*
-C Code Sample
-
-//  public domain function by Darel Rex Finley, 2006
-
-
-
-//  Determines the intersection point of the line defined by points A and B with the
-//  line defined by points C and D.
-//
-//  Returns YES if the intersection point was found, and stores that point in X,Y.
-//  Returns NO if there is no determinable intersection point, in which case X,Y will
-//  be unmodified.
-
-bool lineIntersection(
-double Ax, double Ay,
-double Bx, double By,
-double Cx, double Cy,
-double Dx, double Dy,
-double *X, double *Y) {
-
-  double  distAB, theCos, theSin, newX, ABpos ;
-
-  //  Fail if either line is undefined.
-  if (Ax==Bx && Ay==By || Cx==Dx && Cy==Dy) return NO;
-
-  //  (1) Translate the system so that point A is on the origin.
-  Bx-=Ax; By-=Ay;
-  Cx-=Ax; Cy-=Ay;
-  Dx-=Ax; Dy-=Ay;
-
-  //  Discover the length of segment A-B.
-  distAB=sqrt(Bx*Bx+By*By);
-
-  //  (2) Rotate the system so that point B is on the positive X axis.
-  theCos=Bx/distAB;
-  theSin=By/distAB;
-  newX=Cx*theCos+Cy*theSin;
-  Cy  =Cy*theCos-Cx*theSin; Cx=newX;
-  newX=Dx*theCos+Dy*theSin;
-  Dy  =Dy*theCos-Dx*theSin; Dx=newX;
-
-  //  Fail if the lines are parallel.
-  if (Cy==Dy) return NO;
-
-  //  (3) Discover the position of the intersection point along line A-B.
-  ABpos=Dx+(Cx-Dx)*Dy/(Dy-Cy);
-
-  //  (4) Apply the discovered position to line A-B in the original coordinate system.
-  *X=Ax+ABpos*theCos;
-  *Y=Ay+ABpos*theSin;
-
-  //  Success.
-  return YES; }
-Important:  Both of the above functions return NO if the segments are colinear, even if they overlap.
-
-		 */
-	    return null;
+	linesIntersect: function(pt1, pt2, pt3, pt4) {
+		return LinaJS._linesIntersect(pt1.x, pt1.y, pt2.x, pt2.y, 
+				pt3.x, pt3.y, pt4.x, pt4.y); 
 	},
-
 	/** Return shortest (vertical) distance between a point and a line through ptA/ptB.*/
 	distancePtLine: function(pt, ptA, ptB) {
 		var dx = ptB.x - ptA.x; 
 		var dy = ptB.y - ptA.y;
 		return Math.abs(dx*(ptA.y-pt.y) - dy*(ptA.x-pt.x)) / Math.sqrt(dx*dx + dy*dy); 
 	},
-
 	/** Return shortest distance between a point and the line segment from ptA to ptB.*/
 	distancePtSegment: function(pt, ptA, ptB) {
 		// TODO: Gems II, 1.3
@@ -283,12 +250,13 @@ Important:  Both of the above functions return NO if the segments are colinear, 
 	 * @param b must have the same type as a  
 	 * @param eps {float} Maximum accepted difference, defaults to 0.00001
 	 */
-
 	compare: function(a, b, eps) {
 		var eps = eps === undefined ? LinaJS.EPS : eps;
 		if( a === undefined || b === undefined ){
 			// undefined is equal to nothing! 
 			return false;
+		} else if( a === null || b === null ){
+				return a === null && b === null;
 		} else if( a.m !== undefined || b.m !== undefined){
 			// Matrix3 (also allow comparison to an array)
 			a = a.m || a;
@@ -329,8 +297,8 @@ Important:  Both of the above functions return NO if the segments are colinear, 
 }
 
 
-
 /*****************************************************************************/
+
 
 /**
  * Point in 2D space that has an internal cartesian representation (x/y) 
@@ -838,7 +806,7 @@ Matrix3.prototype = {
 		    };
 		}
 	},
-	/** Return transformed dx and dy as JS-object {dx:dx', dy:dy'}.*/
+	/** Return transformed dx and dy as JS-object {dx:_, dy:_}.*/
 	transformVec: function(dx, dy) {
 		// Since a vector is [dx, dy, 0], the translation part is ignored.
 		//TODO: this assumes isAffine == true
@@ -996,7 +964,9 @@ BiTran2.prototype = {
 	lastEntry: undefined
 } 
 
+
 /******************************************************************************/
+
 
 /**
  * Create a new 2d polygon.

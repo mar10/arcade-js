@@ -658,7 +658,7 @@ var Movable = Class.extend(
     	this.render(ctx);
     	// Render optional debug infos
     	ctx.strokeStyle = "#80ff00";
-    	if(this.opts.debug.showBCircle && typeof this.getB){
+    	if(this.opts.debug.showBCircle && this.getBoundingRadius){
     		var r = this.getBoundingRadius();
     		ArcadeJS.renderCircle(ctx, {x:0, y:0}, r);
     	}

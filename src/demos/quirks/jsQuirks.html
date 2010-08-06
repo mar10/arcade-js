@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="../../depends/jquery.js"></script>
+	<script src="../../depends/jquery.mousewheel.js"></script>
+
+	<script src="../../lina.js/lina.js"></script>
+	<script src="../../arcade.js/arcade.js"></script>
+
+	<script src="jsQuirks.js"></script>
+
+	<script type="text/javascript">
+	$(function(){
+		var canvas = document.getElementById("canvas1");
+		var game = new QuirksGame(canvas,
+			{fps: 100, // 10 ms (100 FpS) is the FF limit anyway
+			 onEndDraw: function(){
+			     $("#frames").html("Frame #" + game.frameCount + ", FpS: " + game.realFps + " (want: " + game.opts.fps + ")");
+			 }
+			});
+		$("#btnStop").click(function(){
+			if( game._runLoopId )
+				game.stopLoop();
+			else game.startLoop();
+		});
+	});
+	</script>
+<body>
+<h1><a href="#">jsQuirks</a></h1>
+<p>
+	A sample for <a href="http://arcade-js.googlecode.com/">arcade.js</a>.
+</p>
+<p>
+<canvas id="canvas1" width="640" height="480">This game requires HTML 5 support.</canvas>
+</p>
+
+<div>
+	<span id="frames">-</span> frames
+</div>
+<div>
+	<button id="btnStop">Start/Stop</button> 
+</div>
+</body>
+</html>

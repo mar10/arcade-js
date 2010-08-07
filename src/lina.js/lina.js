@@ -202,12 +202,21 @@ LinaJS = {
 	},
 	/** Return shortest distance between a point and the line segment from ptA to ptB.*/
 	distancePtSegment: function(pt, ptA, ptB) {
-		// TODO: Gems II, 1.3
-		// See GemsII xlines.c
-		/*
-		 */
-		alert("Not implemented: distancePtSegment()");
-	    return 0;
+		// dot(ptA->ptB, ptB->pt)
+    	var dx = pt.x - ptB.x;
+    	var dy = pt.y - ptB.y;
+        var dot = (ptB.x - ptA.x) * dx + (ptB.y - ptA.y) * dy;
+        if(dot > 0){
+        	return Math.sqrt(dx*dx + dy*dy); // distance(ptB, pt);
+        }
+		// dot(ptB->ptA, ptA->pt) 
+    	dx = pt.x - ptA.x;
+    	dy = pt.y - ptA.y;
+        dot = (ptA.x - ptB.x) * dx + (ptA.y - ptB.y) * dy;
+        if(dot > 0){
+        	return Math.sqrt(dx*dx + dy*dy); // distance(ptA, pt);
+        }
+        return LinaJS.distancePtLine(pt, ptA, ptB);
 	},
 	/**Intersection of two moving circles.
 	 * @param c1 {x, y, vx, vy, r}
@@ -469,15 +478,19 @@ Vec2.prototype = {
 	copy: function() {
 		return new Vec2(this.dx, this.dy);
 	},
-	/** Rotate this vector (in-place) and return this instance. 
-	 * @param {float} a Angle in radians.   
-	 * @returns {Vec2}   
+	/** Calculate the dot product (inner product) of this vector and v2.
+	 * @param {Vec2|JS-Object} v2 Other vector.   
+	 * @returns {float}   
 	 */
-	rotate: function(a) {
-		var s = Math.sin(a), c = Math.cos(a);
-		this.dx = this.dx * c - this.dy * s;
-		this.dy = this.dy * c + this.dx * s;
-		return this;
+	dot: function(v2) {
+		return this.dx * v2.dx + this.dy * v2.dy;
+	},
+	/** Calculate the cross product of this vector and v2.
+	 * @param {Vec2|JS-Object} v2 Other vector.   
+	 * @returns {float}   
+	 */
+	cross: function(v2) {
+		return this.dx * v2.dy - this.dy * v2.dx;
 	},
 	/** Normalize to a unit vector (in-place) and return this instance. 
 	 * @returns {Vec2}   
@@ -512,16 +525,17 @@ Vec2.prototype = {
 	   @returns {float}  [-pi .. pi], ccw
 	*/
 	angle: function(v2){
-	   var theta1 = Math.atan2(this.dy, this.dx),
-	   	   theta2 = Math.atan2(v2.dy, v2.dx),
-	   	   dtheta = theta2 - theta1;
-	   while (dtheta > Math.PI)
-	      dtheta -= 2 * Math.PI;
-	   while (dtheta < -Math.PI)
-	      dtheta += 2 * Math.PI;
-	   return dtheta;
+//		return Math.acos(this.dot(v2) /  (this.length() * Math.sqrt(v2.dx * v2.dx + v2.dy * v2.dy)));
+		return Math.asin(this.cross(v2) /  (this.length() * Math.sqrt(v2.dx * v2.dx + v2.dy * v2.dy)));
+//	    var theta1 = Math.atan2(this.dy, this.dx),
+//	   	    theta2 = Math.atan2(v2.dy, v2.dx),
+//	   	    dtheta = theta2 - theta1;
+//	    while (dtheta > Math.PI)
+//	       dtheta -= 2 * Math.PI;
+//	    while (dtheta < -Math.PI)
+//	       dtheta += 2 * Math.PI;
+//	    return dtheta;
 	},
-
 	/** Multiply vector length by a factor (in-place) and return this instance.
 	 * @param {float} f Scaling factor.   
 	 * @returns {Vec2}   
@@ -529,6 +543,16 @@ Vec2.prototype = {
 	scale: function(f) {
 		this.dx *= f;
 		this.dy *= f;
+		return this;
+	},
+	/** Rotate this vector (in-place) and return this instance. 
+	 * @param {float} a Angle in radians.   
+	 * @returns {Vec2}   
+	 */
+	rotate: function(a) {
+		var s = Math.sin(a), c = Math.cos(a);
+		this.dx = this.dx * c - this.dy * s;
+		this.dy = this.dy * c + this.dx * s;
 		return this;
 	},
 	/** Set vector length (in-place) and return this instance.
@@ -557,21 +581,21 @@ Vec2.prototype = {
 		this.dy = t;
 		return this;
 	},
-
-	/** Calculate the dot product (inner product) of this vector and v2.
-	 * @param {Vec2|JS-Object} v2 Other vector.   
-	 * @returns {float}   
-	 */
-	dot: function(v2) {
-		return this.dx * v2.dx + this.dy * v2.dy;
-	},
-
 	/** Check if v2 is perpendicular to this vector.
 	 * @param {Vec2|JS-Object} v2 Other vector.   
 	 * @returns {boolaen}   
 	 */
 	isPerp: function(v2) {
+		// Vectors are perpendicular if the dot product is zero.
 		return Math.abs(this.dot(v2)) < LinaJS.EPS;
+	},
+	/** Check if v2 is parallel to this vector.
+	 * @param {Vec2|JS-Object} v2 Other vector.   
+	 * @returns {boolaen}   
+	 */
+	isColinear: function(v2) {
+		// Vectors are colinear if the dot product is one.
+		return Math.abs(1 - this.dot(v2)) < LinaJS.EPS;
 	},
 	/**Translate this point by vector offset.. 
 	 * @param {Point2|JS-Object} vecOrDx Second point.   

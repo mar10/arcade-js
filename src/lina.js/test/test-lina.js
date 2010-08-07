@@ -115,7 +115,7 @@ test("LinaJS.compare", function() {
 
 
 test("tools", function() {
-    expect(7);
+    expect(13);
     assertEqual(LinaJS.vecToPolar(2, 0), {a:0, r:2}, "LinaJS.vecToPolar");
     assertEqual(LinaJS.vecToPolar(0, 2), {a:Math.PI/2, r:2}, "LinaJS.vecToPolar");
     
@@ -141,6 +141,32 @@ test("tools", function() {
     		{x:-1, y:2},
     		"LinaJS.linesIntersect");
     
+    assertEqual(LinaJS.distancePtLine(
+    		{x:1, y:1}, {x:2, y:2}, {x:4, y:2}),
+    		1,
+    		"LinaJS.distancePtLine");
+    assertEqual(LinaJS.distancePtLine(
+    		{x:3, y:1}, {x:2, y:2}, {x:4, y:2}),
+    		1,
+    		"LinaJS.distancePtLine");
+    assertEqual(LinaJS.distancePtLine(
+    		{x:5, y:1}, {x:2, y:2}, {x:4, y:2}),
+    		1,
+    		"LinaJS.distancePtLine");
+
+    assertEqual(LinaJS.distancePtSegment(
+    		{x:1, y:1}, {x:2, y:2}, {x:4, y:2}),
+    		1.4142135623730951,
+    		"LinaJS.distancePtSegment");
+    assertEqual(LinaJS.distancePtSegment(
+    		{x:3, y:1}, {x:2, y:2}, {x:4, y:2}),
+    		1,
+    		"LinaJS.distancePtSegment");
+    assertEqual(LinaJS.distancePtSegment(
+    		{x:5, y:1}, {x:2, y:2}, {x:4, y:2}),
+    		1.4142135623730951,
+    		"LinaJS.distancePtSegment");
+
 //    for(var i=0; i<20; i++){
 //    	logMsg(LinaJS.randomInt(-2,5));
 //    }
@@ -174,7 +200,7 @@ test("Point2", function() {
 
 
 test("Vec2", function() {
-    expect(6);
+    expect(8);
 
 	var v1 = new Vec2(3, 7); 
 	ok(v1.dx == 3 && v1.dy == 7, "Vec2.constructor");
@@ -190,6 +216,9 @@ test("Vec2", function() {
 	var v1 = new Vec2(1, 1);
 	var v2 = new Vec2(-1, 1);
 	assertEqual(v1.angle(v2), 90*LinaJS.DEG_TO_RAD, "Vec2.angle");
+	v1 = new Vec2(1, 0);
+	assertEqual(v1.angle({dx:1, dy:+0.1}), +0.09966865249116204, "Vec2.angle");
+	assertEqual(v1.angle({dx:1, dy:-0.1}), -0.09966865249116204, "Vec2.angle");
 });
 
 

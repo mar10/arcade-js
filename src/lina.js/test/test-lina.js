@@ -379,7 +379,7 @@ test("Polygon2", function() {
 
     assertEqual(pg.getXY(0), {x:0, y:0}, "getXY()");
     assertEqual(pg.getXY(3), {x:0, y:1}, "getXY()");
-//    logMsg("Edge 3: %o", pg.getEdge(3));
+//    logMsg("Edge 3: %o", pg.getSegment(3));
     
 
     var pt = new Point2(.5, .5);

@@ -1,6 +1,6 @@
 /**
  * lina.js
-
+ *
  * Copyright (c) 2010,  Martin Wendt (http://wwWendt.de)
  * 
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -1057,10 +1057,10 @@ Polygon2.prototype = {
 	 * @param {int} idx Index of first point
 	 * @returns {x0:_, y0:_, x1:_, y1:_}
 	 */
-	getEdge: function(idx0) {
+	getSegment: function(idx0) {
 		idx0 *= 2;
 		if(idx0 >= this.xyList.length)
-			throw("Polygon2.getEdge: Index out of bounds");
+			throw("Polygon2.getSegment: Index out of bounds");
 		var idx1 = (idx0 + 2) % this.xyList.length;
 		return {x0: this.xyList[idx0], y0: this.xyList[idx0+1],
 				x1: this.xyList[idx1], y1: this.xyList[idx1+1]};
@@ -1119,6 +1119,75 @@ Polygon2.prototype = {
 		alert("Not implemented: Polygon2.intersects()");
 	    return false;
 	},
+	/** Return polygon point nearest to pt.
+	 */
+	nearestPt: function(pt) {
+		var xy = this.xyList,
+			len = xy.length,
+			dmin2 = 1e6,
+			d2,
+			ptNearest = {x:0, y:0}, 
+			ptA, ptB,
+			vAB, vAP, 
+			e2, t, dx, dy;
+		var res = {d: 0,
+				pt: {x:0, y:0},
+				t: 0};
+		// Start with last (closing) segment
+		ptA = {x: xy[len-2], y: xy[len-1]};
+		for(var i=0; i<=len-2; i+=2){
+			ptB = {x: xy[i], y: xy[i+1]};
+			var vAB = new Vec2(ptB.x - ptA.x, ptB.y - ptA.y);
+			var vAP = new Vec2(pt.x - ptA.x, pt.y - ptA.y);
+
+			var e2 = vAB.dot(vAB);
+			var t = vAP.dot(vAB) / e2;
+			if(t <= 0) {//LinaJS.EPS){ // TODO: <= EPS or 0.0?
+				// Hit in ptA
+				d2 = vAP.dx * vAP.dx + vAP.dy * vAP.dy;
+				if( d2 < dmin2 ){
+					dmin2 = d2;
+					res.t = 0;
+					res.pt.x = ptA.x;
+					res.pt.y = ptA.y;
+					res.isCorner = true;
+				}
+			} else if(t >= 1.0) {
+				// Hit in ptB: this will become ptA in the next loop
+			} else {
+				ptNearest.x = ptA.x + t * vAB.dx;
+				ptNearest.y = ptA.y + t * vAB.dy;
+				var dx = ptNearest.x - pt.x;
+				var dy = ptNearest.y - pt.y;
+				d2 = dx * dx + dy * dy;
+				if( d2 < dmin2 ){
+					dmin2 = d2;
+					res.t = t;
+					res.pt.x = ptNearest.x;
+					res.pt.y = ptNearest.y;
+					res.isCorner = false;
+				}
+			}
+			ptA = ptB;
+		}
+		res.d = Math.sqrt(dmin2);
+	    return res;
+	},
+	/** Check, if this polygon intersects with another (moving) circle.
+	 */
+	intersectsCircle: function(circle, velocity) {
+		var res = this.nearestPt(circle.pt);
+		if( res.d > circle.r )
+			return false;
+		if( res.isCorner ) {
+		}else{
+		}
+	    return {
+	    	ptColl: null,
+	    	vColl: null,
+	    	t: 0
+	    };
+	},
 	/** Check, if line segment pt1, pt2 is inside this polygon.*/
 	segmentIntersects: function(pt1, pt2) {
 		// TODO: Gems II, 1.2 and page 473
@@ -1144,7 +1213,7 @@ Polygon2.prototype = {
 	isCCW: function() {
 	    return this._signedDoubleArea() > 0;
 	},
-	/** Return the smallest bounding circle as {center: {x:_,y:_}, r:_}.*/
+	/** Return the smallest bounding circle as {pt: {x:_,y:_}, r:_}.*/
 	getBoundingCircle: function() {
 		// TODO: Gems II, 1.4
 		alert("Not implemented: Polygon2.getBoundingCircle()");

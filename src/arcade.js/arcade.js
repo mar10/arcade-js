@@ -238,7 +238,10 @@ var ArcadeJS = Class.extend(
         // Bind mouse events
         // Note: jquery.mousehweel.js plugin is required for Mousewheel events
         $(document).bind("mousemove mousedown mouseup mousewheel", function(e){
-        	self.mousePos = new Point2(e.clientX-e.target.offsetLeft, e.clientY-e.target.offsetTop);
+        	// Mouse position in canvas coordinates
+//        	self.mousePos = new Point2(e.clientX-e.target.offsetLeft, e.clientY-e.target.offsetTop);
+        	self.mousePos = new Point2(e.pageX - self.canvas.offsetLeft, 
+        			e.pageY - self.canvas.offsetTop);
         	switch (e.type) {
 			case "mousedown":
         		self.clickPos = new Point2(self.mousePos);
@@ -257,8 +260,15 @@ var ArcadeJS = Class.extend(
 			}
         	for( var i=0; i<self.mouseListeners.length; i++) {
         		var obj = self.mouseListeners[i];
-        		if(e.type == "mousewheel" && obj.onMousewheel)
+        		if(e.type == "mousedown" && obj.onMousedown) {
+        			obj.onMousedown(arguments[0]);
+        		} else if(e.type == "mousemove" && obj.onMousemove) {
+        			obj.onMousemove(arguments[0]);
+        		} else if(e.type == "mouseup" && obj.onMouseup) {
+        			obj.onMouseup(arguments[0]);
+        		} else if(e.type == "mousewheel" && obj.onMousewheel) {
         			obj.onMousewheel(arguments[0], arguments[1]);
+        		}
         	}
         });
     },
@@ -280,6 +290,7 @@ var ArcadeJS = Class.extend(
 		    this._redrawAll();
 		} catch(e) {
 		   this.stopLoop();
+		   this.debug("Exception in render loop: %o", e);
 		   throw e;
 		}
     },

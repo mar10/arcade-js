@@ -347,6 +347,7 @@ var ArcadeJS = Class.extend(
     	}
     },
     stopLoop: function(){
+    	this.stopRequest = false;
     	if(this._runLoopId) {
     		window.clearInterval(this._runLoopId);
     		this._runLoopId = null;
@@ -606,7 +607,7 @@ var Movable = Class.extend(
         this.pos = opts.pos ? new Point2(opts.pos) : new Point2(0, 0);
         this.scale = opts.scale ? +opts.scale : 1.0;
         this.orientation = opts.orientation ? +opts.orientation : 0;
-        this.move = opts.move ? new Vec2(opts.move) : new Vec2(0, 0);
+        this.velocity = opts.velocity ? new Vec2(opts.velocity) : new Vec2(0, 0);
         this.rotationalSpeed = opts.rotationalSpeed || null; //0.0 * LinaJS.DEG_TO_RAD;  // rad / tick
         this.screenModeX = opts.screenModeX || "none";
         this.screenModeY = opts.screenModeY || "none";
@@ -639,12 +640,12 @@ var Movable = Class.extend(
       	// Save previous values
       	this.prevPos = this.pos;
       	this.prevOrientation = this.orientation;
-      	this.prevMove = this.move;
+      	this.prevVelocity = this.velocity;
     	this.prevRotationalSpeed = this.rotationalSpeed;
       	// Update MC-to-WC transformation
     	this.orientation += this.rotationalSpeed;
-    	if(this.move) {
-    		this.pos.translate(this.move);
+    	if(this.velocity) {
+    		this.pos.translate(this.velocity);
 			// wrap around at screen borders
     		var canvas = this.game.canvas;
     		if(this.screenModeX == "wrap"){

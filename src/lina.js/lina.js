@@ -241,8 +241,8 @@ LinaJS = {
         // we must compare the time to our current time of collision. We
         // update the time if we find a collision that has occurred earlier
         // than the previous one.                                          
-        if (DISC < 0 ){
-        	return null;
+        if(DISC < 0){
+        	return false;
         }
         // We want the smallest time
         var t = Math.min(0.5 * (2 * B - Math.sqrt(DISC)) / A, 
@@ -1292,6 +1292,14 @@ Polygon2.prototype = {
 	/** Check, if this polygon has a counterclocwise vertex order.*/
 	isCCW: function() {
 	    return this._signedDoubleArea() > 0;
+	},
+	/** Make sure this polygon has a counterclocwise vertex order.*/
+	makeCCW: function() {
+	    return this.isCCW() ? this : this.revert();
+	},
+	/** Make sure this polygon has a clocwise vertex order.*/
+	makeCW: function() {
+	    return this.isCCW() ? this.revert() : this;
 	},
 	/** Return the smallest bounding circle as {pt: {x:_,y:_}, r:_}.*/
 	getBoundingCircle: function() {

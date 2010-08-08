@@ -61,8 +61,8 @@ var Ball = Movable.extend({
 		var c1 = {
     			x: this.pos.x,
     			y: this.pos.y,
-    			vx: this.move.dx,
-    			vy: this.move.dy,
+    			vx: this.velocity.dx,
+    			vy: this.velocity.dy,
     			r: this.r
     		};
     	for(var i=0; i<balls.length; i++) {
@@ -72,8 +72,8 @@ var Ball = Movable.extend({
     		var c2 = {
         			x: b.pos.x,
         			y: b.pos.y,
-        			vx: b.move.dx,
-        			vy: b.move.dy,
+        			vx: b.velocity.dx,
+        			vy: b.velocity.dy,
         			r: b.getBoundingRadius()
         		};
     		var coll = LinaJS.intersectMovingCircles(c1, c2, 5);

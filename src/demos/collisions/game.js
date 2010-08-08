@@ -30,19 +30,19 @@ var DemoGame = ArcadeJS.extend({
         this.addObject(new Ball(
         		{pos: new Point2(150, 100),
         		 r:10,
-        		 move: {dx:10, dy:0},
+        		 velocity: {dx:10, dy:0},
         		 color: "red"
         		 }));
         this.addObject(new Ball(
         		{pos: new Point2(500, 10),
         		 r:10,
-        		 move: {dx:0, dy:5},
+        		 velocity: {dx:0, dy:5},
         		 color: "green"
         		 }));
         this.addObject(new Ball(
         		{pos: new Point2(150, 150),
         		 r:10,
-        		 move: {dx:3, dy:3},
+        		 velocity: {dx:3, dy:3},
         		 color: "blue"
         		 }));
         // Start render loop
@@ -95,14 +95,13 @@ var Ball = Movable.extend({
     	var pgs = this.game.getObjectsByType("pg");
     	for(var i=0; i<pgs.length; i++) {
     		var pg = pgs[i];
-    		var coll = pg.pg.intersectsCircle(c1, this.move);
+    		var coll = pg.pg.intersectsCircle(c1, this.velocity);
     		if( coll && Math.abs(coll.t) <= 1  ){
-        		this.game.debug("ball %o vs. %o: %o", c1, pg, coll);
-        		this.move = coll.velocityReflected;
+//        		this.game.debug("ball %o vs. %o: %o", c1, pg, coll);
+        		this.velocity = coll.velocityReflected;
         		this.pos = coll.centerReflected;
         		// stop on next frame
 //		    	this.game.stopRequest = true;
-        		//this.game.stopLoop();
     		}
     	}
     },

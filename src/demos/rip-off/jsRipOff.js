@@ -9,8 +9,8 @@
  * Class Bullet
  */
 var Bullet = Movable.extend({
-    init: function(pos, move, ttl) {
-        this._super("bullet", null, pos, 0, move);
+    init: function(pos, velocity, ttl) {
+        this._super("bullet", null, pos, 0, velocity);
 		this.ttl = ttl;
         this.scale = 2;
     },
@@ -20,7 +20,7 @@ var Bullet = Movable.extend({
     render: function(p) {
 //    	p.point(0, 0);
     	var v
-    	p.line(this.move.dx,this.move.dy, 0,0);
+    	p.line(this.velocity.dx,this.velocity.dy, 0,0);
     },
     getBoundingRadius: function() {
     	return 0.1;
@@ -33,8 +33,8 @@ var Bullet = Movable.extend({
  * Class Tank
  */
 var Tank = Movable.extend({
-    init: function(id, pos, orientation, move) {
-        this._super("tank", id, pos, orientation, move);
+    init: function(id, pos, orientation, velocity) {
+        this._super("tank", id, pos, orientation, velocity);
     },
     step: function(p) {
 		this._super(p);
@@ -45,10 +45,10 @@ var Tank = Movable.extend({
 		*/ 
 		if(this.pos.x > p.width) {
 			this.pos.x = p.width;
-			this.move.dx *= -1;
+			this.velocity.dx *= -1;
 		} else if(this.pos.x < 0) {
 			this.pos.x = 0;
-			this.move.dx *= -1;
+			this.velocity.dx *= -1;
 		}
 		this.pos.y = (p.height + this.pos.y) % p.height;
 //		window.console.log(""+this);
@@ -76,8 +76,8 @@ var Tank = Movable.extend({
  * Class Asteroid
  */
 var Asteroid = Movable.extend({
-    init: function(id, pos, orientation, move) {
-        this._super("asteroid", id, pos, orientation, move);
+    init: function(id, pos, orientation, velocity) {
+        this._super("asteroid", id, pos, orientation, velocity);
         this.pg = new Polygon2([4, 0,
                                 2.5, 1.5,
                                 1.5, 3.5,

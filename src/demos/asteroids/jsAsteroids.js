@@ -25,19 +25,19 @@ var AsteroidsGame = ArcadeJS.extend({
         // Asteroids
         var speed = 0.5;
         obj = this.addObject(new Asteroid({
-        	move: new Vec2(3, 4).setLength(speed),
+        	velocity: new Vec2(3, 4).setLength(speed),
         	rotationalSpeed: LinaJS.DEG_TO_RAD * 2
         }));
         obj = this.addObject(new Asteroid({
-        	move: new Vec2(-3, -1).setLength(speed),
+        	velocity: new Vec2(-3, -1).setLength(speed),
         	rotationalSpeed: LinaJS.DEG_TO_RAD * 2
         }));
         obj = this.addObject(new Asteroid({
-        	move: new Vec2(-3, 3).setLength(speed),
+        	velocity: new Vec2(-3, 3).setLength(speed),
         	rotationalSpeed: LinaJS.DEG_TO_RAD * 2
         }));
         obj = this.addObject(new Asteroid({
-        	move: new Vec2(1, -4).setLength(speed),
+        	velocity: new Vec2(1, -4).setLength(speed),
         	rotationalSpeed: LinaJS.DEG_TO_RAD * 2
         }));
         // Cache sounds
@@ -81,7 +81,7 @@ var Bullet = Movable.extend({
     render: function(ctx) {
 		ctx.strokeStyle = "#ffffff";
     	ctx.beginPath();
-    	ctx.moveTo(-this.move.dx,-this.move.dy);
+    	ctx.moveTo(-this.velocity.dx,-this.velocity.dy);
     	ctx.lineTo(0, 0);
     	ctx.stroke();
     },
@@ -100,7 +100,7 @@ var Bullet = Movable.extend({
 var Rocket = Movable.extend({
     init: function(opts) {
 		opts = $.extend({
-			move: new Vec2(0, 0),
+			velocity: new Vec2(0, 0),
 			pos: new Point2(320, 200),
 			screenModeX: "wrap",
 			screenModeY: "wrap"
@@ -116,8 +116,8 @@ var Rocket = Movable.extend({
 		var c1 = {
     			x: this.pos.x,
     			y: this.pos.y,
-    			vx: this.move.dx,
-    			vy: this.move.dy,
+    			vx: this.velocity.dx,
+    			vy: this.velocity.dy,
     			r: this.getBoundingRadius()
     		}
     	var asteroids = this.game.getObjectsByType("asteroid");
@@ -128,8 +128,8 @@ var Rocket = Movable.extend({
     		var c2 = {
     			x: a.pos.x,
     			y: a.pos.y,
-    			vx: a.move.dx,
-    			vy: a.move.dy,
+    			vx: a.velocity.dx,
+    			vy: a.velocity.dy,
     			r: a.getBoundingRadius()
     		}
     		var coll = LinaJS.intersectMovingCircles(c1, c2, 5);
@@ -160,7 +160,7 @@ var Rocket = Movable.extend({
     	}
     	if(this.game.isKeyDown(38)){ // Up
     		var vAccel = LinaJS.polarToVec(this.orientation - 90*LinaJS.DEG_TO_RAD, 0.1);
-    		this.move.add(vAccel);
+    		this.velocity.add(vAccel);
     		e.stopPropagation();
     	}
     },
@@ -175,7 +175,7 @@ var Rocket = Movable.extend({
     	this.game.addObject(new Bullet({
     		pos: this.pos,
     		ttl: 20,
-    		move: aim
+    		velocity: aim
     		}));
     	this.game.gunSound.play();
     },
@@ -192,7 +192,7 @@ var Asteroid = Movable.extend({
 			screenModeX: "wrap",
 			screenModeY: "wrap"
 			}, opts);
-//        this._super("asteroid", id, pos, orientation, move);
+//        this._super("asteroid", id, pos, orientation, velocity);
         this._super("asteroid", null, opts);
         this.pg = new Polygon2([4, 0,
                                 2.5, 1.5,

@@ -39,6 +39,12 @@ var DemoGame = ArcadeJS.extend({
         		 move: {dx:0, dy:5},
         		 color: "green"
         		 }));
+        this.addObject(new Ball(
+        		{pos: new Point2(150, 150),
+        		 r:10,
+        		 move: {dx:3, dy:3},
+        		 color: "blue"
+        		 }));
         // Start render loop
         this.startLoop()
     },

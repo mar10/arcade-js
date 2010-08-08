@@ -1165,7 +1165,7 @@ Polygon2.prototype = {
 	nearestPt: function(pt, cullingVector) {
 		var xy = this.xyList,
 			len = xy.length,
-			dmin2 = 1e6,
+			dmin2 = Number.MAX_VALUE,
 			d2,
 			ptNearest = {x:0, y:0}, 
 			ptA, ptB,
@@ -1237,20 +1237,22 @@ Polygon2.prototype = {
 		var nearest = this.nearestPt(circle.center, velocity);
 		if( nearest.d > circle.r )
 			return false;
+		// penetration depth
 		var depth = circle.r - nearest.d;
-		var speed = velocity.length();
-		var tAfter = depth / speed;
+//		var speed = velocity.length();
 		// Collision normal
 		var vNormal = nearest.pt.vectorTo(circle.center).normalize();
-		var vMTD = vNormal.copy().scale(depth);
+//		var vMTD = vNormal.copy().scale(depth);
 		// Reflected velocity 
 		var vEdge = vNormal.copy().perp();
 		var a = vEdge.dot(velocity); 
 		var b = vNormal.dot(velocity); 
-		var velocityReflected = vNormal.scale(-b).add(vEdge.scale(a));
+		var velocityReflected = vNormal.copy().scale(-b).add(vEdge.scale(a));
+		// [0..1]: fraction of velocity after collision 
+		var tAfter = depth / velocity.length();
 		var centerReflected = circle.center.copy()
-			.translate(tAfter*(velocityReflected.dx - velocity.dx), 
-					tAfter*(velocityReflected.dy - velocity.dy));
+			.translate((tAfter-1) * velocity.dx + tAfter * velocityReflected.dx, 
+					(tAfter-1) * velocity.dy + tAfter * velocityReflected.dy);
 		// TODO: nearestPt should ignore edges if velocity is outbund
 	    return {
 	    	pt: nearest.pt, // collsion point

@@ -203,6 +203,7 @@ var ArcadeJS = Class.extend(
 		this._deadCount = 0;
 
         this._runLoopId = null;
+    	this.stopRequest = false;
         
         // Bind keyboard events
         var self = this;
@@ -288,6 +289,10 @@ var ArcadeJS = Class.extend(
 		try {
 		    this._stepAll();
 		    this._redrawAll();
+		    if( this.stopRequest ){
+		    	this.stopLoop();
+		    	this.stopRequest = false;
+		    }
 		} catch(e) {
 		   this.stopLoop();
 		   this.debug("Exception in render loop: %o", e);

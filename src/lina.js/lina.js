@@ -1239,7 +1239,7 @@ Polygon2.prototype = {
 			return false;
 		var depth = circle.r - nearest.d;
 		var speed = velocity.length();
-		var lAfter = depth / speed;
+		var tAfter = depth / speed;
 		// Collision normal
 		var vNormal = nearest.pt.vectorTo(circle.center).normalize();
 		var vMTD = vNormal.copy().scale(depth);
@@ -1248,7 +1248,9 @@ Polygon2.prototype = {
 		var a = vEdge.dot(velocity); 
 		var b = vNormal.dot(velocity); 
 		var velocityReflected = vNormal.scale(-b).add(vEdge.scale(a));
-		var centerReflected = circle.center.copy().translate(lAfter*velocityReflected.dx, lAfter*velocityReflected.dy);
+		var centerReflected = circle.center.copy()
+			.translate(tAfter*(velocityReflected.dx - velocity.dx), 
+					tAfter*(velocityReflected.dy - velocity.dy));
 		// TODO: nearestPt should ignore edges if velocity is outbund
 	    return {
 	    	pt: nearest.pt, // collsion point
@@ -1259,7 +1261,7 @@ Polygon2.prototype = {
 	    	depth: depth, // penetration depth
 	    	velocityReflected: velocityReflected, // new velocity, assuming a reflection on collision edge
 	    	centerReflected: centerReflected, // new circle pos, assuming a reflection on collision edge
-	    	t: 1-lAfter // [0..1]: fraction of velocity before collision 
+	    	t: 1-tAfter // [0..1]: fraction of velocity before collision 
 	    };
 	},
 	/** Check, if line segment pt1, pt2 is inside this polygon.*/

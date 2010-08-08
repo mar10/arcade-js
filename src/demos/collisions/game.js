@@ -94,6 +94,8 @@ var Ball = Movable.extend({
         		this.game.debug("ball %o vs. %o: %o", c1, pg, coll);
         		this.move = coll.velocityReflected;
         		this.pos = coll.centerReflected;
+        		// stop on next frame
+//		    	this.game.stopRequest = true;
         		//this.game.stopLoop();
     		}
     	}

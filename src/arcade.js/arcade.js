@@ -468,6 +468,7 @@ ArcadeJS.renderPg = function(ctx, pg, mode)
  * 
  * @param ctx canvas 2D context  
  * @param {Point2} center  
+ * @param {float} r radius  
  * @param {string} mode 'outline' (default),'solid' 
  */
 ArcadeJS.renderCircle = function(ctx, center, r, mode)
@@ -668,8 +669,8 @@ var Movable = Class.extend(
     	// Let object render itself
     	this.render(ctx);
     	// Render optional debug infos
-    	ctx.strokeStyle = "#80ff00";
     	if(this.opts.debug.showBCircle && this.getBoundingRadius){
+        	ctx.strokeStyle = "#80ff00";
     		var r = this.getBoundingRadius();
     		ArcadeJS.renderCircle(ctx, {x:0, y:0}, r);
     	}

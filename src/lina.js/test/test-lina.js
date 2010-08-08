@@ -215,10 +215,10 @@ test("Vec2", function() {
 	
 	var v1 = new Vec2(1, 1);
 	var v2 = new Vec2(-1, 1);
-	assertEqual(v1.angle(v2), 90*LinaJS.DEG_TO_RAD, "Vec2.angle");
+	assertEqual(v1.angleTo(v2), 90*LinaJS.DEG_TO_RAD, "Vec2.angleTo");
 	v1 = new Vec2(1, 0);
-	assertEqual(v1.angle({dx:1, dy:+0.1}), +0.09966865249116204, "Vec2.angle");
-	assertEqual(v1.angle({dx:1, dy:-0.1}), -0.09966865249116204, "Vec2.angle");
+	assertEqual(v1.angleTo({dx:1, dy:+0.1}), +0.09966865249116204, "Vec2.angleTo");
+	assertEqual(v1.angleTo({dx:1, dy:-0.1}), -0.09966865249116204, "Vec2.angleTo");
 });
 
 
@@ -383,12 +383,12 @@ test("Polygon2", function() {
     
 
     var pt = new Point2(.5, .5);
-    ok(pg.hasInside(pt), "hasInside");
-    ok(pgRevert.hasInside(pt), "hasInside");
+    ok(pg.contains(pt), "contains");
+    ok(pgRevert.contains(pt), "contains");
     pt = new Point2(1.1, .5);
-    ok(!pg.hasInside(pt), "hasInside");
+    ok(!pg.contains(pt), "contains");
     pt = new Point2(-.1, .5);
-    ok(!pg.hasInside(pt), "hasInside");
+    ok(!pg.contains(pt), "contains");
 });
 
 /******************************************************************************/

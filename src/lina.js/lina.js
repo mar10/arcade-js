@@ -413,6 +413,14 @@ Point2.prototype = {
 			this.x += dx; 
 			this.y += dy; 
 		}
+		return this;
+	},
+	/** Apply transformation matrix (in-place) and return this instance.*/
+	transform: function(m) {
+		var xy = m.transformPt(this.x, this.y);
+		this.x = xy.x;
+		this.y = xy.y;
+	    return this;
 	},
 	/** Return vector from this to pt2.
 	 * @param {Point2|JS-Object} pt2 Second point.   
@@ -421,9 +429,9 @@ Point2.prototype = {
 	vectorTo: function(ptOrX, y) {
 		var dx, dy;
 		if(y === undefined) {
-			return new Vec2(this.x - ptOrX.x, this.y - ptOrX.y);
+			return new Vec2(ptOrX.x - this.x, ptOrX.y - this.y);
 		}else{
-			return new Vec2(this.x - ptOrX, this.y);
+			return new Vec2(ptOrX - this.x, y - this.y);
 		}
 	},
 	lastEntry : undefined
@@ -521,10 +529,16 @@ Vec2.prototype = {
 			return 0;
 		}
 	},
+	/**Return the angle between positive x axis and this vector.
+	   @returns {float}  [-pi .. pi], ccw
+	*/
+	angle: function(){
+		return Math.atan2(this.dy, this.dx);
+	},
 	/**Return the angle between this vector and v2.
 	   @returns {float}  [-pi .. pi], ccw
 	*/
-	angle: function(v2){
+	angleTo: function(v2){
 //		return Math.acos(this.dot(v2) /  (this.length() * Math.sqrt(v2.dx * v2.dx + v2.dy * v2.dy)));
 		return Math.asin(this.cross(v2) /  (this.length() * Math.sqrt(v2.dx * v2.dx + v2.dy * v2.dy)));
 //	    var theta1 = Math.atan2(this.dy, this.dx),
@@ -554,6 +568,13 @@ Vec2.prototype = {
 		this.dx = this.dx * c - this.dy * s;
 		this.dy = this.dy * c + this.dx * s;
 		return this;
+	},
+	/** Apply transformation matrix (in-place) and return this instance.*/
+	transform: function(m) {
+		var xy = m.transformVec(this.dx, this.dy);
+		this.dx = xy.dx;
+		this.dy = xy.dy;
+	    return this;
 	},
 	/** Set vector length (in-place) and return this instance.
 	 * @param {float} l New length.
@@ -608,6 +629,20 @@ Vec2.prototype = {
 		}else{
 			this.dx += dx;
 			this.dy += dy;
+		}
+		return this;
+	},
+	/**Translate this point by vector offset.. 
+	 * @param {Point2|JS-Object} vecOrDx Second point.   
+	 * @returns {Vec2}   
+	 */
+	sub: function(vecOrDx, dy) {
+		if(dy === undefined) {
+			this.dx -= vecOrDx.dx;
+			this.dy -= vecOrDx.dy;
+		}else{
+			this.dx -= dx;
+			this.dy -= dy;
 		}
 		return this;
 	},
@@ -842,10 +877,10 @@ Matrix3.prototype = {
 		    };
 		}else{
 			//TODO: untested
-			var w = m[2]*x + m[5]*y;
+			var w = m[2]*dx + m[5]*dy;
 		    return {
-		    	x: (m[0]*x + m[3]*y + m[6]) / w,
-		    	y: (m[1]*x + m[4]*y + m[7]) / w
+		    	dx: (m[0]*dx + m[3]*dy + m[6]) / w,
+		    	dy: (m[1]*dx + m[4]*dy + m[7]) / w
 		    };
 		}
 	},
@@ -1068,7 +1103,7 @@ Polygon2.prototype = {
 	/**Check, if pt is inside this polygon.
 	 * @param pt 
 	 */
-	hasInside: function(pt) {
+	contains: function(pt) {
 		// Check if pt is on the same side of all PG edges.
 		// TODO: this only works for convex PGs(?)
 		// Ray-testing may be better:
@@ -1116,12 +1151,18 @@ Polygon2.prototype = {
 	 */
 	intersects: function(pg2, velocity) {
 		// TODO:
+		// See http://gpwiki.org
+		// 'Simple non-convex polygons'
 		alert("Not implemented: Polygon2.intersects()");
 	    return false;
 	},
-	/** Return polygon point nearest to pt.
+	/**Return polygon point nearest to pt.
+	 * @param {Point2} pt
+	 * @param {Vec2} cullingVector (optional) If we pass a velocity vector here,
+	 * CCW oriented polygons will only consider objects aproaching from the 
+	 * outside.  
 	 */
-	nearestPt: function(pt) {
+	nearestPt: function(pt, cullingVector) {
 		var xy = this.xyList,
 			len = xy.length,
 			dmin2 = 1e6,
@@ -1131,13 +1172,19 @@ Polygon2.prototype = {
 			vAB, vAP, 
 			e2, t, dx, dy;
 		var res = {d: 0,
-				pt: {x:0, y:0},
+				pt: {},
+				i: 0,
 				t: 0};
 		// Start with last (closing) segment
 		ptA = {x: xy[len-2], y: xy[len-1]};
 		for(var i=0; i<=len-2; i+=2){
 			ptB = {x: xy[i], y: xy[i+1]};
 			var vAB = new Vec2(ptB.x - ptA.x, ptB.y - ptA.y);
+			if(cullingVector && cullingVector.cross(vAB) < 0){
+				//window.console.log(cullingVector.dot(vAB));
+				ptA = ptB;
+				continue;
+			}
 			var vAP = new Vec2(pt.x - ptA.x, pt.y - ptA.y);
 
 			var e2 = vAB.dot(vAB);
@@ -1147,6 +1194,7 @@ Polygon2.prototype = {
 				d2 = vAP.dx * vAP.dx + vAP.dy * vAP.dy;
 				if( d2 < dmin2 ){
 					dmin2 = d2;
+					res.idx = i;
 					res.t = 0;
 					res.pt.x = ptA.x;
 					res.pt.y = ptA.y;
@@ -1162,6 +1210,7 @@ Polygon2.prototype = {
 				d2 = dx * dx + dy * dy;
 				if( d2 < dmin2 ){
 					dmin2 = d2;
+					res.idx = i;
 					res.t = t;
 					res.pt.x = ptNearest.x;
 					res.pt.y = ptNearest.y;
@@ -1170,27 +1219,54 @@ Polygon2.prototype = {
 			}
 			ptA = ptB;
 		}
+		// Fixup result to use Lina objects and real distance
 		res.d = Math.sqrt(dmin2);
+		res.pt = new Point2(res.pt);
 	    return res;
 	},
-	/** Check, if this polygon intersects with another (moving) circle.
+	/**Check, if this polygon intersects with a (moving) circle.
+	 * In case of a collision some additional information is calculated.
+	 * @param {Circle2} circle
+	 * @param {Vec2} velocity Relative speed (assuming this polygon is static)
+	 * @returns false, if no intersection, otherwise {...}
 	 */
 	intersectsCircle: function(circle, velocity) {
-		var res = this.nearestPt(circle.pt);
-		if( res.d > circle.r )
+		// Find point on polygon that is closest to circle.center.
+		// We pass the velocity vector as culling, so CCW polygons will only
+		// report collisions from the outside.
+		var nearest = this.nearestPt(circle.center, velocity);
+		if( nearest.d > circle.r )
 			return false;
-		if( res.isCorner ) {
-		}else{
-		}
+		var depth = circle.r - nearest.d;
+		var speed = velocity.length();
+		var lAfter = depth / speed;
+		// Collision normal
+		var vNormal = nearest.pt.vectorTo(circle.center).normalize();
+		var vMTD = vNormal.copy().scale(depth);
+		// Reflected velocity 
+		var vEdge = vNormal.copy().perp();
+		var a = vEdge.dot(velocity); 
+		var b = vNormal.dot(velocity); 
+		var velocityReflected = vNormal.scale(-b).add(vEdge.scale(a));
+		var centerReflected = circle.center.copy().translate(lAfter*velocityReflected.dx, lAfter*velocityReflected.dy);
+		// TODO: nearestPt should ignore edges if velocity is outbund
 	    return {
-	    	ptColl: null,
-	    	vColl: null,
-	    	t: 0
+	    	pt: nearest.pt, // collsion point
+	    	ptIdx: nearest.i, // index of first point of collision edge (ptA)
+	    	edgeT: nearest.t, // [0..1]: pt = ptA + edgeT * (ptB - ptA)
+	    	vNormal: vNormal, // collision normal (unit vector)
+	    	vMTD: vNormal.copy().scale(depth), // minmum offset vector that translates circle to point of collision
+	    	depth: depth, // penetration depth
+	    	velocityReflected: velocityReflected, // new velocity, assuming a reflection on collision edge
+	    	centerReflected: centerReflected, // new circle pos, assuming a reflection on collision edge
+	    	t: 1-lAfter // [0..1]: fraction of velocity before collision 
 	    };
 	},
 	/** Check, if line segment pt1, pt2 is inside this polygon.*/
 	segmentIntersects: function(pt1, pt2) {
 		// TODO: Gems II, 1.2 and page 473
+		// See http://gpwiki.org
+		// 'Simple non-convex polygons'
 		alert("Not implemented: Polygon2.segmentIntersects()");
 	    return false;
 	},
@@ -1248,6 +1324,71 @@ Polygon2.prototype = {
 		// TODO: 
 		alert("Not implemented: Polygon2.getShapePolygon()");
 	    return null;
+	},
+	lastEntry: undefined
+}
+
+
+/**
+ * Create a new circle.
+ * @constructor
+ * @param {Point2} center
+ * @param {float} r radius
+ */
+Circle2 = function(center, radius){
+	this.set(center, radius);
+}
+Circle2.prototype = {
+	set: function(center, r){
+		if(center.center !== undefined){
+			this.center = new Point2(center.center);
+			this.r = center.r;
+		}else{
+			this.center = new Point2(center);
+			this.r = +r;
+		}
+	},
+	/** Return string representation 'Circle2((x,y), r=_)'.*/
+	toString: function() {
+		return "Circle2(" + this.center + ", r:" + this.r + ")";
+	},
+	/** Create and return a copy of this circle.*/
+	copy: function() {
+	    return new Circle2(this);
+	},
+	/** Apply transformation matrix (in-place) and return this instance.*/
+	transform: function(m) {
+		this.center.transform(m);
+	    return this;
+	},
+	/**Check, if pt is inside this polygon.
+	 * @param pt 
+	 */
+	contains: function(pt) {
+	    return this.center.distanceTo(pt) < this.r;
+	},
+//	/** Return polygon point nearest to pt.
+//	 */
+//	nearestPt: function(pt) {
+//		// TODO:
+//		alert("Not implemented: Circle2.intersects()");
+//	},
+//	/** Check, if this polygon intersects with another (moving) circle.
+//	 */
+//	intersectsCircle: function(circle, velocity) {
+////		return LinaJS.intersectMovingCircles();
+//	},
+	/** Return circle area (Pi*r^2). 
+	 * This assumes an implicitly closed, non self-intersecting polygon.
+	 */
+	area: function() {
+	    return Math.PI * this.r * this.r;
+	},
+	/**Return the circumference (2*Pi*r). 
+	 * @param {boolean} closed Include implicit closing segment (default: true).
+	 */
+	perimeter: function() {
+	    return 2 * Math.PI * this.r;
 	},
 	lastEntry: undefined
 }

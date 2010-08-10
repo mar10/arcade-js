@@ -13,7 +13,7 @@
 	$(function(){
 		var canvas = document.getElementById("canvas1");
 		var game = new DemoGame(canvas,
-			{//fps: 100, // 10 ms (100 FpS) is the FF limit anyway
+			{fps: 100, // 10 ms (100 FpS) is the FF limit anyway
 			 onEndDraw: function(){
 			     $("#frames").html("Frame #" + game.frameCount + ", FpS: " + game.realFps + " (want: " + game.opts.fps + ")");
 			 }
@@ -35,8 +35,10 @@
 </p>
 
 <div>
-	<span id="frames">-</span> frames
+    <span id="frames">-</span> frames
+    Keys: <span id="keys">-</span>
 </div>
+
 <div>
 	<button id="btnStop">Start/Stop</button> 
 </div>

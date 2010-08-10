@@ -19,13 +19,13 @@ var DemoGame = ArcadeJS.extend({
                                200, 100,
                                100, 180,
                                210, 300]);
-        this.addObject(new PgObject({pg: pg}));
+        this.addObject(new WallObject({pg: pg}));
         // Outer polygon (CW)
         pg = new Polygon2([600, 200,
                            200, 10,
                            10, 180,
                            210, 470]).revert();
-        this.addObject(new PgObject({pg: pg}));
+        this.addObject(new WallObject({pg: pg}));
         // Ball
         this.addObject(new Ball(
         		{pos: new Point2(150, 100),
@@ -48,6 +48,21 @@ var DemoGame = ArcadeJS.extend({
         // Start render loop
         this.startLoop()
     },
+//    beforeEvent: function(name, object, e){
+//    	
+//    },
+//    afterEvent: function(name, object, e){
+//    	
+//    },
+    onKeydown: function(e, key){
+    	$("#keys").html("Keydown: key='"+this.key+"'; down:"+this.downKeyCodes)
+    },
+    onKeyup: function(e, key){
+    	$("#keys").html("Keyup: key='"+this.key+"'; down:"+this.downKeyCodes)
+    },
+    onKeypressed: function(e){
+    	$("#keys").html("Keypressed; down:"+this.downKeyCodes)
+    },
     // --- end of class
     lastentry: undefined
 });
@@ -56,10 +71,10 @@ var DemoGame = ArcadeJS.extend({
 /******************************************************************************/
 
 
-var PgObject = Movable.extend({
+var WallObject = Movable.extend({
     init: function(opts) {
 		// Initialize this game object
-        this._super("pg", null, opts);
+        this._super("wall", null, opts);
         this.pg = opts.pg;
     },
     step: function() {
@@ -91,8 +106,9 @@ var Ball = Movable.extend({
 //        this.circle = new Circle2(opts.pos, opts.r);
     },
     step: function() {
+    	// Check for wall collisions
 		var c1 = new Circle2(this.pos, this.r);
-    	var pgs = this.game.getObjectsByType("pg");
+    	var pgs = this.game.getObjectsByType("wall");
     	for(var i=0; i<pgs.length; i++) {
     		var pg = pgs[i];
     		var coll = pg.pg.intersectsCircle(c1, this.velocity);

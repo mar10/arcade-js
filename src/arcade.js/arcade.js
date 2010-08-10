@@ -88,8 +88,12 @@
 
 
 /**
- * Sound support
-
+ * Sound support based on &lt;audio> element.
+ * @class
+ * @example
+ * var clickSound = new AudioJS('click.wav')
+ * [...]
+ * clickSound.play();
  */
 AudioJS = function(opts){
 	if(typeof opts == "string")
@@ -98,11 +102,16 @@ AudioJS = function(opts){
 	this.audio = AudioJS.load(opts.url);
 }
 // Static members
-$.extend(AudioJS, {
+$.extend(AudioJS, 
+	/** @lends AudioJS  */ 
+	{
 	_soundElement: null,
 	_audioList: {},
+	/**@field {boolean} */
 	audioObjSupport: undefined,
+	/**@field {boolean} */
 	basicAudioSupport: undefined,
+	/**@field {boolean} */
 	loopSupport: undefined,
 	defaultOpts: {
 		loop: false,
@@ -110,7 +119,6 @@ $.extend(AudioJS, {
 	},
 	/**Load and cache audio element for this URL.
 	 *  @param {string} url 
-	 *  @param {booelan} loop 
 	 */
 	load: function(url) {
 		var audio = this._audioList[url];
@@ -120,6 +128,9 @@ $.extend(AudioJS, {
 				this._soundElement.setAttribute("id", "AudioJS-sounds");
 				this._soundElement.setAttribute("hidden", true);
 				document.body.appendChild(this._soundElement);		
+//				$(this._soundElement).bind('ended',{}, function() {
+//					window.console.log("AudioJS("+this+") loaded");
+//				});
 			}
 			audio = this._audioList[url] = document.createElement("audio");
 //			audio.setAttribute("autoplay", true);
@@ -127,6 +138,7 @@ $.extend(AudioJS, {
 			audio.setAttribute("src", url);
 			this._soundElement.appendChild(audio);		
 			$(audio).bind('ended',{}, function() {
+				// TODO: we can simulate looping if it is not natively supported:
 //			  	$(this).trigger('play');
 				window.console.log("AudioJS("+url+") ended");
 			});
@@ -151,17 +163,15 @@ AudioJS.prototype = {
 	    return "AudioJS("+this.opts.url+")";
 	},
 	/**Play this sound.
-	 *  @param {booelan} loop 
+	 *  @param {boolean} loop Optional, default: true
 	 */
 	play: function(loop) {
-		if(this.audio.ended){
-			this.audio.play();
-		}else{
+		if(!this.audio.ended){
 			// Interrupt currently playing sound
 			//this.audio.pause();
 			this.audio.currentTime = 0;
-			this.audio.play();
 		}
+		this.audio.play();
 	},
 	lastEntry: undefined
 }
@@ -189,8 +199,8 @@ var ArcadeJS = Class.extend(
 		
         this.objects = [];
         this.idMap = {};
-        this.keyListeners = [];
-        this.mouseListeners = [];
+        this.keyListeners = [ this ];
+        this.mouseListeners = [ this ];
         this.typeMap = {};
         this.downKeyCodes = [];
         
@@ -208,32 +218,31 @@ var ArcadeJS = Class.extend(
         // Bind keyboard events
         var self = this;
         $(document).bind("keyup keydown keypress", function(e){
-//        	self.debug("e:%o", e);
-
         	if( e.type === "keyup"){
-        		// TODO: only if no keys are still pressed
-            	self.key = null;
             	self.keyCode = null;
-//            	var idx = self.downKeyCodes.indexOf(ArcadeJS.keyCodeToString(e));
+            	self.key = null;
             	var idx = self.downKeyCodes.indexOf(e.keyCode);
             	if(idx >= 0)
             		self.downKeyCodes.splice(idx, 1);
-            	self.debug("Keyup %s: %o", ArcadeJS.keyCodeToString(e), self.downKeyCodes);
+//            	self.debug("Keyup %s: %o", ArcadeJS.keyCodeToString(e), self.downKeyCodes);
         	} else if( e.type === "keydown"){
             	self.keyCode = e.keyCode;
             	self.key = ArcadeJS.keyCodeToString(e);
             	if( self.downKeyCodes.indexOf(self.keyCode) < 0)
             		self.downKeyCodes.push(self.keyCode);
-            	self.debug("Keydown %s: %o", self.key, self.downKeyCodes);
+//            	self.debug("Keydown %s: %o", self.key, self.downKeyCodes);
         	} else {
         		// keypress
-//            	self.keyCode = e.keyCode;
-//            	self.key = ArcadeJS.keyCodeToString(e);
         	}
         	for(var i=0; i<self.keyListeners.length; i++) {
         		var obj = self.keyListeners[i];
-        		if(e.type == "keypress" && obj.onKeypress)
-        			obj.onKeypress(e, self.key);
+        		if(e.type == "keypress" && obj.onKeypress) {
+        			obj.onKeypress(e);
+        		} else if(e.type == "keyup" && obj.onKeyup) {
+        			obj.onKeyup(e, self.key);
+        		} else if(e.type == "keydown" && obj.onKeydown) {
+        			obj.onKeydown(e, self.key);
+        		}
         	}
         });
         // Bind mouse events
@@ -261,10 +270,10 @@ var ArcadeJS = Class.extend(
 			}
         	for( var i=0; i<self.mouseListeners.length; i++) {
         		var obj = self.mouseListeners[i];
-        		if(e.type == "mousedown" && obj.onMousedown) {
-        			obj.onMousedown(arguments[0]);
-        		} else if(e.type == "mousemove" && obj.onMousemove) {
+        		if(e.type == "mousemove" && obj.onMousemove) {
         			obj.onMousemove(arguments[0]);
+        		} else if(e.type == "mousedown" && obj.onMousedown) {
+        			obj.onMousedown(arguments[0]);
         		} else if(e.type == "mouseup" && obj.onMouseup) {
         			obj.onMouseup(arguments[0]);
         		} else if(e.type == "mousewheel" && obj.onMousewheel) {
@@ -275,9 +284,11 @@ var ArcadeJS = Class.extend(
     },
     toString: function() {
         return "ArcadeJS '" + this.name + "' ";
-        
     },
-    debug: function() {
+    /**Output string to console.
+     * @param: {string} msg
+     */
+    debug: function(msg) {
         if (window.console && window.console.log) {  
             window.console.log.apply(this, arguments);  
         }  
@@ -337,6 +348,10 @@ var ArcadeJS = Class.extend(
     	if(this.opts.onEndDraw)
     		this.opts.onEndDraw();
     },
+    _dispatchEvent: function(eventName, object, handler, e) {
+    },
+    /**Start render loop.  
+     */
     startLoop: function(){
     	if( !this._runLoopId) {
     		var self = this;
@@ -346,6 +361,8 @@ var ArcadeJS = Class.extend(
     	    	}, 1000/this.opts.fps);
     	}
     },
+    /**Stop render loop.
+     */
     stopLoop: function(){
     	this.stopRequest = false;
     	if(this._runLoopId) {
@@ -353,6 +370,10 @@ var ArcadeJS = Class.extend(
     		this._runLoopId = null;
     	}
     },
+    /**Add game object to object list.
+     * @param: {Movable} o
+     * @returns {Movable}  
+     */
     addObject: function(o) {
     	if( this.idMap[o.id] ) {
     		throw "addObject("+o.id+"): duplicate entry";
@@ -382,27 +403,22 @@ var ArcadeJS = Class.extend(
         }
         return o;
     },
-    removeObject: function(o) {
-    	if( this.idMap[o] ) {
-    		o = this.idMap[o];
-    	}
-    	// TODO
-    },
     /**Purge dead objects from object list.
      * @param: {boolean} force false: only if opts.purgeRate is reached. 
      */
     purge: function(force) {
-    	// TODO: this should be a locked section!
     	var ol = this.objects;
     	if( this._purging
     		|| ol.length < 1 
-    		|| !force && (this._deadCount/ol.length) < this.opts.purgeRate )
+    		|| (!force && (this._deadCount/ol.length) < this.opts.purgeRate)
+    		){
     		return false;
+    	}
     	this._purging = true;
     	this.debug("Purging objects: " + this._deadCount + "/" + ol.length + " dead.");
     	this.objects = [];
-    	this.keyListeners = [];
-    	this.mouseListeners = [];
+    	this.keyListeners = [ this ];
+    	this.mouseListeners = [ this ];
         this.idMap = {};
         this.typeMap = {};
     	for(var i=0; i<ol.length; i++){
@@ -501,7 +517,7 @@ ArcadeJS.renderCircle = function(ctx, center, r, mode)
  *          '[shift]' for
  */
 ArcadeJS.keyCodeToString = function(e) {
-	var code = e.keyCode; //e.charCode || e.keyCode;
+	var code = e.keyCode; 
 	var shift = !!e.shiftKey;
 	var key = null;
 	
@@ -573,13 +589,13 @@ ArcadeJS.keyCodeToString = function(e) {
 		key = String.fromCharCode(code);
 	}
 	var prefix = "";
-	if(shift)
+	if(shift && code != 16)
 		prefix = "shift+" + prefix;
 	if(e.metaKey)
 		prefix = "meta+" + prefix;
-	if(e.ctrlKey)
+	if(e.ctrlKey && code != 17)
 		prefix = "ctrl+" + prefix;
-	if(e.altKey)
+	if(e.altKey && code != 18)
 		prefix = "alt+" + prefix;
 
 	window.console.log("keyCode:%s -> using %s, '%s'", e.keyCode,  code, prefix + key);

@@ -87,7 +87,7 @@ var Ball = Movable.extend({
     render: function(ctx) {
 		ctx.strokeStyle = "#ffffff";
 		ctx.fillStyle = this.opts.color; 
-		ArcadeJS.renderCircle(ctx, this.pos, this.r, "solid");
+		ArcadeJS.renderCircle(ctx, {x:0, y:0}, this.r, "solid");
 	},
     getBoundingRadius: function() {
     	return this.r;

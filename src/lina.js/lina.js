@@ -110,6 +110,22 @@ LinaJS = {
 			     dy: r * Math.sin(a) };
 	},
 
+	/**Reflect this vector (in-place) and return this instance.
+	 * @param {Vec2} vec 
+	 * @param {Vec2} reflectionNormal Normal vector pointing from reflection 
+	 * line towards vec.
+	 * @returns {Vec2}   
+	 */
+	reflectedVector: function(vec, reflectionNormal) {
+		// TODO: this can be optimized
+		var perp = reflectionNormal.copy().perp();
+		var a = vec.dot(perp); 
+		var b = vec.dot(reflectionNormal); 
+		var reflected = reflectionNormal.copy().scale(-b).add(perp.scale(a));
+		window.console.log("len(vec)"+vec.length()+", len(ref):"+reflected.length()+",a+b:"+(a+b))
+		return reflected;
+	},
+
 	/** @private */
 	_segmentsIntersect: function(pt1x, pt1y, pt2x, pt2y, pt3x, pt3y, pt4x, pt4y) {
 		// public domain function by Darel Rex Finley, 2006
@@ -236,17 +252,17 @@ LinaJS = {
 	    		- 2*c1.vy*c2.vy + c2.vy*c2.vy;
 	    var D = c1.x*c1.x + c1.y*c1.y - c1.r*c1.r - 2*c1.x*c2.x + c2.x*c2.x 
 	    		- 2*c1.y*c2.y + c2.y*c2.y - 2*c1.r*c2.r - c2.r*c2.r;
-	    var DISC = (-2 * B) * (-2 * B) - 4 * C * D;
+	    var disc = (-2 * B) * (-2 * B) - 4 * C * D;
 	    // If the discriminent is non negative, a collision will occur and
         // we must compare the time to our current time of collision. We
         // update the time if we find a collision that has occurred earlier
         // than the previous one.                                          
-        if(DISC < 0){
+        if(disc < 0){
         	return false;
         }
         // We want the smallest time
-        var t = Math.min(0.5 * (2 * B - Math.sqrt(DISC)) / A, 
-         		0.5 * (2 * B + Math.sqrt(DISC)) / A);
+        var t = Math.min(0.5 * (2 * B - Math.sqrt(disc)) / A, 
+         		0.5 * (2 * B + Math.sqrt(disc)) / A);
         return {
         	ptColl: null,
         	vColl: null,
@@ -334,6 +350,7 @@ Point2.prototype = {
 	/** Set coordinates.
 	 * @param {float|Point2|JS-object} x X-coordinate or a Point2 instance or {x:_, y:_}   
 	 * @param {float} y Y-coordinate or undefined, if x is a Point2 instance or {x:_, y:_}   
+	 * @returns {Point2}   
 	 */
 	set: function(x, y) {
 		if(y === undefined){
@@ -386,6 +403,7 @@ Point2.prototype = {
 	/** Rotate this point (in-place) and return this instance. 
 	 * @param {float} a Angle in radians.   
 	 * @param {Point2} pt (optional) center of rotation, defaults to (0/0).   
+	 * @returns {Point2}   
 	 */
 	rotate: function(a, pt) {
 		var c = Math.cos(a);
@@ -404,6 +422,7 @@ Point2.prototype = {
 	/** Translate point (in-place) and return this instance. 
 	 * @param {float|Vec2} dx x-offset or offset vector
 	 * @param {float|undefined} dy y-offset (omit this parameter, if x is a Vec2)
+	 * @returns {Point2}   
 	 */
 	translate: function(dx, dy) {
 		if(dy === undefined){
@@ -415,7 +434,9 @@ Point2.prototype = {
 		}
 		return this;
 	},
-	/** Apply transformation matrix (in-place) and return this instance.*/
+	/** Apply transformation matrix (in-place) and return this instance.
+	 * @returns {Point2}   
+	 */
 	transform: function(m) {
 		var xy = m.transformPt(this.x, this.y);
 		this.x = xy.x;
@@ -512,14 +533,14 @@ Vec2.prototype = {
 		}
 		return this;
 	},
-	/** Return vector length ^2.
+	/**Return vector length ^2.
 	 * This is faster than calling length(). 
 	 * @returns {float}   
 	 */
 	sqrLength: function() {
 		return this.dx * this.dx + this.dy * this.dy;
 	},
-	/** Return vector length.
+	/**Return vector length.
 	 * @returns {float}   
 	 */
 	length: function() {
@@ -528,6 +549,18 @@ Vec2.prototype = {
 		} catch (e) {
 			return 0;
 		}
+	},
+	/**Check, if vector is (0, 0)
+	 * @returns {boolean}   
+	 */
+	isNull: function() {
+		return this.dx == 0 && this.dy == 0;
+	},
+	/**Set vector to (0, 0)
+	 * @returns {Vec2}   
+	 */
+	setNull: function() {
+		return this.set(0, 0);
 	},
 	/**Return the angle between positive x axis and this vector.
 	   @returns {float}  [-pi .. pi], ccw
@@ -559,6 +592,14 @@ Vec2.prototype = {
 		this.dy *= f;
 		return this;
 	},
+	/** Flip this vector (in-place) and return this instance.
+	 * @returns {Vec2}   
+	 */
+	revert: function() {
+		this.dx *= -1;
+		this.dy *= -1;
+		return this;
+	},
 	/** Rotate this vector (in-place) and return this instance. 
 	 * @param {float} a Angle in radians.   
 	 * @returns {Vec2}   
@@ -569,7 +610,9 @@ Vec2.prototype = {
 		this.dy = this.dy * c + this.dx * s;
 		return this;
 	},
-	/** Apply transformation matrix (in-place) and return this instance.*/
+	/** Apply transformation matrix (in-place) and return this instance.
+	 * @returns {Vec2}   
+	 */
 	transform: function(m) {
 		var xy = m.transformVec(this.dx, this.dy);
 		this.dx = xy.dx;
@@ -618,7 +661,7 @@ Vec2.prototype = {
 		// Vectors are colinear if the dot product is one.
 		return Math.abs(1 - this.dot(v2)) < LinaJS.EPS;
 	},
-	/**Translate this point by vector offset.. 
+	/**Add another vector to this vector and return the current instance. 
 	 * @param {Point2|JS-Object} vecOrDx Second point.   
 	 * @returns {Vec2}   
 	 */
@@ -632,7 +675,7 @@ Vec2.prototype = {
 		}
 		return this;
 	},
-	/**Translate this point by vector offset.. 
+	/**Subtract another vector from this vector and return the current instance. 
 	 * @param {Point2|JS-Object} vecOrDx Second point.   
 	 * @returns {Vec2}   
 	 */
@@ -774,7 +817,7 @@ Matrix3.prototype = {
 		return this;
 	},
 	/**Reset the current matrix to identity.
-	 *  @returns {Matrix3}
+	 * @returns {Matrix3}
 	 */
 	reset: function() {
 		return this.set();
@@ -1385,11 +1428,59 @@ Circle2.prototype = {
 //		// TODO:
 //		alert("Not implemented: Circle2.intersects()");
 //	},
-//	/** Check, if this polygon intersects with another (moving) circle.
-//	 */
-//	intersectsCircle: function(circle, velocity) {
-////		return LinaJS.intersectMovingCircles();
-//	},
+	/**Check, if this circle intersects with another (moving) circle.
+	 * Return false, if ther is no intersection within the current time frame.
+	 * Otherwise return a dictionary with additional infos.
+	 */
+	intersectsCircle: function(circle2, velocity, velocity2) {
+		var c1 = { x: this.center.x,
+				   y: this.center.y,
+				   r: this.r,
+				   vx: velocity ? velocity.dx : 0,
+				   vy: velocity ? velocity.dy : 0};
+		var c2 = { x: circle2.center.x,
+				   y: circle2.center.y,
+				   r: circle2.r,
+				   vx: velocity2 ? velocity2.dx : 0,
+				   vy: velocity2 ? velocity2.dy : 0};
+		var coll = LinaJS.intersectMovingCircles(c1, c2);
+		if(!coll || coll.t < -1 || coll.t > 0)
+			return false; // Intersection happens before prev. frame or in the future
+		// Calculate centers at the time when the collision occurred
+		var tBefore = - coll.t;
+		var tAfter = coll.t + 1;
+		coll.t = tBefore;
+		var vMTD1 = velocity.copy().scale(-tBefore);
+		coll.center1 = this.center.copy().translate(vMTD1);
+		var vMTD2 = velocity2.copy().scale(-tBefore);
+		coll.center2 = circle2.center.copy().translate(vMTD2);
+		// Collision normal is always along the two circle centers
+		coll.vNormal = coll.center2.vectorTo(coll.center1).normalize();
+		// Relative speed from circle towards circle2
+		var vRel = velocity.copy().sub(velocity2);
+		// split relative speed into a part along collision normal and the rest
+		var c = coll.vNormal.dot(vRel); 
+		var vColl = coll.vNormal.copy().scale(c);
+		var vPerp = vRel.copy().sub(vColl);
+		// Total inelastic collision: circle1 transfers it's energy to circle2
+		coll.velocityReflected1 = vPerp;
+		coll.velocityReflected2 = velocity2.copy().add(vColl);
+		var e1 = velocity.length() + velocity2.length();
+		var e2 = coll.velocityReflected1.length() + coll.velocityReflected2.length();
+		if(Math.abs(e1-e2) > LinaJS.EPS){
+			window.console.log("e1:"+e1+", e2:"+e2);
+			window.console.log("vColl:"+vColl);
+		}
+		// Calculate circle positions at t=1, assuming a total reflection 
+		coll.centerReflected1 = coll.center1.copy()
+			.translate(tAfter * coll.velocityReflected1.dx, 
+					   tAfter * coll.velocityReflected1.dy);
+		coll.centerReflected2 = coll.center2.copy()
+			.translate(tAfter * coll.velocityReflected2.dx, 
+					   tAfter * coll.velocityReflected2.dy);
+
+		return coll;
+	},
 	/** Return circle area (Pi*r^2). 
 	 * This assumes an implicitly closed, non self-intersecting polygon.
 	 */

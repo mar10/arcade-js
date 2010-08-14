@@ -60,7 +60,7 @@ var Bullet = Movable.extend({
 			scale: 2,
 			ttl: 10
 		}, opts);
-        this._super("bullet", null, opts);
+        this._super("bullet", opts);
     },
     toString: function() {
         return "Bullet(" + this.id + ")";
@@ -100,12 +100,13 @@ var Bullet = Movable.extend({
 var Rocket = Movable.extend({
     init: function(opts) {
 		opts = $.extend({
+			id: "player1",
 			velocity: new Vec2(0, 0),
 			pos: new Point2(320, 200),
 			screenModeX: "wrap",
 			screenModeY: "wrap"
 			}, opts);
-        this._super("rocket", "player1", opts);
+        this._super("rocket", opts);
         this.pg = new Polygon2([0, 5,
                                 -4, -5,
                                 4, -5
@@ -192,8 +193,7 @@ var Asteroid = Movable.extend({
 			screenModeX: "wrap",
 			screenModeY: "wrap"
 			}, opts);
-//        this._super("asteroid", id, pos, orientation, velocity);
-        this._super("asteroid", null, opts);
+        this._super("asteroid", opts);
         this.pg = new Polygon2([4, 0,
                                 2.5, 1.5,
                                 1.5, 3.5,

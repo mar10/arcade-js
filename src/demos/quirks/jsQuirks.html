@@ -14,7 +14,7 @@
 		var canvas = document.getElementById("canvas1");
 		var game = new QuirksGame(canvas,
 			{//fps: 100, // 10 ms (100 FpS) is the FF limit anyway
-			 onEndDraw: function(){
+			 postDraw: function(){
 			     $("#frames").html("Frame #" + game.frameCount + ", FpS: " + game.realFps + " (want: " + game.opts.fps + ")");
 			 }
 			});

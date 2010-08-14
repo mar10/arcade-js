@@ -48,20 +48,14 @@ var DemoGame = ArcadeJS.extend({
         // Start render loop
         this.startLoop()
     },
-//    beforeEvent: function(name, object, e){
-//    	
-//    },
-//    afterEvent: function(name, object, e){
-//    	
-//    },
     onKeydown: function(e, key){
-    	$("#keys").html("Keydown: key='"+this.key+"'; down:"+this.downKeyCodes)
+    	$("#keys").html("Keydown: key='"+this.key+"'; down:"+this.downKeyCodes);
     },
     onKeyup: function(e, key){
-    	$("#keys").html("Keyup: key='"+this.key+"'; down:"+this.downKeyCodes)
+    	$("#keys").html("Keyup: key='"+this.key+"'; down:"+this.downKeyCodes);
     },
     onKeypressed: function(e){
-    	$("#keys").html("Keypressed; down:"+this.downKeyCodes)
+    	$("#keys").html("Keypressed; down:"+this.downKeyCodes);
     },
     // --- end of class
     lastentry: undefined
@@ -74,7 +68,7 @@ var DemoGame = ArcadeJS.extend({
 var WallObject = Movable.extend({
     init: function(opts) {
 		// Initialize this game object
-        this._super("wall", null, opts);
+        this._super("wall", opts);
         this.pg = opts.pg;
     },
     step: function() {
@@ -101,24 +95,44 @@ var Ball = Movable.extend({
     init: function(opts) {
 		opts = $.extend({
 		}, opts);
-        this._super("ball", null, opts);
+        this._super("ball", opts);
         this.r = opts.r;
 //        this.circle = new Circle2(opts.pos, opts.r);
     },
     step: function() {
     	// Check for wall collisions
-		var c1 = new Circle2(this.pos, this.r);
-    	var pgs = this.game.getObjectsByType("wall");
-    	for(var i=0; i<pgs.length; i++) {
-    		var pg = pgs[i];
-    		var coll = pg.pg.intersectsCircle(c1, this.velocity);
+    	var game = this.game;
+		var circle = new Circle2(this.pos, this.r);
+    	var walls = game.getObjectsByType("wall");
+    	for(var i=0; i<walls.length; i++) {
+    		var other = walls[i];
+    		if(!game.preCheckCollision(this, other))
+    			continue;
+    		var coll = other.pg.intersectsCircle(circle, this.velocity);
     		if( coll && Math.abs(coll.t) <= 1  ){
-//        		this.game.debug("ball %o vs. %o: %o", c1, pg, coll);
+//        		game.debug("ball %o vs. %o: %o", circle, pg, coll);
         		this.velocity = coll.velocityReflected;
         		this.pos = coll.centerReflected;
         		// stop on next frame
 //		    	this.game.stopRequest = true;
     		}
+    	}
+    	var balls = this.game.getObjectsByType("ball");
+    	for(var i=0; i<balls.length; i++) {
+    		var other = balls[i];
+    		if(!game.preCheckCollision(this, other))
+    			continue;
+    		var circle2 = new Circle2(other.pos, other.r);
+    		var coll = circle.intersectsCircle(circle2, this.velocity, other.velocity);
+    		if(!coll)
+    			continue;
+       		game.debug("ball %o vs. %o: %o", this, other, coll);
+    		this.velocity = coll.velocityReflected1;
+    		this.pos = coll.centerReflected1;
+    		other.velocity = coll.velocityReflected2;
+    		other.pos = coll.centerReflected2;
+    		// stop on next frame
+//	    	this.game.stopRequest = true;
     	}
     },
     render: function(ctx) {

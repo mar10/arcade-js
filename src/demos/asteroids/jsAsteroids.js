@@ -9,6 +9,7 @@
  * Class Bullet
  */
 
+
 var AsteroidsGame = ArcadeJS.extend({
     init: function(canvas, customOpts) {
 		// Init ArcadeJS
@@ -24,64 +25,82 @@ var AsteroidsGame = ArcadeJS.extend({
         obj = this.addObject(new Rocket())
         // Asteroids
         var speed = 0.5;
-        obj = this.addObject(new Asteroid({
-        	velocity: new Vec2(3, 4).setLength(speed),
-        	rotationalSpeed: LinaJS.DEG_TO_RAD * 2
-        }));
-        obj = this.addObject(new Asteroid({
-        	velocity: new Vec2(-3, -1).setLength(speed),
-        	rotationalSpeed: LinaJS.DEG_TO_RAD * 2
-        }));
-        obj = this.addObject(new Asteroid({
-        	velocity: new Vec2(-3, 3).setLength(speed),
-        	rotationalSpeed: LinaJS.DEG_TO_RAD * 2
-        }));
-        obj = this.addObject(new Asteroid({
-        	velocity: new Vec2(1, -4).setLength(speed),
-        	rotationalSpeed: LinaJS.DEG_TO_RAD * 2
-        }));
-        // Cache sounds
+		this._makeAsteroid(3, new Point2(0, 0), new Vec2(3, 4).setLength(speed));
+		this._makeAsteroid(3, new Point2(0, 0), new Vec2(-3, -1).setLength(speed));
+		this._makeAsteroid(3, new Point2(0, 0), new Vec2(-3, 3).setLength(speed));
+		this._makeAsteroid(3, new Point2(0, 0), new Vec2(1, -4).setLength(speed));
+
+        // --- Status data -----------------------------------------------------
+        this.liveCount = 3;
+        this.score = 0;
+        this.shotTtl = 40;
+        this.shotDelay = 250; // ms
+        this.gracePeriod = 120; // frames
+
+        // --- Cache sounds ----------------------------------------------------
         this.gunSound = new AudioJS("shot.wav");
         this.explosionSound = new AudioJS("damage.wav");
         // Start render loop
         this.startLoop()
     },
+    _makeAsteroid: function(size, pos, velocity){
+    	this.addObject(new Asteroid({
+    		size: size,
+    		pos: new Point2(pos.x + LinaJS.random(-10, 10), pos.y + LinaJS.random(-10, 10)),
+    		velocity: new Vec2(velocity.dx + LinaJS.random(-0.2, +0.2), velocity.dx + LinaJS.random(-0.2, +0.2)),
+    		rotationalSpeed: LinaJS.random(-2*LinaJS.DEG_TO_RAD, 2*LinaJS.DEG_TO_RAD)
+    		}));
+    },
+	preDraw: function(ctx){
+    	ctx.save();
+	    // Display score
+    	//ctx.font.weight = "bold";
+    	ctx.fillText("Score: " + this.score, 10, 10);
+    	ctx.fillText(this.realFps.toFixed(1) + " fps", this.canvas.width-50, 10);
+	    // Draw lives
+    	var live = new Polygon2([0, 5,
+    	                         -3, -5,
+    	                         3, -5]);
+    	ctx.translate(10, 40);
+    	for(var i=0; i<this.liveCount; i++){
+    		ctx.strokePolygon2(live);
+        	ctx.translate(10, 0);
+    	}
+    	// done
+    	ctx.restore();
+	},
     // --- end of class
     lastentry: undefined
 });
 
 
-/******************************************************************************/
+/* ****************************************************************************/
 
 
 var Bullet = Movable.extend({
     init: function(opts) {
 		opts = $.extend({
-			scale: 2,
-			ttl: 10
+//			scale: 2,
+			ttl: 20,
 		}, opts);
         this._super("bullet", opts);
     },
-    toString: function() {
-        return "Bullet(" + this.id + ")";
-    },
     step: function() {
-    	var asteroids = this.game.getObjectsByType("asteroid");
-    	for(var i=0; i<asteroids.length; i++) {
-    		var a = asteroids[i];
-    		if( this.pos.distanceTo(a.pos) < a.getBoundingRadius() ){
-        		this.game.debug("bullet hits %s", a);
-        		this.die();
-        		a.die();
-            	this.game.explosionSound.play();
-        		//this.game.stopLoop();
-    		}
+    	var list = this.game.getObjectsByType("asteroid");
+    	for(var i=0; i<list.length; i++) {
+    		var obj = list[i];
+    		if(!this.game.preCheckCollision(this, obj))
+    			continue;
+    		// Pre-check is exact enough for our purpose...
+    		this.die();
+    		obj.hitBy(this);
+    		break;
     	}
     },
     render: function(ctx) {
 		ctx.strokeStyle = "#ffffff";
     	ctx.beginPath();
-    	ctx.moveTo(-this.velocity.dx,-this.velocity.dy);
+    	ctx.moveTo(-this.velocity.dx, -this.velocity.dy);
     	ctx.lineTo(0, 0);
     	ctx.stroke();
     },
@@ -109,48 +128,44 @@ var Rocket = Movable.extend({
         this._super("rocket", opts);
         this.pg = new Polygon2([0, 5,
                                 -4, -5,
-                                4, -5
-                                ]);
+                                4, -5]);
         this.pg.transform(LinaJS.scale33(2, -2));
-    },
-    step: function() {
-		var c1 = {
-    			x: this.pos.x,
-    			y: this.pos.y,
-    			vx: this.velocity.dx,
-    			vy: this.velocity.dy,
-    			r: this.getBoundingRadius()
-    		}
-    	var asteroids = this.game.getObjectsByType("asteroid");
-    	for(var i=0; i<asteroids.length; i++) {
-    		var a = asteroids[i];
-    		if( this.pos.distanceTo(a.pos) > (a.getBoundingRadius() + c1.r))
-    			continue;
-    		var c2 = {
-    			x: a.pos.x,
-    			y: a.pos.y,
-    			vx: a.velocity.dx,
-    			vy: a.velocity.dy,
-    			r: a.getBoundingRadius()
-    		}
-    		var coll = LinaJS.intersectMovingCircles(c1, c2, 5);
-//    		this.game.debug("rocket %o vs. %o: %o", c1, c2, coll);
-    		if( coll && Math.abs(coll.t) <= 1  ){
-        		this.game.debug("rocket %o vs. %o: %o", c1, c2, coll);
-            	this.game.explosionSound.play();
-        		this.game.stopLoop();
-    		}
-    	}
-    },
-    render: function(ctx) {
-		ctx.strokeStyle = "white"; //"rgb(255, 255, 255)";
-		ArcadeJS.renderPg(ctx, this.pg, "outline");
+        this.lastShotTime = 0;
     },
     getBoundingRadius: function() {
     	return 13;
     },
-    onKeypress: function(e, key) {
-    	this.game.debug("%s: '%s', %o", e.type, key, this.game.downKeyCodes);
+    step: function() {
+    	var list = this.game.getObjectsByType("asteroid");
+    	for(var i=0; i<list.length; i++) {
+    		var obj = list[i];
+    		if(!this.game.preCheckCollision(this, obj))
+    			continue;
+    		if(this.getActivity() == "grace")
+    			continue;
+    		// Pre-check is exact enough for our purpose...
+    		this.game.debug("%s vs. %s", this, obj);
+    		obj.hitBy(this);
+        	this.game.explosionSound.play();
+        	this.game.liveCount -= 1;
+            this.setActivity("grace");
+            this.timeout = this.game.gracePeriod;
+//    		this.game.stopLoop();
+    	}
+    },
+    render: function(ctx) {
+		ctx.strokeStyle = "white";
+		if(this.getActivity() == "grace")
+			ctx.strokeStyle = "red";
+		ctx.strokePolygon2(this.pg);
+    },
+    onTimeout: function() {
+		if(this.getActivity() == "grace" && this.game.liveCount > 0){
+            this.setActivity("idle");
+		}
+    },
+    onKeypress: function(e) {
+    	this.game.debug("%s: '%s', %o", e.type, this.game.downKeyCodes);
     	if(this.game.isKeyDown(32)){ // Space
     		this.fire();
     	}
@@ -162,20 +177,25 @@ var Rocket = Movable.extend({
     	if(this.game.isKeyDown(38)){ // Up
     		var vAccel = LinaJS.polarToVec(this.orientation - 90*LinaJS.DEG_TO_RAD, 0.1);
     		this.velocity.add(vAccel);
-    		e.stopPropagation();
+    		e.stopImmediatePropagation();
     	}
     },
-    onMousewheel: function(e, delta) {
-    	this.game.debug("onMousewheel: %o, %s", e, delta);
-    	this.rotationalSpeed += delta * LinaJS.DEG_TO_RAD;
-		e.stopPropagation();
-    },
+//    onMousewheel: function(e, delta) {
+//    	this.game.debug("onMousewheel: %o, %s", e, delta);
+//    	this.rotationalSpeed += delta * LinaJS.DEG_TO_RAD;
+//		e.stopImmediatePropagation();
+//    },
     fire: function() {
+		if(this.getActivity() == "grace" )
+			return;
+    	if((this.game.time - this.lastShotTime) < this.game.shotDelay )
+    		return;
+        this.lastShotTime = this.game.time;
     	var aim = LinaJS.polarToVec(this.orientation - 0.5 * Math.PI, 10);
     	var bullet = new Bullet(new Point2(this.pos), aim, 50);
     	this.game.addObject(new Bullet({
     		pos: this.pos,
-    		ttl: 20,
+    		ttl: this.game.shotTtl,
     		velocity: aim
     		}));
     	this.game.gunSound.play();
@@ -191,9 +211,13 @@ var Asteroid = Movable.extend({
     init: function(opts) {
 		opts = $.extend({
 			screenModeX: "wrap",
-			screenModeY: "wrap"
+			screenModeY: "wrap",
+//			size: 3
 			}, opts);
         this._super("asteroid", opts);
+		// Copy selected options as object attributes
+        ArcadeJS.extendAttributes(this, opts, "size");
+        //this.scale = 2 * this.size;
         this.pg = new Polygon2([4, 0,
                                 2.5, 1.5,
                                 1.5, 3.5,
@@ -202,25 +226,29 @@ var Asteroid = Movable.extend({
                                 -1.5, -3.5,
                                 2, -3.5
                                 ]);
-        this.pg.transform(LinaJS.scale33(8, -8));
-    },
-    /*
-    step: function() {
-    	// Let Movable base class calc the new transformations
-//		this._super();
-		// Implement wrap-around at screen borders
-		var w = this.game.canvas.width;
-		var h = this.game.canvas.height;
-		this.pos.x = (w + this.pos.x) % w; 
-		this.pos.y = (h + this.pos.y) % h;
-    },*/
-    render: function(ctx) {
-		ctx.fillStyle = "#09F";
-		ctx.strokeStyle = "white"; //"rgb(255, 255, 255)";
-		ArcadeJS.renderPg(ctx, this.pg, "outline");
+        this.pg.transform(LinaJS.scale33(2*this.size, -2*this.size));
     },
     getBoundingRadius: function() {
-    	return 8 * 4;
+    	return 2*this.size * 4;
+    },
+    render: function(ctx) {
+		ctx.strokeStyle = "white";
+		ctx.strokePolygon2(this.pg);
+    },
+    hitBy: function(obj) {
+    	this.game.explosionSound.play();
+		if(this.size==3){
+			this.game._makeAsteroid(2, this.pos, this.velocity);
+			this.game._makeAsteroid(2, this.pos, this.velocity);
+			this.game.score += 10;
+		}else if(this.size==2){
+			this.game._makeAsteroid(1, this.pos, this.velocity);
+			this.game._makeAsteroid(1, this.pos, this.velocity);
+			this.game.score += 20;
+		}else{
+			this.game.score += 40;
+		}
+		this.die();
     },
     // --- end of class
     lastentry: undefined

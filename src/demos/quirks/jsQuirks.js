@@ -18,6 +18,9 @@ var QuirksGame = ArcadeJS.extend({
         // Start render loop
         this.startLoop()
     },
+	postDraw: function(ctx){
+	    $("#frames").html("Frame #" + this.frameCount + ", FpS: " + this.realFps + " (want: " + this.fps + ")");
+	},
     // --- end of class
     lastentry: undefined
 });
@@ -31,12 +34,12 @@ var Quirk = Movable.extend({
 		// Inititalize this game object
         this._super("quirk");
         // Initialize the first of max. 20 lines and velocity
-        this.maxLines = 20;
+        this.maxLines = 200;
         this.lines = [];
         this.pos1 = new Point2(LinaJS.randomInt(100, 200), LinaJS.randomInt(100, 200));
-        this.move1 = new Vec2(LinaJS.randomInt(1, 10), LinaJS.randomInt(1, 10));
+        this.move1 = new Vec2(LinaJS.randomInt(2, 10), LinaJS.randomInt(1, 10));
         this.pos2 = new Point2(LinaJS.randomInt(100, 200), LinaJS.randomInt(100, 200));
-        this.move2 = new Vec2(LinaJS.randomInt(1, 10), LinaJS.randomInt(1, 10));
+        this.move2 = new Vec2(LinaJS.randomInt(2, 10), LinaJS.randomInt(1, 10));
     },
     step: function() {
     	// Add another line (discard oldest, if max. is reached)

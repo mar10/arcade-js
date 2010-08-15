@@ -15,14 +15,14 @@
 		var game = new BillardsGame(canvas,
 			{fps: 100, // 10 ms (100 FpS) is the FF limit anyway
 			});
-		$("#btnStop").click(function(){
-			if( game._runLoopId )
-				game.stopLoop();
-			else game.startLoop();
-		});
+        $("#btnStop").click(function(){
+            if( game.isRunning() )
+                game.stopLoop();
+            else game.startLoop();
+        });
         $("#btnStep").click(function(){
             game.stopRequest = true;
-            if( !game._runLoopId )
+            if( !game.isRunning() )
                 game.startLoop();
         });
 	});

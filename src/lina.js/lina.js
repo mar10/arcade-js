@@ -122,7 +122,7 @@ LinaJS = {
 		var a = vec.dot(perp); 
 		var b = vec.dot(reflectionNormal); 
 		var reflected = reflectionNormal.copy().scale(-b).add(perp.scale(a));
-		window.console.log("len(vec)"+vec.length()+", len(ref):"+reflected.length()+",a+b:"+(a+b))
+		//window.console.log("len(vec)"+vec.length()+", len(ref):"+reflected.length()+",a+b:"+(a+b))
 		return reflected;
 	},
 
@@ -1468,8 +1468,8 @@ Circle2.prototype = {
 		var e1 = velocity.length() + velocity2.length();
 		var e2 = coll.velocityReflected1.length() + coll.velocityReflected2.length();
 		if(Math.abs(e1-e2) > LinaJS.EPS){
-			window.console.log("e1:"+e1+", e2:"+e2);
-			window.console.log("vColl:"+vColl);
+			//window.console.log("e1:"+e1+", e2:"+e2);
+			//window.console.log("vColl:"+vColl);
 		}
 		// Calculate circle positions at t=1, assuming a total reflection 
 		coll.centerReflected1 = coll.center1.copy()

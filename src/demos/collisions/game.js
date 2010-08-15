@@ -48,6 +48,16 @@ var DemoGame = ArcadeJS.extend({
         // Start render loop
         this.startLoop()
     },
+	postDraw: function(ctx){
+	    $("#frames").html("Frame #" + this.frameCount + ", FpS: " + this.realFps + " (want: " + this.fps + ")");
+//        var balls = this.getObjectsByType("ball");
+//        var e = 0;
+//        for(var i=0; i<balls.length; i++) {
+//            var obj = balls[i];
+//            e += obj.velocity.length();
+//        }
+//        this.debug("e="+e);
+	},
     onKeydown: function(e, key){
     	$("#keys").html("Keydown: key='"+this.key+"'; down:"+this.downKeyCodes);
     },
@@ -76,11 +86,13 @@ var WallObject = Movable.extend({
     render: function(ctx) {
     	// Draw the list of lines to the canvas
     	ctx.strokeStyle = "#80ff80";
-		ArcadeJS.renderPg(ctx, this.pg);
+//		ArcadeJS.renderPg(ctx, this.pg);
+		ctx.strokePolygon2(this.pg);
 		// DEBUG: render nearest point on PG for current mouse 
 		if(this.game.mousePos){
 			var res = this.pg.nearestPt(this.game.mousePos);
-			ArcadeJS.renderCircle(ctx, res.pt, 4);
+			//ArcadeJS.renderCircle(ctx, res.pt, 4);
+			ctx.strokeCircle2(new Circle2(res.pt, 4));
 		}
 	},
     // --- end of class
@@ -138,7 +150,8 @@ var Ball = Movable.extend({
     render: function(ctx) {
 		ctx.strokeStyle = "#ffffff";
 		ctx.fillStyle = this.opts.color; 
-		ArcadeJS.renderCircle(ctx, {x:0, y:0}, this.r, "solid");
+//		ArcadeJS.renderCircle(ctx, {x:0, y:0}, this.r, "solid");
+		ctx.fillCircle2(new Circle2({x:0, y:0}, this.r));
 	},
     getBoundingRadius: function() {
     	return this.r;

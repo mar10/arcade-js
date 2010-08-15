@@ -82,7 +82,7 @@ var BillardsGame = ArcadeJS.extend({
         	}
     	}
     },
-    postDraw: function(){
+    postDraw: function(ctx){
     	$("#frames").html("Frame #" + this.frameCount + ", FpS: " + this.realFps + " (want: " + this.fps + ")");
     	$("#points").html("Points: " + this.points);
     },
@@ -94,7 +94,7 @@ var BillardsGame = ArcadeJS.extend({
 });
 
 
-/******************************************************************************/
+/*----------------------------------------------------------------------------*/
 
 
 var WallObject = Movable.extend({
@@ -107,14 +107,15 @@ var WallObject = Movable.extend({
     render: function(ctx) {
     	// Draw the list of lines to the canvas
     	ctx.fillStyle = this.color;
-		ArcadeJS.renderPg(ctx, this.pg, "solid");
+//		ArcadeJS.renderPg(ctx, this.pg, "solid");
+		ctx.fillPolygon2(this.pg);
 	},
     // --- end of class
     lastentry: undefined
 });
 
 
-/******************************************************************************/
+/*----------------------------------------------------------------------------*/
 
 
 var Ball = Movable.extend({
@@ -182,11 +183,17 @@ var Ball = Movable.extend({
 		ctx.fillStyle = this.opts.color; 
 		if(this.id == "player" && this.game.getActivity() == "rolling") 
 			ctx.fillStyle = "darkred";
-		ArcadeJS.renderCircle(ctx, {x:0, y:0}, this.r, "solid");
+//		ArcadeJS.renderCircle(ctx, {x:0, y:0}, this.r, "solid");
+		var circle = new Circle2({x:0, y:0}, this.r);
+		ctx.fillCircle2(circle);
 		// Draw drag-vector while aiming
 		if(this.id == "player" && this.game.getActivity() == "aiming") {
 			ctx.strokeStyle = "yellow";
-			ArcadeJS.renderArrow(ctx, {x:0, y:0}, {x: this.game.dragOffset.dx, y: this.game.dragOffset.dy});
+//			ArcadeJS.renderVector(ctx, this.game.dragOffset);
+			ctx.moveTo(0, 0);
+			ctx.lineTo(this.game.dragOffset.dx, this.game.dragOffset.dy);
+			ctx.stroke();
+			ctx.closePath();
 		}
 	},
     onDragstart: function(clickPos) {

@@ -12,27 +12,15 @@
 	<script type="text/javascript">
 	$(function(){
 		var canvas = document.getElementById("canvas1");
-		var game = new DemoGame(canvas,
-			{fps: 100, // 10 ms (100 FpS) is the FF limit anyway
-			 postDraw: function(){
-			     $("#frames").html("Frame #" + game.frameCount + ", FpS: " + game.realFps + " (want: " + game.opts.fps + ")");
-		         var balls = game.getObjectsByType("ball");
-		         var e = 0;
-		         for(var i=0; i<balls.length; i++) {
-		             var obj = balls[i];
-		             e += obj.velocity.length();
-		         }
-		         game.debug("e="+e);
-			 }
-			});
+		var game = new DemoGame(canvas);
         $("#btnStop").click(function(){
-            if( game._runLoopId )
+            if( game.isRunning() )
                 game.stopLoop();
             else game.startLoop();
         });
         $("#btnStep").click(function(){
             game.stopRequest = true;
-            if( !game._runLoopId )
+            if( !game.isRunning() )
                 game.startLoop();
         });
 	});

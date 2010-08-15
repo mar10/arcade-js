@@ -140,7 +140,8 @@ $.extend(AudioJS,
 			$(audio).bind('ended',{}, function() {
 				// TODO: we can simulate looping if it is not natively supported:
 //			  	$(this).trigger('play');
-				window.console.log("AudioJS("+url+") ended");
+				if(window.console)
+					window.console.log("AudioJS("+url+") ended");
 			});
 		}
 		return audio;
@@ -163,7 +164,7 @@ AudioJS.prototype = {
 	    return "AudioJS("+this.opts.url+")";
 	},
 	/**Play this sound.
-	 *  @param {boolean} loop Optional, default: true
+	 *  @param {boolean} loop Optional, default: false
 	 */
 	play: function(loop) {
 		if(!this.audio.ended){
@@ -177,7 +178,7 @@ AudioJS.prototype = {
 }
 
 
-/** *************************************************************************** */
+/*----------------------------------------------------------------------------*/
 
 
 var ArcadeJS = Class.extend(
@@ -190,19 +191,20 @@ var ArcadeJS = Class.extend(
      * @constructs
      */
     init: function(canvas, opts) {
-        // constructor
-		/**HTML5 canvas element*/
-		this.canvas = canvas;
-		/**canvas 2d context*/
-		this.context = canvas.getContext("2d");
 		/**Game options (defaultGameOptions + options passed to the constructor).*/
 		this.opts = $.extend(true, {}, ArcadeJS.defaultGameOptions, opts);
 		// Copy selected options as object attributes
 		ArcadeJS.extendAttributes(this, this.opts, "name,fps");
 		
-		this._activity = "idle";
+		/**HTML5 canvas element*/
+		this.canvas = canvas;
+		/**Canvas 2d context*/
+		this.context = canvas.getContext("2d");
+		this.context = _extendCanvasContext(this.context);
 		
 		$(this.canvas).css("backgroundColor", this.opts.backgroundColor);
+		this.context.strokeStyle = this.opts.strokeStyle;
+		this.context.fillStyle = this.opts.fillStyle;
 		
         this.objects = [];
         this.idMap = {};
@@ -213,9 +215,11 @@ var ArcadeJS = Class.extend(
 		this._draggedObjects = [];
         this.typeMap = {};
         this.downKeyCodes = [];
+		this._activity = "idle";
         
 		/**Frames per second rate that was achieved recently*/
         this.realFps = 0;
+    	this.time = new Date().getTime();
 		/**Correction factor that will assure constant screen speed when FpS drops.*/
         this.fpsCorrection = 1.0;
         this._lastSecondTicks = 0;
@@ -381,6 +385,7 @@ var ArcadeJS = Class.extend(
     	// Some bookkeeping and timings
     	this.frameCount++;
     	var ticks = new Date().getTime();
+    	this.time = ticks;
     	this.fpsCorrection = .001 * this.fps * (ticks - this._lastFrameTicks);
 //    	this.debug("fpsCorr=%s", this.fpsCorrection);
         this._lastFrameTicks = ticks;
@@ -404,6 +409,10 @@ var ArcadeJS = Class.extend(
     _redrawAll: function() {
     	var ctx = this.context;
     	ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    	// Push current transformation and rendering context
+		ctx.save();
+    	if(this.preDraw)
+    		this.preDraw(ctx);
     	var ol = this.objects;
     	for(var i=0; i<ol.length; i++){
     		var o = ol[i];
@@ -412,7 +421,9 @@ var ArcadeJS = Class.extend(
     		}
     	}
     	if(this.postDraw)
-    		this.postDraw();
+    		this.postDraw(ctx);
+    	// Restore previous transformation and rendering context
+		ctx.restore();
     },
 //    _dispatchEvent: function(eventName, object, handler, e) {
 //    },
@@ -435,6 +446,12 @@ var ArcadeJS = Class.extend(
     		window.clearInterval(this._runLoopId);
     		this._runLoopId = null;
     	}
+    },
+    /**Return true, if render loop is active.
+     * @returns Boolean
+     */
+    isRunning: function(){
+    	return !!this._runLoopId;
     },
     /**Add game object to object list.
      * @param: {Movable} o
@@ -593,6 +610,21 @@ var ArcadeJS = Class.extend(
 		// Narrow check required
 		return true;
     },
+    /**@function Called before object.step() is called on all game ojects.
+     */
+    preStep: undefined,
+    /**@function Called after object.step() was called on all game ojects.
+     */
+    postStep: undefined,
+    /**@function Called before object.render() is called on all game ojects.
+     * object.step() calls have been executed and canvas was cleared. 
+     * @param ctx Canvas 2D context.
+     */
+    preDraw: undefined,
+    /**@function Called after object.render() was called on all game ojects.
+     * @param ctx Canvas 2D context.
+     */
+    postDraw: undefined,
     // --- end of class
     lastentry: undefined
 });
@@ -635,70 +667,174 @@ ArcadeJS.defaultGameOptions = {
 }
 
 
-/******************************************************************************/
+/*----------------------------------------------------------------------------*/
 
-
-/**Render a Polygon2 to a canvas.
- * 
- * @param ctx canvas 2D context  
- * @param {Polygon2} polygon  
- * @param {string} mode 'outline' (default), 'line', 'solid' 
- */
-ArcadeJS.renderPg = function(ctx, pg, mode)
-{
-	var xy = pg.xyList;
-	ctx.beginPath();  
-	ctx.moveTo(xy[0], xy[1]);  
-	for(var i=2; i<xy.length; i+=2)
-		ctx.lineTo(xy[i], xy[i+1]);
-	switch (mode) {
-	case "line":
-		ctx.stroke();
-		break;
-	case "solid":
-		ctx.fill();
-		break;
-	default:
-		ctx.closePath();
-		ctx.stroke();
+var _extendCanvasContext = function(context){
+	/**Render a circle to a canvas.
+	 * 
+	 * @param {Circle2} circle  
+	 */
+	context.strokeCircle2 = function(circle) {
+		this.beginPath();
+		this.arc(circle.center.x, circle.center.y, circle.r, 0, 2 * Math.PI, true);
+		this.closePath();
+		this.stroke();
 	}
-}
-
-/**Render a circle to a canvas.
- * 
- * @param ctx canvas 2D context  
- * @param {Point2} center  
- * @param {float} r radius  
- * @param {string} mode 'outline' (default),'solid' 
- */
-ArcadeJS.renderCircle = function(ctx, center, r, mode)
-{
-	ctx.beginPath();
-	ctx.arc(center.x, center.y, r, 0, 2 * Math.PI, true);
-	switch (mode) {
-	case "solid":
-		ctx.fill();
-		break;
-	default:
-		ctx.closePath();
-		ctx.stroke();
+	context.fillCircle2 = function(circle) {
+		this.beginPath();
+		this.arc(circle.center.x, circle.center.y, circle.r, 0, 2 * Math.PI, true);
+		this.fill();
 	}
+	/**Render a Polygon2 outline to a canvas.
+	 * 
+	 * @param {Polygon2} pg  
+	 * @param {Boolean} closed (optional) default: true 
+	 */
+	context.strokePolygon2 = function(pg, closed){
+		var xy = pg.xyList;
+		this.beginPath();  
+		this.moveTo(xy[0], xy[1]);  
+		for(var i=2; i<xy.length; i+=2)
+			this.lineTo(xy[i], xy[i+1]);
+		if(closed !== false)
+			this.closePath();
+		this.stroke();
+	};
+	/**Render a filled Polygon2 to a canvas.
+	 * 
+	 * @param {Polygon2} pg  
+	 */
+	context.fillPolygon2 = function(pg){
+		var xy = pg.xyList;
+		this.beginPath();  
+		this.moveTo(xy[0], xy[1]);  
+		for(var i=2; i<xy.length; i+=2)
+			this.lineTo(xy[i], xy[i+1]);
+		this.fill();
+	};
+	/**Render a vector to a canvas.
+	 * @param {Vec2} vec  
+	 * @param {Point2} origin (optional) default: (0/0)  
+	 */
+	context.strokeVec2 = function(vec, origin)
+	{
+		origin = origin || new Point2(0, 0);
+		var tip = 5;
+		this.beginPath();
+		this.moveTo(origin.x, origin.y);
+		var ptTip = origin.copy().translate(vec);
+		var pt = ptTip.copy();
+		this.lineTo(pt.x, pt.y);
+		this.closePath();
+		this.stroke();
+		if(vec.isNull())
+			return;
+		this.beginPath();
+		var v = vec.copy().setLength(-tip);
+		var vPerp = v.copy().perp().scale(.5);
+		pt.translate(v).translate(vPerp);
+		this.lineTo(pt.x, pt.y);
+		pt.translate(vPerp.scale(-2));
+		this.lineTo(pt.x, pt.y);
+		this.lineTo(ptTip.x, ptTip.y);
+//		this.lineTo(origin.x, origin.y);
+		this.closePath();
+		this.stroke();
+	}
+	return context;
 }
 
-/**Render an arrow to a canvas.
- * 
- * @param ctx canvas 2D context  
- * @param {Point2} start  
- * @param {Point2} tip  
- */
-ArcadeJS.renderArrow = function(ctx, origin, tip)
-{
-	ctx.beginPath();
-	ctx.moveTo(origin.x, origin.y);
-	ctx.lineTo(tip.x, tip.y);
-	ctx.closePath();
-	ctx.stroke();
-}
+///**Render a Polygon2 to a canvas.
+// * 
+// * @param ctx canvas 2D context  
+// * @param {Polygon2} polygon  
+// * @param {string} mode 'outline' (default), 'line', 'solid' 
+// */
+//ArcadeJS.renderPg = function(ctx, pg, mode)
+//{
+//	var xy = pg.xyList;
+//	ctx.beginPath();  
+//	ctx.moveTo(xy[0], xy[1]);  
+//	for(var i=2; i<xy.length; i+=2)
+//		ctx.lineTo(xy[i], xy[i+1]);
+//	switch (mode) {
+//	case "line":
+//		ctx.stroke();
+//		break;
+//	case "solid":
+//		ctx.fill();
+//		break;
+//	default:
+//		ctx.closePath();
+//		ctx.stroke();
+//	}
+//}
+//
+///**Render a circle to a canvas.
+// * 
+// * @param ctx canvas 2D context  
+// * @param {Point2} center  
+// * @param {float} r radius  
+// * @param {string} mode 'outline' (default),'solid' 
+// */
+//ArcadeJS.renderCircle = function(ctx, center, r, mode)
+//{
+//	ctx.beginPath();
+//	ctx.arc(center.x, center.y, r, 0, 2 * Math.PI, true);
+//	switch (mode) {
+//	case "solid":
+//		ctx.fill();
+//		break;
+//	default:
+//		ctx.closePath();
+//		ctx.stroke();
+//	}
+//}
+
+///**Render an arrow to a canvas.
+// * 
+// * @param ctx canvas 2D context  
+// * @param {Point2} start  
+// * @param {Point2} tip  
+// */
+//ArcadeJS.renderArrow = function(ctx, origin, tip)
+//{
+//	ctx.beginPath();
+//	ctx.moveTo(origin.x, origin.y);
+//	ctx.lineTo(tip.x, tip.y);
+//	ctx.closePath();
+//	ctx.stroke();
+//}
+
+///**Render a vector to a canvas.
+// * 
+// * @param ctx canvas 2D context  
+// * @param {Vec2} vec  
+// * @param {Point2} origin (optional) default: (0/0)  
+// */
+//ArcadeJS.renderVector = function(ctx, vec, origin)
+//{
+//	origin = origin || new Point2(0, 0);
+//	var tip = 5;
+//	ctx.beginPath();
+//	ctx.moveTo(origin.x, origin.y);
+//	var ptTip = origin.copy().translate(vec);
+//	var pt = ptTip.copy();
+//	ctx.lineTo(pt.x, pt.y);
+//	ctx.closePath();
+//	ctx.stroke();
+//	ctx.beginPath();
+//	var v = vec.copy().setLength(-tip);
+//	var vPerp = v.copy().perp().scale(.5);
+//	pt.translate(v).translate(vPerp);
+//	ctx.lineTo(pt.x, pt.y);
+//	pt.translate(vPerp.scale(-2));
+//	ctx.lineTo(pt.x, pt.y);
+//	ctx.lineTo(ptTip.x, ptTip.y);
+////	ctx.lineTo(origin.x, origin.y);
+//	ctx.closePath();
+//	ctx.stroke();
+//}
 
 /**
  * Return a nice string for a keyboard event. This function was inspired by
@@ -790,12 +926,12 @@ ArcadeJS.keyCodeToString = function(e) {
 	if(e.altKey && code != 18)
 		prefix = "alt+" + prefix;
 
-	window.console.log("keyCode:%s -> using %s, '%s'", e.keyCode,  code, prefix + key);
+	//window.console.log("keyCode:%s -> using %s, '%s'", e.keyCode,  code, prefix + key);
 
 	return prefix + key;
 }
 
-/** *************************************************************************** */
+/* ****************************************************************************/
 
 var Movable = Class.extend(
 /** @lends Movable.prototype */
@@ -805,7 +941,7 @@ var Movable = Class.extend(
 	 */
     init: function(type, opts) {
 		this.type = type;
-	    this.id = opts.id || "#" + ArcadeJS.nextId++;
+	    this.id = (opts && opts.id) ? opts.id : "#" + ArcadeJS.nextId++;
 	    this.hidden = false;
 	    this._dead = false;
         this._activity = null;
@@ -907,13 +1043,17 @@ var Movable = Class.extend(
     	// Render optional debug infos
     	if(this.opts.debug.showBCircle && this.getBoundingRadius){
         	ctx.strokeStyle = "#80ff00";
+        	var circle = new Circle2({x:0, y:0}, this.getBoundingRadius());
     		var r = this.getBoundingRadius();
-    		ArcadeJS.renderCircle(ctx, {x:0, y:0}, r);
+//    		ArcadeJS.renderCircle(ctx, {x:0, y:0}, r);
+    		ctx.strokeCircle2({center:{x:0, y:0}, r:this.getBoundingRadius()});
     	}
     	if(this.opts.debug.showVelocity && this.velocity){
         	ctx.strokeStyle = "#80ffff";
-        	var scale = 1;
-    		ArcadeJS.renderArrow(ctx, {x:0, y:0}, {x:scale*this.velocity.dx, y:scale*this.velocity.dy});
+//        	var scale = 1;
+//    		ArcadeJS.renderArrow(ctx, {x:0, y:0}, {x:scale*this.velocity.dx, y:scale*this.velocity.dy});
+//    		ArcadeJS.renderVector(ctx, this.velocity);
+    		ctx.strokeVec2(this.velocity);
     	}
     	// Restore previous transformation and rendering context
 		ctx.restore();

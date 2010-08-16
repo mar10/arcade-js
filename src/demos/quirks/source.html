@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../depends/jquery.js"></script>
+    <script src="../../depends/prettify.js"></script>
+    <link href="../../depends/prettify.css" rel="stylesheet">
+	<script type="text/javascript"><!--
+	$(function(){
+		var sourceFile = "jsQuirks.js";
+		// Read source into code tag
+		$.get (sourceFile, function(code){
+            // Remove  Start_Exclude [...] End_Exclude  blocks:
+            code = code.replace(/ Start_Exclude(.|\n|\r)*?End_Exclude /gi, " (Irrelevant source removed.) ");
+            // Reduce tabs from 8 to 2 characters
+            code = code.replace(/\t/g, "  ");
+            $("#code").text(code);
+            // Format code samples
+            try {
+                prettyPrint();
+            } catch (e) { }
+        });
+	});
+	--></script>
+<body>
+<pre class="codeExample prettyprint"><code id="code"></code></pre>
+</body>
+</html>

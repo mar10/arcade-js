@@ -5,25 +5,74 @@
  * 
  */
 
+var RipOffGame = ArcadeJS.extend({
+    init: function(canvas, customOpts) {
+		// Init ArcadeJS
+		var opts = $.extend({
+			name: "jsRipOff",
+			fps: 30
+		}, customOpts);
+        this._super(canvas, opts);
+        
+        // Set the scene
+        var obj;
+        // Player rocket
+        obj = this.addObject(new Tank())
+
+        // --- Status data -----------------------------------------------------
+        this.liveCount = 3;
+        this.score = 0;
+        this.shotTtl = 40;
+        this.shotDelay = 250; // ms
+        this.gracePeriod = 120; // frames
+
+        // --- Cache sounds ----------------------------------------------------
+        this.gunSound = new AudioJS("shot.wav");
+        this.explosionSound = new AudioJS("damage.wav");
+        // Start render loop
+        this.startLoop()
+    },
+	preDraw: function(ctx){
+    	ctx.save();
+	    // Display score
+    	//ctx.font.weight = "bold";
+    	ctx.font = "12px sans-serif";
+    	ctx.fillText("Score: " + this.score, 10, 15);
+    	ctx.fillText(this.realFps.toFixed(1) + " fps", this.canvas.width-50, 15);
+    	ctx.font = "30px sans-serif";
+    	ctx.strokeText("Game over (hit [F5])", 200, 200);
+    	
+	    // Draw lives
+    	var live = new Polygon2([0, 5,
+    	                         -3, -5,
+    	                         3, -5]);
+    	ctx.translate(10, 40);
+    	for(var i=0; i<this.liveCount; i++){
+    		ctx.strokePolygon2(live);
+        	ctx.translate(10, 0);
+    	}
+    	// done
+    	ctx.restore();
+	},
+    // --- end of class
+    lastentry: undefined
+});
+
+
 /*******************************************************************************
  * Class Bullet
  */
 var Bullet = Movable.extend({
-    init: function(pos, velocity, ttl) {
-        this._super("bullet", null, pos, 0, velocity);
-		this.ttl = ttl;
-        this.scale = 2;
-    },
-    toString: function() {
-        return "Bullet(" + this.id + ")";
-    },
-    render: function(p) {
-//    	p.point(0, 0);
-    	var v
-    	p.line(this.velocity.dx,this.velocity.dy, 0,0);
+    init: function(opts) {
+        this._super("bullet", $.extend({
+        	ttl: 20
+        }, opts));
     },
     getBoundingRadius: function() {
     	return 0.1;
+    },
+    render: function(ctx) {
+    	ctx.fillRect(0, 0, 3, 3);
     },
     // --- end of class
     lastentry: undefined
@@ -32,80 +81,54 @@ var Bullet = Movable.extend({
 /*******************************************************************************
  * Class Tank
  */
+var pgTank1 = new Polygon2([
+    -4,  3,
+    -4,  6,
+    -6,  3,
+    -6, -5,
+    -3, -3,
+    -1,  8,
+    -4,  3,
+    -4,  0,
+     0,  2,
+     4,  0,
+     4,  3,
+     1,  8,
+     3, -3,
+     6, -5,
+     6,  3,
+     4,  6,
+     4,  3
+]);
+
 var Tank = Movable.extend({
-    init: function(id, pos, orientation, velocity) {
-        this._super("tank", id, pos, orientation, velocity);
-    },
-    step: function(p) {
-		this._super(p);
-		// wrap around screen borders
-		/*
-		this.pos.x = (p.width + this.pos.x) % p.width; 
-		this.pos.y = (p.height + this.pos.y) % p.height;
-		*/ 
-		if(this.pos.x > p.width) {
-			this.pos.x = p.width;
-			this.velocity.dx *= -1;
-		} else if(this.pos.x < 0) {
-			this.pos.x = 0;
-			this.velocity.dx *= -1;
-		}
-		this.pos.y = (p.height + this.pos.y) % p.height;
-//		window.console.log(""+this);
-    },
-    render: function(p) {
-		p.fill(255, 0, 0);
-		p.stroke(0, 255, 0);
-    	p.rect(-5, 2, 10, 8);
-		p.triangle(0,-8, -5,7, 5,7);
-//		p.ellipse(this.pos.x, this.pos.y, 5, 10);
+    init: function(opts) {
+        this._super("tank", $.extend({
+			debug: {showBCircle: true}
+		}, opts));
+        this.pg = pgTank1.copy().transform(LinaJS.scale33(2));
+        this.pos = new Point2(100, 100);
     },
     getBoundingRadius: function() {
-    	return 8;
+    	return 2 * 9;
+    },
+    step: function(p) {
+    },
+    render: function(ctx) {
+		ctx.strokePolygon2(this.pg, false);
     },
     fire: function() {
-    	var aim = polarToVec(this.orientation - 0.5 * Math.PI, 10);
-    	var bullet = new Bullet(new Point2(this.pos), aim, 50);
+    	var bullet = new Bullet({
+    		pos: this.pos.copy(), 
+    		velocity: LinaJS.polarToVec(this.orientation - 0.5 * Math.PI, 10), 
+    		ttl: 50
+    		});
     	this.game.addObject(bullet);
     },
-    // --- end of class
-    lastentry: undefined
-});
-
-/*******************************************************************************
- * Class Asteroid
- */
-var Asteroid = Movable.extend({
-    init: function(id, pos, orientation, velocity) {
-        this._super("asteroid", id, pos, orientation, velocity);
-        this.pg = new Polygon2([4, 0,
-                                2.5, 1.5,
-                                1.5, 3.5,
-                                -1.5, 2.5,
-                                -4, 0,
-                                -1.5, -3.5,
-                                2, -3.5,
-                                4, 0]);
-        this.pg.transform(LinaJS.scale33(8, -8));
-    },
-    step: function(p) {
-		this._super(p);
-		this.pos.x = (p.width + this.pos.x) % p.width; 
-		this.pos.y = (p.height + this.pos.y) % p.height;
-    },
-    render: function(p) {
-		p.noFill();
-		p.stroke(255, 255, 255);
-
-		p.beginShape();
-		for(var i=0; i<this.pg.xyList.length; i+=2)
-			p.vertex(this.pg.xyList[i], this.pg.xyList[i+1]);
-		p.endShape(p.CLOSE);
-    },
-    getBoundingRadius: function() {
-    	return 8;
+    onKeypress: function(e) {
+    	if(this.game.isKeyDown(32))
+    		this.fire();
     },
     // --- end of class
     lastentry: undefined
 });
-

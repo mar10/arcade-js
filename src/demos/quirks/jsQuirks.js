@@ -9,7 +9,7 @@ var QuirksGame = ArcadeJS.extend({
 		// Init ArcadeJS
 		var opts = $.extend({
 			name: "jsQuirks",
-			fps: 30
+			fps: 100
 		}, customOpts);
         this._super(canvas, opts);
         

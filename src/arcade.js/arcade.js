@@ -200,7 +200,8 @@ var ArcadeJS = Class.extend(
 		this.canvas = canvas;
 		/**Canvas 2d context*/
 		this.context = canvas.getContext("2d");
-		this.context = _extendCanvasContext(this.context);
+//		this.context = _extendCanvasContext(this.context);
+		$.extend(this.context, ArcadeCanvas);
 		
 		$(this.canvas).css("backgroundColor", this.opts.backgroundColor);
 		this.context.strokeStyle = this.opts.strokeStyle;
@@ -669,28 +670,48 @@ ArcadeJS.defaultGameOptions = {
 
 /*----------------------------------------------------------------------------*/
 
-var _extendCanvasContext = function(context){
-	/**Render a circle to a canvas.
-	 * 
-	 * @param {Circle2} circle  
-	 */
-	context.strokeCircle2 = function(circle) {
+
+/**Augmented HTML 5 canvas.
+ * This functions are added to a ArcadeJS canvas. 
+ * @class 
+ * @extends Canvas  
+ */ 
+ArcadeCanvas = {
+	__drawCircle: function(arg1, arg2, arg3) {
 		this.beginPath();
-		this.arc(circle.center.x, circle.center.y, circle.r, 0, 2 * Math.PI, true);
+		if(arguments.length === 3){
+			this.arc(arg1, arg2, arg3, 0, 2 * Math.PI, true);
+		} else if(arguments.length === 2){
+			this.arc(arg1.x, arg1.y, arg2, 0, 2 * Math.PI, true);
+		} else {
+			this.arc(arg1.center.x, arg1.center.y, arg1.r, 0, 2 * Math.PI, true);
+		}
+	},
+	/**Render a circle outline to a canvas.
+	 * 
+	 * @example  
+	 * strokeCircle2(circle2)  
+	 * strokeCircle2(point2, radius)  
+	 * strokeCircle2(center.x, center.y, radius)  
+	 */
+	strokeCircle2: function() {
+		this.__drawCircle.apply(this, arguments);
 		this.closePath();
 		this.stroke();
-	}
-	context.fillCircle2 = function(circle) {
-		this.beginPath();
-		this.arc(circle.center.x, circle.center.y, circle.r, 0, 2 * Math.PI, true);
+	},
+	/**Render a filled circle to a canvas.
+	 * @see strokeCircle2
+	 */
+	fillCircle2: function() {
+		this.__drawCircle.apply(this, arguments);
 		this.fill();
-	}
+	},
 	/**Render a Polygon2 outline to a canvas.
 	 * 
 	 * @param {Polygon2} pg  
 	 * @param {Boolean} closed (optional) default: true 
 	 */
-	context.strokePolygon2 = function(pg, closed){
+	strokePolygon2: function(pg, closed){
 		var xy = pg.xyList;
 		this.beginPath();  
 		this.moveTo(xy[0], xy[1]);  
@@ -699,25 +720,24 @@ var _extendCanvasContext = function(context){
 		if(closed !== false)
 			this.closePath();
 		this.stroke();
-	};
+	},
 	/**Render a filled Polygon2 to a canvas.
 	 * 
 	 * @param {Polygon2} pg  
 	 */
-	context.fillPolygon2 = function(pg){
+	fillPolygon2: function(pg){
 		var xy = pg.xyList;
 		this.beginPath();  
 		this.moveTo(xy[0], xy[1]);  
 		for(var i=2; i<xy.length; i+=2)
 			this.lineTo(xy[i], xy[i+1]);
 		this.fill();
-	};
-	/**Render a vector to a canvas.
+	},
+	/**Render a vector to the canvas.
 	 * @param {Vec2} vec  
 	 * @param {Point2} origin (optional) default: (0/0)  
 	 */
-	context.strokeVec2 = function(vec, origin)
-	{
+	strokeVec2: function(vec, origin) {
 		origin = origin || new Point2(0, 0);
 		var tip = 5;
 		this.beginPath();
@@ -737,12 +757,30 @@ var _extendCanvasContext = function(context){
 		pt.translate(vPerp.scale(-2));
 		this.lineTo(pt.x, pt.y);
 		this.lineTo(ptTip.x, ptTip.y);
-//		this.lineTo(origin.x, origin.y);
+//			this.lineTo(origin.x, origin.y);
 		this.closePath();
 		this.stroke();
-	}
-	return context;
+	},
+	/**Render a Point2 to the canvas.
+	 * @param {Point2} pt  
+	 * @param {float} size (optional) default: 4  
+	 */
+	strokePoint2: function(){
+		if( pt.x ) {
+			var size = arguments[1] || 4;
+			this.rect(pt.x, pt.y, size, size);
+		} else {
+			var size = arguments[2] || 4;
+			this.rect(arguments[0], arguments[1], size, size);
+		}
+	}, 
+	/**Render a text field to the canvas.
+	 */
+	strokeBanner: function(text){
+		
+	} 
 }
+
 
 ///**Render a Polygon2 to a canvas.
 // * 

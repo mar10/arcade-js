@@ -1,14 +1,10 @@
 /*******************************************************************************
- * jsRipOff.js
- * 
- * Main classes.
- * 
+ * jsAsteroids.js
  */
 
 /*******************************************************************************
- * Class Bullet
+ * Class AsteroidsGame
  */
-
 
 var AsteroidsGame = ArcadeJS.extend({
     init: function(canvas, customOpts) {
@@ -35,12 +31,14 @@ var AsteroidsGame = ArcadeJS.extend({
         this.score = 0;
         this.shotTtl = 40;
         this.shotDelay = 250; // ms
-        this.gracePeriod = 120; // frames
+        this.gracePeriod = 500; // frames
 
         // --- Cache sounds ----------------------------------------------------
         this.gunSound = new AudioJS("shot.wav");
         this.explosionSound = new AudioJS("damage.wav");
-        // Start render loop
+        
+        // --- Start render loop -----------------------------------------------
+        this.setActivity("running");
         this.startLoop()
     },
     _makeAsteroid: function(size, pos, velocity){
@@ -49,14 +47,18 @@ var AsteroidsGame = ArcadeJS.extend({
     		pos: new Point2(pos.x + LinaJS.random(-10, 10), pos.y + LinaJS.random(-10, 10)),
     		velocity: new Vec2(velocity.dx + LinaJS.random(-0.2, +0.2), velocity.dx + LinaJS.random(-0.2, +0.2)),
     		rotationalSpeed: LinaJS.random(-2*LinaJS.DEG_TO_RAD, 2*LinaJS.DEG_TO_RAD)
-    		}));
+    	}));
     },
 	preDraw: function(ctx){
     	ctx.save();
 	    // Display score
-    	//ctx.font.weight = "bold";
-    	ctx.fillText("Score: " + this.score, 10, 10);
-    	ctx.fillText(this.realFps.toFixed(1) + " fps", this.canvas.width-50, 10);
+    	ctx.font = "12px sans-serif";
+    	ctx.fillText("Score: " + this.score, 10, 15);
+    	ctx.fillText(this.realFps.toFixed(1) + " fps", this.canvas.width-50, 15);
+    	if(this.getActivity() === "over"){
+        	ctx.font = "30px sans-serif";
+    		ctx.strokeText("Game over (hit [F5])", 200, 200);
+    	}
 	    // Draw lives
     	var live = new Polygon2([0, 5,
     	                         -3, -5,
@@ -130,6 +132,18 @@ var Rocket = Movable.extend({
                                 -4, -5,
                                 4, -5]);
         this.pg.transform(LinaJS.scale33(2, -2));
+        
+        this.pgThrust = new Polygon2([-4, -5,
+                                      -2, -7,
+                                      -1, -6,
+                                       0, -7,
+                                       1, -5,
+                                       2, -7,
+                                       3, -6,
+                                       4, -5
+                                      ]);
+        this.pgThrust.transform(LinaJS.scale33(2, -2));
+        
         this.lastShotTime = 0;
     },
     getBoundingRadius: function() {
@@ -141,26 +155,38 @@ var Rocket = Movable.extend({
     		var obj = list[i];
     		if(!this.game.preCheckCollision(this, obj))
     			continue;
-    		if(this.getActivity() == "grace")
+    		if(this.getActivity() === "grace")
     			continue;
     		// Pre-check is exact enough for our purpose...
     		this.game.debug("%s vs. %s", this, obj);
     		obj.hitBy(this);
         	this.game.explosionSound.play();
         	this.game.liveCount -= 1;
-            this.setActivity("grace");
-            this.timeout = this.game.gracePeriod;
+        	if(this.game.liveCount > 0){
+                this.setActivity("grace");
+                this.timeout = this.game.gracePeriod;
+        	} else {
+                this.game.setActivity("over");
+        	}
 //    		this.game.stopLoop();
     	}
     },
     render: function(ctx) {
 		ctx.strokeStyle = "white";
-		if(this.getActivity() == "grace")
-			ctx.strokeStyle = "red";
 		ctx.strokePolygon2(this.pg);
+		if(this.getActivity() === "grace"){
+			var circle = new Circle2(new Point2(0,0), this.getBoundingRadius() + LinaJS.random(-1, +1));
+			ctx.strokeStyle = "#88f";
+			ctx.strokeCircle2(circle);
+		}
+		if(this.game.isKeyDown(38)){ // Up
+			ctx.strokeStyle = "#f80";
+			ctx.translate(LinaJS.random(-1, +1), LinaJS.random(-1, +1));
+			ctx.strokePolygon2(this.pgThrust);
+    	}
     },
     onTimeout: function() {
-		if(this.getActivity() == "grace" && this.game.liveCount > 0){
+		if(this.getActivity() === "grace" && this.game.liveCount > 0){
             this.setActivity("idle");
 		}
     },
@@ -186,7 +212,7 @@ var Rocket = Movable.extend({
 //		e.stopImmediatePropagation();
 //    },
     fire: function() {
-		if(this.getActivity() == "grace" )
+		if(this.getActivity() === "grace" )
 			return;
     	if((this.game.time - this.lastShotTime) < this.game.shotDelay )
     		return;

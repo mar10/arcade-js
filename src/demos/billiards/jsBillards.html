@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link href="../../depends/sample.css" rel="stylesheet">
     <script src="../../depends/jquery.js"></script>
     <script src="../../depends/jquery.mousewheel.js"></script>
 
@@ -12,9 +13,7 @@
 	<script type="text/javascript">
 	$(function(){
 		var canvas = document.getElementById("canvas1");
-		var game = new BillardsGame(canvas,
-			{fps: 100, // 10 ms (100 FpS) is the FF limit anyway
-			});
+		var game = new BillardsGame(canvas);
         $("#btnStop").click(function(){
             if( game.isRunning() )
                 game.stopLoop();
@@ -27,13 +26,20 @@
         });
 	});
 	</script>
+</head>
 <body>
-<h1><a href="#">jsBillards</a></h1>
+<h1>jsBillards</h1>
+<div class="info">
 <p>
-	A JavaScript implementation of billards using 
-	<a href="http://arcade-js.googlecode.com/">arcade.js</a>.
+    A JavaScript implementation of carambolage using 
+    <a href="http://arcade-js.googlecode.com/">arcade.js</a> 
+    (<a href="source.html">view the source</a> to learn more).
 </p>
 <p>
+    Click and drag the red ball to touch both white balls.
+</p> 
+</div>
+<p align="center">
 <canvas id="canvas1" width="640" height="480">This game requires HTML 5 support.</canvas>
 </p>
 
@@ -42,7 +48,7 @@
     <span id="points">-</span> points
 </div>
 <div>
-	<button id="btnStop">Start/Stop</button> 
+    <button id="btnStop">Start/Stop</button> 
     <button id="btnStep">Single step</button> 
 </div>
 </body>

@@ -16,8 +16,14 @@ var RipOffGame = ArcadeJS.extend({
         
         // Set the scene
         var obj;
-        // Player rocket
+        // Player tank
         obj = this.addObject(new Tank())
+
+        // Canisters
+        obj = this.addObject(new Canister({pos: new Point2(320, 240)}))
+        obj = this.addObject(new Canister({pos: new Point2(300, 240)}))
+        obj = this.addObject(new Canister({pos: new Point2(340, 240)}))
+        obj = this.addObject(new Canister({pos: new Point2(320, 200)}))
 
         // --- Status data -----------------------------------------------------
         this.liveCount = 3;
@@ -35,12 +41,14 @@ var RipOffGame = ArcadeJS.extend({
 	preDraw: function(ctx){
     	ctx.save();
 	    // Display score
-    	//ctx.font.weight = "bold";
     	ctx.font = "12px sans-serif";
     	ctx.fillText("Score: " + this.score, 10, 15);
     	ctx.fillText(this.realFps.toFixed(1) + " fps", this.canvas.width-50, 15);
-    	ctx.font = "30px sans-serif";
-    	ctx.strokeText("Game over (hit [F5])", 200, 200);
+    	if(this.getActivity() === "over"){
+    		ctx.font = "30px sans-serif";
+    		ctx.strokeText("Game over (hit [F5])", 200, 200);
+    	}
+
     	
 	    // Draw lives
     	var live = new Polygon2([0, 5,
@@ -58,10 +66,8 @@ var RipOffGame = ArcadeJS.extend({
     lastentry: undefined
 });
 
+/*----------------------------------------------------------------------------*/
 
-/*******************************************************************************
- * Class Bullet
- */
 var Bullet = Movable.extend({
     init: function(opts) {
         this._super("bullet", $.extend({
@@ -78,9 +84,47 @@ var Bullet = Movable.extend({
     lastentry: undefined
 });
 
-/*******************************************************************************
- * Class Tank
- */
+/*----------------------------------------------------------------------------*/
+
+var Canister = Movable.extend({
+    init: function(opts) {
+        this._super("canister", $.extend({
+        }, opts));
+        this.pg = new Polygon2([ 0, 5,
+   	                            -5, -5,
+	                             5, -5]);
+    },
+    getBoundingRadius: function() {
+    	return 0.1;
+    },
+    render: function(ctx) {
+    	ctx.strokePolygon2(this.pg);
+    },
+    // --- end of class
+    lastentry: undefined
+});
+
+/*----------------------------------------------------------------------------*/
+
+var Bullet = Movable.extend({
+    init: function(opts) {
+        this._super("bullet", $.extend({
+        	ttl: 20
+        }, opts));
+    },
+    getBoundingRadius: function() {
+    	return 0.1;
+    },
+    render: function(ctx) {
+    	ctx.fillRect(0, 0, 3, 3);
+    },
+    // --- end of class
+    lastentry: undefined
+});
+
+
+/*----------------------------------------------------------------------------*/
+
 var pgTank1 = new Polygon2([
     -4,  3,
     -4,  6,

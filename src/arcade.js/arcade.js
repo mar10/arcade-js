@@ -425,6 +425,13 @@ var ArcadeJS = Class.extend(
     		this.postDraw(ctx);
     	// Restore previous transformation and rendering context
 		ctx.restore();
+    	if(this.opts.debug.showKeys){
+    		ctx.save();
+        	ctx.font = "12px sans-serif";
+        	ctx.fillStyle = "green";
+        	ctx.fillText("Keys: " + this.downKeyCodes, 10, 475);
+    		ctx.restore();
+    	}
     },
 //    _dispatchEvent: function(eventName, object, handler, e) {
 //    },
@@ -662,7 +669,10 @@ ArcadeJS.defaultGameOptions = {
 //	postStep: null,
 //	postDraw: null,
 	fps: 30,
-	debugLevel: 1,
+	debug: {
+		level: 1,
+		showKeys: true
+	},
 	purgeRate: 0.5,
 	lastEntry: undefined
 }
@@ -1093,6 +1103,7 @@ var Movable = Class.extend(
 //    		ArcadeJS.renderVector(ctx, this.velocity);
     		ctx.strokeVec2(this.velocity);
     	}
+
     	// Restore previous transformation and rendering context
 		ctx.restore();
     },

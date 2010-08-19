@@ -34,7 +34,8 @@ var AsteroidsGame = ArcadeJS.extend({
         this.gracePeriod = 500; // frames
 
         // --- Cache sounds ----------------------------------------------------
-        this.gunSound = new AudioJS("shot.wav");
+//        this.gunSound = new AudioJS("shot.wav");
+        this.gunSound = new AudioJS("fire.wav");
         this.explosionSound = new AudioJS("damage.wav");
         
         // --- Start render loop -----------------------------------------------

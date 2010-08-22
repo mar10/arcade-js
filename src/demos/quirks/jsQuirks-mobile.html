@@ -24,13 +24,13 @@
 
         // Evaluate canvas size changes
         $(canvas).bind("resize", function() {
-            alert("canvas resized: "+this);
+            //alert("canvas resized: "+this);
         });
         $(canvas).trigger("resize");
         
 		// Evaluate orientation changes
         $(document).bind("onorientationchange", function() {
-            alert("onorientationchange: " + window.orientation);
+            //alert("onorientationchange: " + window.orientation);
             if(Math.abs(window.orientation) === 90){
                 $("body").removeClass("portrait").addClass("landscape");
             }else{
@@ -45,12 +45,12 @@
         // Evaluate touches and gestures
         // http://developer.apple.com/safari/library/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW1
         $(canvas).bind("touchstart touchend touchmove touchcancel", function(e) {
-            alert("Canvas touch event " + e.type + ", " + e.targetTouches);
-            e.preventDefault();
+            //alert("Canvas touch event " + e.type + ", " + e.targetTouches);
+            //e.preventDefault();
             //return false;
         }).bind("gesturestart gestureend gesturechange", function(e) {
             alert("Canvas gesture event " + e.type + ", scale:" + e.scale + ", rot=" + e.rotation);
-            e.preventDefault();
+            //e.preventDefault();
             //return false;
         });
         

@@ -205,6 +205,8 @@ var Rocket = Movable.extend({
     		var vAccel = LinaJS.polarToVec(this.orientation - 90*LinaJS.DEG_TO_RAD, 0.1);
     		this.velocity.add(vAccel);
     		e.stopImmediatePropagation();
+    		e.preventDefault();
+    		return false;
     	}
     },
 //    onMousewheel: function(e, delta) {

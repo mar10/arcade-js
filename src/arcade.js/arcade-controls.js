@@ -104,7 +104,7 @@ var TouchStick = Movable.extend(
     	ctx.fillCircle2(0, 0, this.r2);
     	// with the dragged stick
     	var pos2 = new Point2(0, 0);
-    	if(this.touchDownPos && this.contains(this.touchPos)){
+    	if(this.touchDownPos && this.contains(this.touchDownPos)){
     		pos2.translate(this.touchDrag.limit(this.r2));
 //        	this.game.debug("Render: touchPos: " + this.touchPos+", "+this.touchDrag);
     	}else if(this.game.dragOffset) {

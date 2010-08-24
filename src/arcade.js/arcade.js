@@ -215,6 +215,7 @@ var ArcadeJS = Class.extend(
         this.idMap = {};
         this.keyListeners = [ this ];
         this.mouseListeners = [ this ];
+        this.touchListeners = [ this ];
         this.activityListeners = [ this ];
         this.dragListeners = [];
 		this._draggedObjects = [];
@@ -342,6 +343,15 @@ var ArcadeJS = Class.extend(
 //            		self._draggedObjects = [];
         	}
         });
+        // Bind touch and gesture events
+        $(canvas).bind("touchstart touchend touchmove touchcancel gesturestart gestureend gesturechange", function(e){
+        	for( var i=0; i<self.touchListeners.length; i++) {
+        		var obj = self.touchListeners[i];
+        		if(obj.onTouchevent) {
+        			obj.onTouchevent(e);
+        		}
+        	}
+        });
         // Adjust canvas height and width on resize events
         $(canvas).resize(function(e){
         	if(!this.onResize || this.onResize(e) !== false) {
@@ -366,13 +376,8 @@ var ArcadeJS = Class.extend(
      */
     debug: function(msg) {
         if(window.console && window.console.log) {  
-        	var args = arguments; //Array.prototype.slice.apply(arguments, [1]); 
-//        	try {
-                window.console.log.apply(window.console, arguments);  
-//			} catch (e) {
-				// Safari?
-//	            window.console.log("" + arguments);  
-//			}
+//        	var args = Array.prototype.slice.apply(arguments, [1]); 
+            window.console.log.apply(window.console, arguments);  
         }  
     },
     /**Return current activity.
@@ -526,6 +531,9 @@ var ArcadeJS = Class.extend(
         	|| typeof o.onMousewheel === "function") {
         	this.mouseListeners.push(o);
         }
+        if( typeof o.onTouchevent === "function") {
+        	this.touchListeners.push(o);
+        }
         if( typeof o.onSetActivity === "function") {
         	this.activityListeners.push(o);
         }
@@ -555,6 +563,7 @@ var ArcadeJS = Class.extend(
     	this.objects = [];
     	this.keyListeners = [ this ];
     	this.mouseListeners = [ this ];
+    	this.touchListeners = [ this ];
     	this.activityListeners = [ this ];
     	this.dragListeners = [ ];
         this.idMap = {};
@@ -663,6 +672,10 @@ var ArcadeJS = Class.extend(
      * @returns false to prevent default handling
      */
     onResize: undefined,
+    /**@function Called on miscelaneous touch... and gesture... events.
+     * @param {Event} e depends on mobile device
+     */
+    onTouchevent: undefined,
     /**@function Called before object.step() is called on all game ojects.
      */
     preStep: undefined,
@@ -1153,6 +1166,10 @@ var Movable = Class.extend(
      * @param {Vec2} dragOffset 
      */
     onDrop: undefined,
+    /**@function Called on miscelaneous touch... and gesture... events.
+     * @param {Event} e depends on mobile device
+     */
+    onTouchevent: undefined,
     /**@function Callback, triggered when game or an object activity changes.
      * @param {Movable} target object that changed its activity 
      * (May be the ArcadeJS object too).

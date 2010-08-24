@@ -38,18 +38,6 @@ var TouchButton = Movable.extend({
     	gradient.addColorStop(1, "#555");
     	ctx.fillStyle = gradient;    	
     	ctx.fillCircle2(0, 0, this.r2);
-    	// with the dragged stick
-    	var vDrag = this.game.dragOffset;
-    	var pos2 = new Point2(0, 0);
-    	if(vDrag){
-    		pos2.translate(vDrag.limit(this.r2));
-    	}
-    	var gradient = ctx.createRadialGradient(pos2.x, pos2.y, 0, pos2.x+3, pos2.y-3, this.r1);
-    	gradient.addColorStop(0, "#fff");
-    	gradient.addColorStop(0.7, "#ccc");
-    	gradient.addColorStop(1, "#555");
-    	ctx.fillStyle = gradient;    	
-    	ctx.fillCircle2(pos2.x, pos2.y, this.r1);
 	},
     onDragstart: function(clickPos) {
 		return true;
@@ -75,8 +63,6 @@ var TouchStick = Movable.extend({
     getBoundingRadius: function() {
     	return this.r2;
     },
-    step: function() {
-    },
     render: function(ctx) {
     	// Draw gray sphere
     	var gradient = ctx.createRadialGradient(0, 0, this.r1, 5, -5, this.r2);
@@ -99,7 +85,27 @@ var TouchStick = Movable.extend({
     	ctx.fillCircle2(pos2.x, pos2.y, this.r1);
 	},
     onDragstart: function(clickPos) {
+		// We want drag events
 		return true;
+    },
+    onTouchevent: function(e) {
+		// We want drag events
+        // http://developer.apple.com/safari/library/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW1
+    	this.game.debug("Canvas touch event " + e.type + ": " + e);
+    	switch (e.type) {
+		case "touchmove":
+			if(e.targetTouches.length != 1)
+				break; // only single finger(?)
+        	var changedTouches = e.changedTouches;
+//        	this.game.debug("Canvas touch event " + e.type + ", " + changedTouches);
+        	for(var i=0; i<e.changedTouches.length; i++){
+        		var touch = e.changedTouches[i];
+            	this.game.debug("- changed page: " + touch.pageX + "/" + touch.pageY );
+            	this.game.debug("- changed touch: " + touch);
+        	}
+            e.preventDefault();
+			break;
+		}
     },
 //    onDrag: function(dragOffset) {
 //		this.game.setActivity("idle");

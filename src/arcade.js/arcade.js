@@ -348,7 +348,7 @@ var ArcadeJS = Class.extend(
         	for( var i=0; i<self.touchListeners.length; i++) {
         		var obj = self.touchListeners[i];
         		if(obj.onTouchevent) {
-        			obj.onTouchevent(event.originalEvent, e);
+        			obj.onTouchevent(e, e.originalEvent);
         		}
         	}
         });
@@ -673,8 +673,8 @@ var ArcadeJS = Class.extend(
      */
     onResize: undefined,
     /**@function Called on miscelaneous touch... and gesture... events.
-     * @param {OriginalEvent} e depends on mobile device
-     * @param {Event} e jQuery event
+     * @param {Event} event jQuery event
+     * @param {OriginalEvent} originalEvent depends on mobile device
      */
     onTouchevent: undefined,
     /**@function Called before object.step() is called on all game ojects.
@@ -1168,8 +1168,8 @@ var Movable = Class.extend(
      */
     onDrop: undefined,
     /**@function Called on miscelaneous touch... and gesture... events.
-     * @param {OriginalEvent} e depends on mobile device
-     * @param {Event} e jQuery event
+     * @param {Event} event jQuery event
+     * @param {OriginalEvent} originalEvent depends on mobile device
      */
     onTouchevent: undefined,
     /**@function Callback, triggered when game or an object activity changes.

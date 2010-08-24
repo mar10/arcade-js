@@ -88,7 +88,7 @@ var TouchStick = Movable.extend({
 		// We want drag events
 		return true;
     },
-    onTouchevent: function(e) {
+    onTouchevent: function(e, orgEvent) {
 		// We want drag events
         // http://developer.apple.com/safari/library/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW1
     	// http://www.sitepen.com/blog/2008/07/10/touching-and-gesturing-on-the-iphone/
@@ -114,18 +114,18 @@ var TouchStick = Movable.extend({
 //			if(e.targetTouches && e.targetTouches.length && e.targetTouches.length != 1)
 //				break; // only single finger(?)
 //        	var touchList = e.changedTouches;
-        	var touchList = e.touches;
-        	dump.call(this, "e.touches", e.touches);
-        	dump.call(this, "e.targetTouches", e.targetTouches);
-        	dump.call(this, "e.changedTouches", e.changedTouches);
-//        	this.game.debug("Canvas touch event " + e.type + ", " + changedTouches);
+        	var touchList = orgEvent.changedTouches;
+        	dump.call(this, "e.touches", orgEvent.touches);
+        	dump.call(this, "e.targetTouches", orgEvent.targetTouches);
+        	dump.call(this, "e.changedTouches", orgEvent.changedTouches);
+
         	for(var i=0; i<touchList.length; i++){
         		var touch = touchList[i];
             	this.game.debug("- changed page: " + touch.pageX + "/" + touch.pageY );
             	this.game.debug("- changed touch: " + touch);
             	this.touchPos = new Point2(touch.pageX, touch.pageY);
         	}
-            e.preventDefault();
+        	orgEvent.preventDefault();
 			break;
 		}
     },

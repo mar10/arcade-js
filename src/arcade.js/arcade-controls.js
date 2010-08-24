@@ -89,7 +89,7 @@ var TouchStick = Movable.extend(
         ArcadeJS.extendAttributes(this, this.opts, "r1 r2");
         this.touchDownPos = null;
         this.touchPos = null;
-        this.touchDrag = null;
+        this.touchDragOffset = null;
     },
     getBoundingRadius: function() {
     	return this.r2;
@@ -104,9 +104,9 @@ var TouchStick = Movable.extend(
     	ctx.fillCircle2(0, 0, this.r2);
     	// with the dragged stick
     	var pos2 = new Point2(0, 0);
-    	if(this.touchDownPos && this.contains(this.touchDownPos)){
-    		pos2.translate(this.touchDrag.limit(this.r2));
-//        	this.game.debug("Render: touchPos: " + this.touchPos+", "+this.touchDrag);
+    	if(this.touchDragOffset){
+    		pos2.translate(this.touchDragOffset.limit(this.r2));
+//        	this.game.debug("Render: touchPos: " + this.touchPos+", "+this.touchDragOffset);
     	}else if(this.game.dragOffset) {
     		pos2.translate(this.game.dragOffset.limit(this.r2));
     	}
@@ -142,10 +142,10 @@ var TouchStick = Movable.extend(
 		case "touchmove":
 			if(this.touchDownPos){
 				// Drag vector is always relative to controls center
-            	this.touchDrag = new Vec2(
+            	this.touchDragOffset = new Vec2(
             		touchPos.x - this.pos.x, 
             		touchPos.y - this.pos.y);
-            	this.game.debug("- touchDownPos: " + this.touchDownPos + ", drag: " + this.touchDrag);
+            	this.game.debug("- touchDownPos: " + this.touchDownPos + ", drag: " + this.touchDragOffset);
 	        	
 	        	orgEvent.preventDefault();
 			}
@@ -159,15 +159,15 @@ var TouchStick = Movable.extend(
 //            	this.touchPos = new Point2(
 //            		touch.pageX - this.game.canvas.offsetLeft, 
 //            		touch.pageY - this.game.canvas.offsetTop);
-//            	this.touchDrag = new Vec2(
+//            	this.touchDragOffset = new Vec2(
 //            		this.touchPos.x - this.pos.x, 
 //            		this.touchPos.y - this.pos.y);
-////            	this.game.debug("- touchPos: " + this.touchPos + ", " + this.touchDrag);
+////            	this.game.debug("- touchPos: " + this.touchPos + ", " + this.touchDragOffset);
 //        	}
 //        	orgEvent.preventDefault();
 			break;
 		default:
-        	this.touchDownPos = this.touchDrag = null;
+        	this.touchDownPos = this.touchDragOffset = null;
 			break;
 		}
     },

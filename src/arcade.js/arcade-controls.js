@@ -115,9 +115,9 @@ var TouchStick = Movable.extend({
 //				break; // only single finger(?)
 //        	var touchList = e.changedTouches;
         	var touchList = e.touches;
-        	dump.apply(this, "e.touches", e.touches);
-        	dump.apply(this, "e.targetTouches", e.targetTouches);
-        	dump.apply(this, "e.changedTouches", e.changedTouches);
+        	dump.call(this, "e.touches", e.touches);
+        	dump.call(this, "e.targetTouches", e.targetTouches);
+        	dump.call(this, "e.changedTouches", e.changedTouches);
 //        	this.game.debug("Canvas touch event " + e.type + ", " + changedTouches);
         	for(var i=0; i<touchList.length; i++){
         		var touch = touchList[i];

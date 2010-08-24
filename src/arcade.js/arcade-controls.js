@@ -94,14 +94,15 @@ var TouchStick = Movable.extend({
     	this.game.debug("Canvas touch event " + e.type + ": " + e);
     	switch (e.type) {
 		case "touchmove":
-			if(e.targetTouches.length != 1)
+//			if(e.targetTouches && e.targetTouches.length && e.targetTouches.length != 1)
 				break; // only single finger(?)
-        	var changedTouches = e.changedTouches;
+        	var touchList = e.changedTouches;
 //        	this.game.debug("Canvas touch event " + e.type + ", " + changedTouches);
-        	for(var i=0; i<e.changedTouches.length; i++){
-        		var touch = e.changedTouches[i];
+        	for(var i=0; i<e.touchList.length; i++){
+        		var touch = e.touchList[i];
             	this.game.debug("- changed page: " + touch.pageX + "/" + touch.pageY );
             	this.game.debug("- changed touch: " + touch);
+            	this.touchPos = new Point2(touch.pageX, touch.pageY);
         	}
             e.preventDefault();
 			break;

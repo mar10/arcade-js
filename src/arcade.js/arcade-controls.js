@@ -40,8 +40,8 @@ var TouchButton = Movable.extend(
     	var gradient = ctx.createRadialGradient(0, 0, 0, 5, -5, this.r);
     	gradient.addColorStop(0, "rgba(255, 255, 255, 0.7)");
     	if(!this.down)
-    		gradient.addColorStop(0.7, "rgba(192, 192, 192, 0.7");
-    	gradient.addColorStop(1, "rgba(80, 80, 80, 0.7");
+    		gradient.addColorStop(0.7, "rgba(192, 192, 192, 0.7)");
+    	gradient.addColorStop(1, "rgba(80, 80, 80, 0.7)");
     	ctx.fillStyle = gradient;    	
     	ctx.fillCircle2(0, 0, this.r);
 	},
@@ -98,8 +98,8 @@ var TouchStick = Movable.extend(
 //    	gradient.addColorStop(0.7, "#ccc");
 //    	gradient.addColorStop(1, "#555");
     	gradient.addColorStop(0, "rgba(255, 255, 255, 0.7)");
-		gradient.addColorStop(0.7, "rgba(192, 192, 192, 0.7");
-    	gradient.addColorStop(1, "rgba(80, 80, 80, 0.7");
+		gradient.addColorStop(0.7, "rgba(192, 192, 192, 0.7)");
+    	gradient.addColorStop(1, "rgba(80, 80, 80, 0.7)");
     	ctx.fillStyle = gradient;    	
     	ctx.fillCircle2(0, 0, this.r2);
     	// with the dragged stick

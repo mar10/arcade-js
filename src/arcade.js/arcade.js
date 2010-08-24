@@ -742,9 +742,10 @@ ArcadeJS.defaultGameOptions = {
 /**Augmented HTML 5 canvas.
  * This functions are added to a ArcadeJS canvas. 
  * @class 
- * @extends Canvas  
+ * @augments Canvas  
  */ 
-ArcadeCanvas = {
+ArcadeCanvas = 
+{
 	__drawCircle: function(arg1, arg2, arg3) {
 		this.beginPath();
 		if(arguments.length === 3){

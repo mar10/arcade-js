@@ -65,8 +65,6 @@ var TouchStick = Movable.extend({
     },
     render: function(ctx) {
     	// Draw gray sphere
-    	this.game.debug("Render: touchPos: " + this.touchPos);
-
     	var gradient = ctx.createRadialGradient(0, 0, this.r1, 5, -5, this.r2);
     	gradient.addColorStop(0, "#fff");
     	gradient.addColorStop(0.7, "#ccc");
@@ -74,10 +72,13 @@ var TouchStick = Movable.extend({
     	ctx.fillStyle = gradient;    	
     	ctx.fillCircle2(0, 0, this.r2);
     	// with the dragged stick
-    	var vDrag = this.game.dragOffset;
+//    	var vDrag = this.game.dragOffset;
     	var pos2 = new Point2(0, 0);
-    	if(vDrag){
-    		pos2.translate(vDrag.limit(this.r2));
+    	if(this.touchPos && this.contains(this.touchPos)){
+    		pos2.translate(this.touchDrag.limit(this.r2));
+        	this.game.debug("Render: touchPos: " + this.touchPos+", "+this.touchDrag);
+    	}else if(this.game.dragOffset) {
+    		pos2.translate(this.game.dragOffset.limit(this.r2));
     	}
     	var gradient = ctx.createRadialGradient(pos2.x, pos2.y, 0, pos2.x+3, pos2.y-3, this.r1);
     	gradient.addColorStop(0, "#fff");
@@ -128,9 +129,15 @@ var TouchStick = Movable.extend({
             	this.touchPos = new Point2(
             		touch.pageX - this.game.canvas.offsetLeft, 
             		touch.pageY - this.game.canvas.offsetTop);
-            	this.game.debug("- touchPos: " + this.touchPos);
+            	this.touchDrag = new Vec2(
+            			this.touchPos.x - this.pos.x, 
+            			this.touchPos.y - this.pos.y);
+            	this.game.debug("- touchPos: " + this.touchPos + ", " + this.touchDrag);
         	}
         	orgEvent.preventDefault();
+			break;
+		default:
+        	this.touchPos = this.touchDrag = null;
 			break;
 		}
     },

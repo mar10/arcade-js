@@ -87,6 +87,9 @@ var TouchStick = Movable.extend(
 		}, opts));
 		// Copy selected options as object attributes
         ArcadeJS.extendAttributes(this, this.opts, "r1 r2");
+        this.touchDownPos = null;
+        this.touchPos = null;
+        this.touchDrag = null;
     },
     getBoundingRadius: function() {
     	return this.r2;
@@ -94,9 +97,6 @@ var TouchStick = Movable.extend(
     render: function(ctx) {
     	// Draw gray sphere
     	var gradient = ctx.createRadialGradient(0, 0, this.r1, 5, -5, this.r2);
-//    	gradient.addColorStop(0, "#fff");
-//    	gradient.addColorStop(0.7, "#ccc");
-//    	gradient.addColorStop(1, "#555");
     	gradient.addColorStop(0, "rgba(255, 255, 255, 0.7)");
 		gradient.addColorStop(0.7, "rgba(192, 192, 192, 0.7)");
     	gradient.addColorStop(1, "rgba(80, 80, 80, 0.7)");
@@ -104,7 +104,7 @@ var TouchStick = Movable.extend(
     	ctx.fillCircle2(0, 0, this.r2);
     	// with the dragged stick
     	var pos2 = new Point2(0, 0);
-    	if(this.touchPos && this.contains(this.touchPos)){
+    	if(this.touchDownPos && this.contains(this.touchPos)){
     		pos2.translate(this.touchDrag.limit(this.r2));
 //        	this.game.debug("Render: touchPos: " + this.touchPos+", "+this.touchDrag);
     	}else if(this.game.dragOffset) {
@@ -126,27 +126,48 @@ var TouchStick = Movable.extend(
         // http://developer.apple.com/safari/library/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW1
     	// http://www.sitepen.com/blog/2008/07/10/touching-and-gesturing-on-the-iphone/
 //    	this.game.debug("Canvas touch event '" + e.type + "': e=" + e);
-    	switch (e.type) {
+    	var touch = orgEvent.changedTouches.length == 1 ? orgEvent.changedTouches[0] : null;
+    	var touchPos = touch ? new Point2(
+        	touch.pageX - this.game.canvas.offsetLeft, 
+        	touch.pageY - this.game.canvas.offsetTop) : null;
+//        var isInside = touchPos && this.contains(touchPos);
+
+        switch (e.type) {
+		case "touchstart":
+			if(this.contains(touchPos)){
+	        	this.touchDownPos = touchPos;
+	        	orgEvent.preventDefault();
+			}
+			break;
 		case "touchmove":
+			if(this.touchDownPos){
+				// Drag vector is always relative to controls center
+            	this.touchDrag = new Vec2(
+            		touchPos.x - this.pos.x, 
+            		touchPos.y - this.pos.y);
+            	this.game.debug("- touchDownPos: " + this.touchDownPos + ", drag: " + this.touchDrag);
+	        	
+	        	orgEvent.preventDefault();
+			}
 //			if(orgEvent.targetTouches.length != 1)
 //				break; // only single finger(?)
-        	var touchList = orgEvent.changedTouches;
-
-        	for(var i=0; i<touchList.length; i++){
-        		var touch = touchList[i];
-            	// convert to canvas coords
-            	this.touchPos = new Point2(
-            		touch.pageX - this.game.canvas.offsetLeft, 
-            		touch.pageY - this.game.canvas.offsetTop);
-            	this.touchDrag = new Vec2(
-            			this.touchPos.x - this.pos.x, 
-            			this.touchPos.y - this.pos.y);
-//            	this.game.debug("- touchPos: " + this.touchPos + ", " + this.touchDrag);
-        	}
-        	orgEvent.preventDefault();
+//        	var touchList = orgEvent.changedTouches;
+//
+//        	for(var i=0; i<touchList.length; i++){
+//        		var touch = touchList[i];
+//            	// convert to canvas coords
+//            	this.touchPos = new Point2(
+//            		touch.pageX - this.game.canvas.offsetLeft, 
+//            		touch.pageY - this.game.canvas.offsetTop);
+//            	this.touchDrag = new Vec2(
+//            		this.touchPos.x - this.pos.x, 
+//            		this.touchPos.y - this.pos.y);
+////            	this.game.debug("- touchPos: " + this.touchPos + ", " + this.touchDrag);
+//        	}
+//        	orgEvent.preventDefault();
 			break;
 		default:
-        	this.touchPos = this.touchDrag = null;
+        	this.touchDownPos = this.touchDrag = null;
 			break;
 		}
     },

@@ -365,8 +365,14 @@ var ArcadeJS = Class.extend(
      * @param: {string} msg
      */
     debug: function(msg) {
-        if (window.console && window.console.log) {  
-            window.console.log.apply(this, arguments);  
+        if(window.console && window.console.log) {  
+        	var args = arguments; //Array.prototype.slice.apply(arguments, [1]); 
+//        	try {
+                window.console.log.apply(window.console, arguments);  
+//			} catch (e) {
+				// Safari?
+//	            window.console.log("" + arguments);  
+//			}
         }  
     },
     /**Return current activity.

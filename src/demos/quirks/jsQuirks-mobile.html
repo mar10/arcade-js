@@ -58,23 +58,8 @@
         $(document).trigger("onorientationchange");
         
         // Scroll one pixel down, so Safari URL toolbar disappears
-//        setTimeout(scrollTo, 0, 0, 1);
+        setTimeout(scrollTo, 0, 0, 1);
 
-        // Evaluate touches and gestures
-        // http://developer.apple.com/safari/library/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW1
-        $(canvas).bind("touchstart touchend touchmove touchcancel", function(e) {
-        	game.debug("Canvas touch event " + e.type + ", " + e.targetTouches);
-            //e.preventDefault();
-            //return false;
-        }).bind("gesturestart gestureend gesturechange", function(e) {
-            game.debug("Canvas gesture event " + e.type + ", scale:" + e.scale + ", rot=" + e.rotation);
-            //e.preventDefault();
-            //return false;
-        });
-        
-		window.onorientationchange = function() {
-			alert(window.orientation);
-		}
 	});
 	--></script>
 </head>

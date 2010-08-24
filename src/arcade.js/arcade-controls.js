@@ -16,7 +16,13 @@
 
 /*----------------------------------------------------------------------------*/
 
-var TouchButton = Movable.extend({
+/**Button for touchscreen devices. 
+ * @class
+ * @extends Movable 
+ */
+var TouchButton = Movable.extend(
+/** @lends TouchButton.prototype */
+{
     init: function(opts) {
 	    this._super("button", $.extend({
 	    	r: 20,
@@ -32,10 +38,10 @@ var TouchButton = Movable.extend({
     render: function(ctx) {
     	// Draw gray sphere
     	var gradient = ctx.createRadialGradient(0, 0, 0, 5, -5, this.r);
-    	gradient.addColorStop(0, "#fff");
+    	gradient.addColorStop(0, "rgba(255, 255, 255, 0.7)");
     	if(!this.down)
-    		gradient.addColorStop(0.7, "#ccc");
-    	gradient.addColorStop(1, "#555");
+    		gradient.addColorStop(0.7, "rgba(192, 192, 192, 0.7");
+    	gradient.addColorStop(1, "rgba(80, 80, 80, 0.7");
     	ctx.fillStyle = gradient;    	
     	ctx.fillCircle2(0, 0, this.r);
 	},
@@ -67,7 +73,13 @@ var TouchButton = Movable.extend({
 
 /*----------------------------------------------------------------------------*/
 
-var TouchStick = Movable.extend({
+/**Joystick emulation for touchscreen devices. 
+ * @class
+ * @extends Movable 
+ */
+var TouchStick = Movable.extend(
+/** @lends TouchStick.prototype */
+{
     init: function(opts) {
 	    this._super("joystick", $.extend({
 	    	r1: 10,
@@ -82,17 +94,19 @@ var TouchStick = Movable.extend({
     render: function(ctx) {
     	// Draw gray sphere
     	var gradient = ctx.createRadialGradient(0, 0, this.r1, 5, -5, this.r2);
-    	gradient.addColorStop(0, "#fff");
-    	gradient.addColorStop(0.7, "#ccc");
-    	gradient.addColorStop(1, "#555");
+//    	gradient.addColorStop(0, "#fff");
+//    	gradient.addColorStop(0.7, "#ccc");
+//    	gradient.addColorStop(1, "#555");
+    	gradient.addColorStop(0, "rgba(255, 255, 255, 0.7)");
+		gradient.addColorStop(0.7, "rgba(192, 192, 192, 0.7");
+    	gradient.addColorStop(1, "rgba(80, 80, 80, 0.7");
     	ctx.fillStyle = gradient;    	
     	ctx.fillCircle2(0, 0, this.r2);
     	// with the dragged stick
-//    	var vDrag = this.game.dragOffset;
     	var pos2 = new Point2(0, 0);
     	if(this.touchPos && this.contains(this.touchPos)){
     		pos2.translate(this.touchDrag.limit(this.r2));
-        	this.game.debug("Render: touchPos: " + this.touchPos+", "+this.touchDrag);
+//        	this.game.debug("Render: touchPos: " + this.touchPos+", "+this.touchDrag);
     	}else if(this.game.dragOffset) {
     		pos2.translate(this.game.dragOffset.limit(this.r2));
     	}
@@ -111,36 +125,15 @@ var TouchStick = Movable.extend({
 		// We want drag events
         // http://developer.apple.com/safari/library/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW1
     	// http://www.sitepen.com/blog/2008/07/10/touching-and-gesturing-on-the-iphone/
-    	this.game.debug("Canvas touch event '" + e.type + "': e=" + e);
-//    	var dump = function(name, list){
-//    		try {
-//            	this.game.debug(name + ": "+ list + ", L=" + list.length);
-//            	for(var i=0; i<list.length; i++){
-//            		var touch = list[i];
-//                	this.game.debug("- page: " + touch.pageX + "/" + touch.pageY );
-//                	this.game.debug("- client: " + touch.clientX + "/" + touch.clientY );
-//                	this.game.debug("- screen: " + touch.screenX + "/" + touch.screenY );
-//                	this.game.debug("- target: " + touch.targets);
-//                	this.game.debug("- changed touch: " + touch);
-//            	}
-//        		this.game.debug("-" + name + ": "+ touch.pageX + "/" + touch.pageY );
-//			} catch (err) {
-//            	this.game.debug(name + ": "+ err);
-//			}
-//    	}
+//    	this.game.debug("Canvas touch event '" + e.type + "': e=" + e);
     	switch (e.type) {
 		case "touchmove":
 //			if(orgEvent.targetTouches.length != 1)
 //				break; // only single finger(?)
         	var touchList = orgEvent.changedTouches;
-//        	dump.call(this, "e.touches", orgEvent.touches);
-//        	dump.call(this, "e.targetTouches", orgEvent.targetTouches);
-//        	dump.call(this, "e.changedTouches", orgEvent.changedTouches);
 
         	for(var i=0; i<touchList.length; i++){
         		var touch = touchList[i];
-//            	this.game.debug("- changed page: " + touch.pageX + "/" + touch.pageY );
-//            	this.game.debug("- changed touch: " + touch);
             	// convert to canvas coords
             	this.touchPos = new Point2(
             		touch.pageX - this.game.canvas.offsetLeft, 
@@ -148,7 +141,7 @@ var TouchStick = Movable.extend({
             	this.touchDrag = new Vec2(
             			this.touchPos.x - this.pos.x, 
             			this.touchPos.y - this.pos.y);
-            	this.game.debug("- touchPos: " + this.touchPos + ", " + this.touchDrag);
+//            	this.game.debug("- touchPos: " + this.touchPos + ", " + this.touchDrag);
         	}
         	orgEvent.preventDefault();
 			break;

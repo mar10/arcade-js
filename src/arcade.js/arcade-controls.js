@@ -65,6 +65,8 @@ var TouchStick = Movable.extend({
     },
     render: function(ctx) {
     	// Draw gray sphere
+    	this.game.debug("Render: touchPos: " + this.touchPos);
+
     	var gradient = ctx.createRadialGradient(0, 0, this.r1, 5, -5, this.r2);
     	gradient.addColorStop(0, "#fff");
     	gradient.addColorStop(0.7, "#ccc");
@@ -93,37 +95,40 @@ var TouchStick = Movable.extend({
         // http://developer.apple.com/safari/library/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW1
     	// http://www.sitepen.com/blog/2008/07/10/touching-and-gesturing-on-the-iphone/
     	this.game.debug("Canvas touch event '" + e.type + "': e=" + e);
-    	var dump = function(name, list){
-    		try {
-            	this.game.debug(name + ": "+ list + ", L=" + list.lengt);
-            	for(var i=0; i<list.length; i++){
-            		var touch = list[i];
-                	this.game.debug("- page: " + touch.pageX + "/" + touch.pageY );
-                	this.game.debug("- client: " + touch.clientX + "/" + touch.clientY );
-                	this.game.debug("- screen: " + touch.screenX + "/" + touch.screenY );
-                	this.game.debug("- target: " + touch.targets);
-                	this.game.debug("- changed touch: " + touch);
-            	}
-        		this.game.debug("-" + name + ": "+ touch.pageX + "/" + touch.pageY );
-			} catch (err) {
-            	this.game.debug(name + ": "+ err);
-			}
-    	}
+//    	var dump = function(name, list){
+//    		try {
+//            	this.game.debug(name + ": "+ list + ", L=" + list.length);
+//            	for(var i=0; i<list.length; i++){
+//            		var touch = list[i];
+//                	this.game.debug("- page: " + touch.pageX + "/" + touch.pageY );
+//                	this.game.debug("- client: " + touch.clientX + "/" + touch.clientY );
+//                	this.game.debug("- screen: " + touch.screenX + "/" + touch.screenY );
+//                	this.game.debug("- target: " + touch.targets);
+//                	this.game.debug("- changed touch: " + touch);
+//            	}
+//        		this.game.debug("-" + name + ": "+ touch.pageX + "/" + touch.pageY );
+//			} catch (err) {
+//            	this.game.debug(name + ": "+ err);
+//			}
+//    	}
     	switch (e.type) {
 		case "touchmove":
-//			if(e.targetTouches && e.targetTouches.length && e.targetTouches.length != 1)
+//			if(orgEvent.targetTouches.length != 1)
 //				break; // only single finger(?)
-//        	var touchList = e.changedTouches;
         	var touchList = orgEvent.changedTouches;
-        	dump.call(this, "e.touches", orgEvent.touches);
-        	dump.call(this, "e.targetTouches", orgEvent.targetTouches);
-        	dump.call(this, "e.changedTouches", orgEvent.changedTouches);
+//        	dump.call(this, "e.touches", orgEvent.touches);
+//        	dump.call(this, "e.targetTouches", orgEvent.targetTouches);
+//        	dump.call(this, "e.changedTouches", orgEvent.changedTouches);
 
         	for(var i=0; i<touchList.length; i++){
         		var touch = touchList[i];
-            	this.game.debug("- changed page: " + touch.pageX + "/" + touch.pageY );
-            	this.game.debug("- changed touch: " + touch);
-            	this.touchPos = new Point2(touch.pageX, touch.pageY);
+//            	this.game.debug("- changed page: " + touch.pageX + "/" + touch.pageY );
+//            	this.game.debug("- changed touch: " + touch);
+            	// convert to canvas coords
+            	this.touchPos = new Point2(
+            		touch.pageX - this.game.canvas.offsetLeft, 
+            		touch.pageY - this.game.canvas.offsetTop);
+            	this.game.debug("- touchPos: " + this.touchPos);
         	}
         	orgEvent.preventDefault();
 			break;

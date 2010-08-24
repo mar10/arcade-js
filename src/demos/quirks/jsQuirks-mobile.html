@@ -34,10 +34,14 @@
 		var game = new QuirksGame(canvas, {
 			debug: {showFps: true}
 			});
-		game.addObject(new TouchStick({
-		    pos: new Point2(45, canvas.height - 45),
-		    r1: 10,
-		    r2: 30
+        game.addObject(new TouchStick({
+            pos: new Point2(45, canvas.height - 40),
+            r1: 10,
+            r2: 30
+        }));
+        game.addObject(new TouchButton({
+            pos: new Point2(canvas.width - 40, canvas.height - 40),
+            r: 30
         }));
 
         // Evaluate canvas size changes

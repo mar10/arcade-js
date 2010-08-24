@@ -19,32 +19,50 @@
 var TouchButton = Movable.extend({
     init: function(opts) {
 	    this._super("button", $.extend({
-	    	r1: 10,
-	    	r2: 30
+	    	r: 20,
+	    	onClick: function() { alert("onClick is mandatory"); }
 		}, opts));
 		// Copy selected options as object attributes
-        ArcadeJS.extendAttributes(this, this.opts, "r1 r2");
+        ArcadeJS.extendAttributes(this, this.opts, "r onClick");
+        this.down = false;
     },
     getBoundingRadius: function() {
-    	return this.r2;
-    },
-    step: function() {
+    	return this.r;
     },
     render: function(ctx) {
     	// Draw gray sphere
-    	var gradient = ctx.createRadialGradient(0, 0, this.r1, 5, -5, this.r2);
+    	var gradient = ctx.createRadialGradient(0, 0, 0, 5, -5, this.r);
     	gradient.addColorStop(0, "#fff");
-    	gradient.addColorStop(0.7, "#ccc");
+    	if(this.down)
+    		gradient.addColorStop(0.7, "#ccc");
     	gradient.addColorStop(1, "#555");
     	ctx.fillStyle = gradient;    	
-    	ctx.fillCircle2(0, 0, this.r2);
+    	ctx.fillCircle2(0, 0, this.r);
 	},
-    onDragstart: function(clickPos) {
-		return true;
-    },
-//    onDrag: function(dragOffset) {
-//		this.game.setActivity("idle");
-//    },
+    onTouchevent: function(e, orgEvent) {
+    	var touch = orgEvent.changedTouches[0];
+    	var touchPos;
+    	switch (e.type) {
+		case "touchstart":
+		case "touchmove":
+        	touchPos = new Point2(
+            	touch.pageX - this.game.canvas.offsetLeft, 
+            	touch.pageY - this.game.canvas.offsetTop);
+        	this.down = this.contains(touchPos);
+			break;
+		case "touchend":
+        	touchPos = new Point2(
+                	touch.pageX - this.game.canvas.offsetLeft, 
+                	touch.pageY - this.game.canvas.offsetTop);
+        	if(this.down && this.contains(touchPos)){
+        		this.onClick(this);
+        	}
+			break;
+		default:
+        	this.down = false;
+			break;
+		}
+	},
     // --- end of class
     lastentry: undefined
 });

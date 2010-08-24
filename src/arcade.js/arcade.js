@@ -194,7 +194,7 @@ var ArcadeJS = Class.extend(
 		/**Game options (defaultGameOptions + options passed to the constructor).*/
 		this.opts = $.extend(true, {}, ArcadeJS.defaultGameOptions, opts);
 		// Copy selected options as object attributes
-		ArcadeJS.extendAttributes(this, this.opts, "name,fps");
+		ArcadeJS.extendAttributes(this, this.opts, "name,fps,resizeMode");
 		
 		/**HTML5 canvas element*/
 		this.canvas = canvas;
@@ -234,6 +234,13 @@ var ArcadeJS = Class.extend(
         this._runLoopId = null;
     	this.stopRequest = false;
         
+		this.clickPos = undefined;
+		this.mousePos = undefined;
+		this.dragOffset = undefined;
+		this.keyCode = undefined;
+		this.key = undefined;
+    	this.downKeyCodes = [];
+
         // Bind keyboard events
         var self = this;
         $(document).bind("keyup keydown keypress", function(e){
@@ -329,6 +336,23 @@ var ArcadeJS = Class.extend(
             	}
 //            	if(drop || cancelDrag)
 //            		self._draggedObjects = [];
+        	}
+        });
+        // Adjust canvas heigth and width on resize events
+        var $c = $(self.canvas);
+		this.canvas.width = $c.width();
+		this.canvas.height = $c.height();
+        $(window).resize(function(e){
+        	if(!this.onResize || this.onResize(e) !== false) {
+        		switch(self.resizeMode) {
+				case "adjust":
+					var $c = $(self.canvas);
+	        		self.canvas.width = $c.width();
+	        		self.canvas.height = $c.height();
+					break;
+				default:
+					// Keep current coordinate range and zoom/shrink output(default 300x150)
+				}
         	}
         });
     },
@@ -618,6 +642,12 @@ var ArcadeJS = Class.extend(
 		// Narrow check required
 		return true;
     },
+    /**@function Called on resize events.
+     * The default processing depends on the 'resizeMode' option.
+     * @param {Event} e
+     * @returns false to prevent default handling
+     */
+    onResize: undefined,
     /**@function Called before object.step() is called on all game ojects.
      */
     preStep: undefined,
@@ -665,9 +695,7 @@ ArcadeJS.defaultGameOptions = {
 	backgroundColor: "black", // canvas background color
 	strokeStyle: "#ffffff", // default line color
 	fillStyle: "#c0c0c0", // default solid filll color
-//	preStep: null,
-//	postStep: null,
-//	postDraw: null,
+    resizeMode: "adjust",
 	fps: 30,
 	debug: {
 		level: 1,
@@ -791,98 +819,6 @@ ArcadeCanvas = {
 	} 
 }
 
-
-///**Render a Polygon2 to a canvas.
-// * 
-// * @param ctx canvas 2D context  
-// * @param {Polygon2} polygon  
-// * @param {string} mode 'outline' (default), 'line', 'solid' 
-// */
-//ArcadeJS.renderPg = function(ctx, pg, mode)
-//{
-//	var xy = pg.xyList;
-//	ctx.beginPath();  
-//	ctx.moveTo(xy[0], xy[1]);  
-//	for(var i=2; i<xy.length; i+=2)
-//		ctx.lineTo(xy[i], xy[i+1]);
-//	switch (mode) {
-//	case "line":
-//		ctx.stroke();
-//		break;
-//	case "solid":
-//		ctx.fill();
-//		break;
-//	default:
-//		ctx.closePath();
-//		ctx.stroke();
-//	}
-//}
-//
-///**Render a circle to a canvas.
-// * 
-// * @param ctx canvas 2D context  
-// * @param {Point2} center  
-// * @param {float} r radius  
-// * @param {string} mode 'outline' (default),'solid' 
-// */
-//ArcadeJS.renderCircle = function(ctx, center, r, mode)
-//{
-//	ctx.beginPath();
-//	ctx.arc(center.x, center.y, r, 0, 2 * Math.PI, true);
-//	switch (mode) {
-//	case "solid":
-//		ctx.fill();
-//		break;
-//	default:
-//		ctx.closePath();
-//		ctx.stroke();
-//	}
-//}
-
-///**Render an arrow to a canvas.
-// * 
-// * @param ctx canvas 2D context  
-// * @param {Point2} start  
-// * @param {Point2} tip  
-// */
-//ArcadeJS.renderArrow = function(ctx, origin, tip)
-//{
-//	ctx.beginPath();
-//	ctx.moveTo(origin.x, origin.y);
-//	ctx.lineTo(tip.x, tip.y);
-//	ctx.closePath();
-//	ctx.stroke();
-//}
-
-///**Render a vector to a canvas.
-// * 
-// * @param ctx canvas 2D context  
-// * @param {Vec2} vec  
-// * @param {Point2} origin (optional) default: (0/0)  
-// */
-//ArcadeJS.renderVector = function(ctx, vec, origin)
-//{
-//	origin = origin || new Point2(0, 0);
-//	var tip = 5;
-//	ctx.beginPath();
-//	ctx.moveTo(origin.x, origin.y);
-//	var ptTip = origin.copy().translate(vec);
-//	var pt = ptTip.copy();
-//	ctx.lineTo(pt.x, pt.y);
-//	ctx.closePath();
-//	ctx.stroke();
-//	ctx.beginPath();
-//	var v = vec.copy().setLength(-tip);
-//	var vPerp = v.copy().perp().scale(.5);
-//	pt.translate(v).translate(vPerp);
-//	ctx.lineTo(pt.x, pt.y);
-//	pt.translate(vPerp.scale(-2));
-//	ctx.lineTo(pt.x, pt.y);
-//	ctx.lineTo(ptTip.x, ptTip.y);
-////	ctx.lineTo(origin.x, origin.y);
-//	ctx.closePath();
-//	ctx.stroke();
-//}
 
 /**
  * Return a nice string for a keyboard event. This function was inspired by

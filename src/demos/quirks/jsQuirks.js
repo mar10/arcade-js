@@ -15,6 +15,11 @@ var QuirksGame = ArcadeJS.extend({
         
         // Create an object and add it to the game
         this.addObject(new Quirk());
+//        this.addObject(new TouchStick({
+//        	pos: new Point2(45, this.canvas.height - 45),
+//        	r1: 10,
+//        	r2: 30
+//        	}));
         // Start render loop
         this.startLoop()
     },
@@ -25,21 +30,19 @@ var QuirksGame = ArcadeJS.extend({
     lastentry: undefined
 });
 
-
-/******************************************************************************/
-
+/*----------------------------------------------------------------------------*/
 
 var Quirk = Movable.extend({
     init: function(opts) {
 		// Inititalize this game object
         this._super("quirk");
-        // Initialize the first of max. 20 lines and velocity
+        // Initialize the first of max. 50 lines and velocity
         this.maxLines = 50;
         this.lines = [];
         this.pos1 = new Point2(LinaJS.randomInt(100, 200), LinaJS.randomInt(100, 200));
-        this.move1 = new Vec2(LinaJS.randomInt(2, 10), LinaJS.randomInt(1, 10));
+        this.velocity1 = new Vec2(LinaJS.randomInt(2, 10), LinaJS.randomInt(1, 10));
         this.pos2 = new Point2(LinaJS.randomInt(100, 200), LinaJS.randomInt(100, 200));
-        this.move2 = new Vec2(LinaJS.randomInt(2, 10), LinaJS.randomInt(1, 10));
+        this.velocity2 = new Vec2(LinaJS.randomInt(2, 10), LinaJS.randomInt(1, 10));
     },
     step: function() {
     	// Add another line (discard oldest, if max. is reached)
@@ -48,18 +51,18 @@ var Quirk = Movable.extend({
     		this.lines.shift();
     	this.lines.push({pos1: this.pos1.copy(), pos2: this.pos2.copy()});
     	// Calculate new position for first point
-    	this.pos1.translate(this.move1);
+    	this.pos1.translate(this.velocity1);
     	// Invert velocity vector, when bouncing at the canvas borders
     	if(this.pos1.x < 0 || this.pos1.x >= this.game.canvas.width)
-    		this.move1.dx *= -1;
+    		this.velocity1.dx *= -1;
     	if(this.pos1.y < 0 || this.pos1.y >= this.game.canvas.height)
-    		this.move1.dy *= -1;
+    		this.velocity1.dy *= -1;
     	// Calculate new position and velocity for second point
-    	this.pos2.translate(this.move2);
+    	this.pos2.translate(this.velocity2);
     	if(this.pos2.x < 0 || this.pos2.x >= this.game.canvas.width)
-    		this.move2.dx *= -1;
+    		this.velocity2.dx *= -1;
     	if(this.pos2.y < 0 || this.pos2.y >= this.game.canvas.height)
-    		this.move2.dy *= -1;
+    		this.velocity2.dy *= -1;
     },
     render: function(ctx) {
     	// Draw the list of lines to the canvas

@@ -58,12 +58,19 @@ body.landscape {
    color: blue;  
 }
 
-body.portrait canvas.game {
+canvas.arcade-js {
+    width: 95%;  /* 320px on an iPhone */
     width: device-width;  /* 320px on an iPhone */
-    height: 356; /* Free viewport size, when URL bar is visible: 356px.*/  
 }
 
-body.landscape canvas.game {
+body.portrait canvas.arcade-js {
+    width: device-width;  /* 320px on an iPhone */
+    height: 356px; /* Free viewport size, when URL bar is visible: 356px.*/  
+/*    border: 3px solid red;*/
+}
+
+body.landscape canvas.arcade-js {
     width: device-width;  /* 480px on an iPhone */
-    height: 208; /* Free viewport size, when URL bar is visible: 208px. */  
+    height: 208px; /* Free viewport size, when URL bar is visible: 208px. */  
+/*    border: 3px solid blue;*/
 }

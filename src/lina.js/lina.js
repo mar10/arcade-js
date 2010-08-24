@@ -550,6 +550,15 @@ Vec2.prototype = {
 			return 0;
 		}
 	},
+	/**Clamp vector length.
+	 * @param {float} length Maximum length.   
+	 * @returns {Vec2}   
+	 */
+	limit: function(length) {
+		if(this.sqrLength() > length*length)
+			this.scale(length / this.length());
+		return this;
+	},
 	/**Check, if vector is (0, 0)
 	 * @returns {boolean}   
 	 */
@@ -620,11 +629,11 @@ Vec2.prototype = {
 	    return this;
 	},
 	/** Set vector length (in-place) and return this instance.
-	 * @param {float} l New length.
+	 * @param {float} length New length.
 	 * @returns {Vec2}   
 	 */
-	setLength: function(l) {
-		this.scale(l / this.length());
+	setLength: function(length) {
+		this.scale(length / this.length());
 		return this;
 	},
 	/** Return polar coordinates for this vector.

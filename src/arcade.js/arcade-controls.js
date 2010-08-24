@@ -130,7 +130,6 @@ var TouchStick = Movable.extend(
     	var touchPos = touch ? new Point2(
         	touch.pageX - this.game.canvas.offsetLeft, 
         	touch.pageY - this.game.canvas.offsetTop) : null;
-//        var isInside = touchPos && this.contains(touchPos);
 
         switch (e.type) {
 		case "touchstart":
@@ -145,35 +144,15 @@ var TouchStick = Movable.extend(
             	this.touchDragOffset = new Vec2(
             		touchPos.x - this.pos.x, 
             		touchPos.y - this.pos.y);
-            	this.game.debug("- touchDownPos: " + this.touchDownPos + ", drag: " + this.touchDragOffset);
-	        	
+//            	this.game.debug("- touchDownPos: " + this.touchDownPos + ", drag: " + this.touchDragOffset);
 	        	orgEvent.preventDefault();
 			}
-//			if(orgEvent.targetTouches.length != 1)
-//				break; // only single finger(?)
-//        	var touchList = orgEvent.changedTouches;
-//
-//        	for(var i=0; i<touchList.length; i++){
-//        		var touch = touchList[i];
-//            	// convert to canvas coords
-//            	this.touchPos = new Point2(
-//            		touch.pageX - this.game.canvas.offsetLeft, 
-//            		touch.pageY - this.game.canvas.offsetTop);
-//            	this.touchDragOffset = new Vec2(
-//            		this.touchPos.x - this.pos.x, 
-//            		this.touchPos.y - this.pos.y);
-////            	this.game.debug("- touchPos: " + this.touchPos + ", " + this.touchDragOffset);
-//        	}
-//        	orgEvent.preventDefault();
 			break;
 		default:
         	this.touchDownPos = this.touchDragOffset = null;
 			break;
 		}
     },
-//    onDrag: function(dragOffset) {
-//		this.game.setActivity("idle");
-//    },
     // --- end of class
     lastentry: undefined
 });

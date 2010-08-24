@@ -15,17 +15,9 @@ var QuirksGame = ArcadeJS.extend({
         
         // Create an object and add it to the game
         this.addObject(new Quirk());
-//        this.addObject(new TouchStick({
-//        	pos: new Point2(45, this.canvas.height - 45),
-//        	r1: 10,
-//        	r2: 30
-//        	}));
         // Start render loop
         this.startLoop()
     },
-	postDraw: function(ctx){
-	    $("#frames").html("Frame #" + this.frameCount + ", FpS: " + this.realFps + " (want: " + this.fps + ")");
-	},
     // --- end of class
     lastentry: undefined
 });

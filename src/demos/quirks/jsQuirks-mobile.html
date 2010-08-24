@@ -11,7 +11,8 @@
 	<script src="../../depends/jquery.mousewheel.js"></script>
 
 	<script src="../../lina.js/lina.js"></script>
-	<script src="../../arcade.js/arcade.js"></script>
+    <script src="../../arcade.js/arcade.js"></script>
+    <script src="../../arcade.js/arcade-controls.js"></script>
 
 	<script src="jsQuirks.js"></script>
 
@@ -30,7 +31,14 @@
 	$(function(){
 	
 		var canvas = document.getElementById("canvas1");
-		var game = new QuirksGame(canvas);
+		var game = new QuirksGame(canvas, {
+			debug: {showFps: true}
+			});
+		game.addObject(new TouchStick({
+		    pos: new Point2(45, canvas.height - 45),
+		    r1: 10,
+		    r2: 30
+        }));
 
         // Evaluate canvas size changes
         $(canvas).bind("resize", function() {
@@ -40,27 +48,26 @@
         
 		// Evaluate orientation changes
         $(document).bind("onorientationchange", function() {
-            //alert("onorientationchange: " + window.orientation);
             if(Math.abs(window.orientation) === 90){
                 $("body").removeClass("portrait").addClass("landscape");
             }else{
                 $("body").removeClass("landscape").addClass("portrait");
             }
-            alert("onorientationchange: " + window.orientation + ": class=" + $("body").attr("class"));
+//            alert("onorientationchange: " + window.orientation + ": class=" + $("body").attr("class"));
         });
         $(document).trigger("onorientationchange");
         
         // Scroll one pixel down, so Safari URL toolbar disappears
-        setTimeout(scrollTo, 0, 0, 1);
+//        setTimeout(scrollTo, 0, 0, 1);
 
         // Evaluate touches and gestures
         // http://developer.apple.com/safari/library/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW1
         $(canvas).bind("touchstart touchend touchmove touchcancel", function(e) {
-            //alert("Canvas touch event " + e.type + ", " + e.targetTouches);
+        	game.debug("Canvas touch event " + e.type + ", " + e.targetTouches);
             //e.preventDefault();
             //return false;
         }).bind("gesturestart gestureend gesturechange", function(e) {
-            alert("Canvas gesture event " + e.type + ", scale:" + e.scale + ", rot=" + e.rotation);
+            game.debug("Canvas gesture event " + e.type + ", scale:" + e.scale + ", rot=" + e.rotation);
             //e.preventDefault();
             //return false;
         });
@@ -77,12 +84,7 @@
     <a href="http://arcade-js.googlecode.com/">jsQuirks - iPhone edition</a>
 </div>
 
-<p>
 <canvas id="canvas1" class="arcade-js">This game requires HTML 5 support.</canvas>
-</p>
 
-<div>
-	<span id="frames">-</span> frames
-</div>
 </body>
 </html>

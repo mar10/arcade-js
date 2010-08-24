@@ -60,7 +60,8 @@ body.landscape {
 
 canvas.arcade-js {
     width: 95%;  /* 320px on an iPhone */
-    width: device-width;  /* 320px on an iPhone */
+    width: device-width;  /* 320px or 480 on an iPhone */
+    height: device-height;  
 }
 
 body.portrait canvas.arcade-js {

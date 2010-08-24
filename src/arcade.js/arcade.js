@@ -203,7 +203,11 @@ var ArcadeJS = Class.extend(
 //		this.context = _extendCanvasContext(this.context);
 		$.extend(this.context, ArcadeCanvas);
 		
-		$(this.canvas).css("backgroundColor", this.opts.backgroundColor);
+        var $canvas = $(this.canvas);
+        $canvas.css("backgroundColor", this.opts.backgroundColor);
+        // Adjust canvas height and width (if specified as %, it would default to 300x150)
+		this.canvas.width = $canvas.width();
+		this.canvas.height = $canvas.height();
 		this.context.strokeStyle = this.opts.strokeStyle;
 		this.context.fillStyle = this.opts.fillStyle;
 		
@@ -338,11 +342,8 @@ var ArcadeJS = Class.extend(
 //            		self._draggedObjects = [];
         	}
         });
-        // Adjust canvas heigth and width on resize events
-        var $c = $(self.canvas);
-		this.canvas.width = $c.width();
-		this.canvas.height = $c.height();
-        $(window).resize(function(e){
+        // Adjust canvas height and width on resize events
+        $(canvas).resize(function(e){
         	if(!this.onResize || this.onResize(e) !== false) {
         		switch(self.resizeMode) {
 				case "adjust":
@@ -449,11 +450,19 @@ var ArcadeJS = Class.extend(
     		this.postDraw(ctx);
     	// Restore previous transformation and rendering context
 		ctx.restore();
+		// Draw debug infos
+		var infoList = [];
     	if(this.opts.debug.showKeys){
+        	infoList.push("Keys: " + this.downKeyCodes);
+    	}
+    	if(this.opts.debug.showFps){
+        	infoList.push("FpS: " + this.realFps);
+    	}
+    	if(infoList.length){
     		ctx.save();
         	ctx.font = "12px sans-serif";
         	ctx.fillStyle = "green";
-        	ctx.fillText("Keys: " + this.downKeyCodes, 10, 475);
+        	ctx.fillText(infoList.join(", "), 10, this.canvas.height - 1);
     		ctx.restore();
     	}
     },
@@ -699,7 +708,8 @@ ArcadeJS.defaultGameOptions = {
 	fps: 30,
 	debug: {
 		level: 1,
-		showKeys: true
+		showKeys: true,
+		showFps: true
 	},
 	purgeRate: 0.5,
 	lastEntry: undefined

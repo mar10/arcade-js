@@ -33,7 +33,7 @@ var TouchButton = Movable.extend({
     	// Draw gray sphere
     	var gradient = ctx.createRadialGradient(0, 0, 0, 5, -5, this.r);
     	gradient.addColorStop(0, "#fff");
-    	if(this.down)
+    	if(!this.down)
     		gradient.addColorStop(0.7, "#ccc");
     	gradient.addColorStop(1, "#555");
     	ctx.fillStyle = gradient;    	
@@ -41,22 +41,20 @@ var TouchButton = Movable.extend({
 	},
     onTouchevent: function(e, orgEvent) {
     	var touch = orgEvent.changedTouches[0];
-    	var touchPos;
+    	var touchPos = touch ? new Point2(
+        	touch.pageX - this.game.canvas.offsetLeft, 
+        	touch.pageY - this.game.canvas.offsetTop) : null;
+        var isInside = touchPos && this.contains(touchPos);
     	switch (e.type) {
 		case "touchstart":
 		case "touchmove":
-        	touchPos = new Point2(
-            	touch.pageX - this.game.canvas.offsetLeft, 
-            	touch.pageY - this.game.canvas.offsetTop);
-        	this.down = this.contains(touchPos);
+        	this.down = isInside;
 			break;
 		case "touchend":
-        	touchPos = new Point2(
-                	touch.pageX - this.game.canvas.offsetLeft, 
-                	touch.pageY - this.game.canvas.offsetTop);
-        	if(this.down && this.contains(touchPos)){
+        	if(this.down && isInside){
         		this.onClick(this);
         	}
+        	this.down = false;
 			break;
 		default:
         	this.down = false;

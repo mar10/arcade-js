@@ -43,12 +43,11 @@ var RipOffGame = ArcadeJS.extend({
 	    // Display score
     	ctx.font = "12px sans-serif";
     	ctx.fillText("Score: " + this.score, 10, 15);
-    	ctx.fillText(this.realFps.toFixed(1) + " fps", this.canvas.width-50, 15);
+//    	ctx.fillText(this.realFps.toFixed(1) + " fps", this.canvas.width-50, 15);
     	if(this.getActivity() === "over"){
     		ctx.font = "30px sans-serif";
     		ctx.strokeText("Game over (hit [F5])", 200, 200);
     	}
-
     	
 	    // Draw lives
     	var live = new Polygon2([0, 5,

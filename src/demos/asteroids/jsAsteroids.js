@@ -11,7 +11,12 @@ var AsteroidsGame = ArcadeJS.extend({
 		// Init ArcadeJS
 		var opts = $.extend({
 			name: "jsAsteroids",
-			fps: 30
+			fps: 30,
+			debug: {
+				showKeys: true,
+				showFps: true,
+				showObjects: true
+			}
 		}, customOpts);
         this._super(canvas, opts);
         
@@ -47,7 +52,12 @@ var AsteroidsGame = ArcadeJS.extend({
     		size: size,
     		pos: new Point2(pos.x + LinaJS.random(-10, 10), pos.y + LinaJS.random(-10, 10)),
     		velocity: new Vec2(velocity.dx + LinaJS.random(-0.2, +0.2), velocity.dx + LinaJS.random(-0.2, +0.2)),
-    		rotationalSpeed: LinaJS.random(-2*LinaJS.DEG_TO_RAD, 2*LinaJS.DEG_TO_RAD)
+    		rotationalSpeed: LinaJS.random(-2*LinaJS.DEG_TO_RAD, 2*LinaJS.DEG_TO_RAD),
+			debug: {
+				showBCircle: true,
+				showVelocity: true,
+				velocityScale: 15.0
+			}
     	}));
     },
 	preDraw: function(ctx){
@@ -55,7 +65,7 @@ var AsteroidsGame = ArcadeJS.extend({
 	    // Display score
     	ctx.font = "12px sans-serif";
     	ctx.fillText("Score: " + this.score, 10, 15);
-    	ctx.fillText(this.realFps.toFixed(1) + " fps", this.canvas.width-50, 15);
+//    	ctx.fillText(this.realFps.toFixed(1) + " fps", this.canvas.width-50, 15);
     	if(this.getActivity() === "over"){
         	ctx.font = "30px sans-serif";
     		ctx.strokeText("Game over (hit [F5])", 200, 200);

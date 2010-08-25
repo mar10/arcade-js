@@ -23,7 +23,7 @@
 
 /**
  * @namespace Namespace for global constants and functions.
-*/
+ */
 LinaJS = {
 	// var identity33 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 	/**
@@ -601,10 +601,16 @@ Vec2.prototype = {
 		this.dy *= f;
 		return this;
 	},
-	/** Flip this vector (in-place) and return this instance.
+	/** Return a new flipped copy of this vector.
 	 * @returns {Vec2}   
 	 */
 	revert: function() {
+		return this.copy().applyRevert();
+	},
+	/** Flip this vector (in-place) and return this instance.
+	 * @returns {Vec2}   
+	 */
+	applyRevert: function() {
 		this.dx *= -1;
 		this.dy *= -1;
 		return this;

@@ -462,19 +462,27 @@ var ArcadeJS = Class.extend(
     		this.postDraw(ctx);
     	// Restore previous transformation and rendering context
 		ctx.restore();
+	    // Display FpS
+    	if(this.opts.debug.showFps){
+    		ctx.save();
+        	ctx.font = "12px sans-serif";
+        	ctx.fillText(this.realFps.toFixed(1) + " fps", this.canvas.width-50, 15);
+    		ctx.restore();
+    	}
+
 		// Draw debug infos
 		var infoList = [];
     	if(this.opts.debug.showKeys){
-        	infoList.push("Keys: " + this.downKeyCodes);
+        	infoList.push("Keys: [" + this.downKeyCodes + "]");
     	}
-    	if(this.opts.debug.showFps){
-        	infoList.push("FpS: " + this.realFps);
+    	if(this.opts.debug.showObjects){
+        	infoList.push("Objects: " + this.objects.length + " (dead: "+ this._deadCount+")");
     	}
     	if(infoList.length){
     		ctx.save();
         	ctx.font = "12px sans-serif";
-        	ctx.fillStyle = "green";
-        	ctx.fillText(infoList.join(", "), 10, this.canvas.height - 1);
+        	ctx.fillStyle = this.opts.debug.strokeStyle;
+        	ctx.fillText(infoList.join(", "), 10, this.canvas.height - 5);
     		ctx.restore();
     	}
     },
@@ -729,8 +737,10 @@ ArcadeJS.defaultGameOptions = {
 	fps: 30,
 	debug: {
 		level: 1,
-		showKeys: true,
-		showFps: true
+    	strokeStyle: "#80ff00",
+		showKeys: false,
+		showFps: true,
+		showObjects: false
 	},
 	purgeRate: 0.5,
 	lastEntry: undefined
@@ -1052,25 +1062,25 @@ var Movable = Class.extend(
     	ctx.translate(this.pos.x, this.pos.y);
     	if( this.scale && this.scale != 1.0 )
     		ctx.scale(this.scale, this.scale);
+    	if(this.opts.debug.showVelocity && this.velocity){
+        	ctx.strokeStyle = this.opts.debug.strokeStyle;
+    		ctx.strokeVec2(this.velocity.copy().scale(this.opts.debug.velocityScale));
+    	}
     	if( this.orientation )
     		ctx.rotate(this.orientation);
     	// Let object render itself
     	this.render(ctx);
     	// Render optional debug infos
     	if(this.opts.debug.showBCircle && this.getBoundingRadius){
-        	ctx.strokeStyle = "#80ff00";
+        	ctx.strokeStyle = this.opts.debug.strokeStyle;
         	var circle = new Circle2({x:0, y:0}, this.getBoundingRadius());
     		var r = this.getBoundingRadius();
-//    		ArcadeJS.renderCircle(ctx, {x:0, y:0}, r);
     		ctx.strokeCircle2({center:{x:0, y:0}, r:this.getBoundingRadius()});
     	}
-    	if(this.opts.debug.showVelocity && this.velocity){
-        	ctx.strokeStyle = "#80ffff";
-//        	var scale = 1;
-//    		ArcadeJS.renderArrow(ctx, {x:0, y:0}, {x:scale*this.velocity.dx, y:scale*this.velocity.dy});
-//    		ArcadeJS.renderVector(ctx, this.velocity);
-    		ctx.strokeVec2(this.velocity);
-    	}
+//    	if(this.opts.debug.showVelocity && this.velocity){
+//        	ctx.strokeStyle = this.opts.debug.strokeStyle;
+//    		ctx.strokeVec2(this.velocity.copy().scale(this.opts.debug.velocityScale));
+//    	}
 
     	// Restore previous transformation and rendering context
 		ctx.restore();
@@ -1207,7 +1217,8 @@ Movable.defaultOptions = {
 		showLabel: false,
 		showBBox: false,
 		showBCircle: false,
-		showVelocity: false
+		showVelocity: false,
+		velocityScale: 1.0
 	},
 	lastEntry: undefined
 }

@@ -374,9 +374,9 @@ var ArcadeJS = Class.extend(
         		self.context.strokeStyle = self.opts.strokeStyle;
         		self.context.fillStyle = self.opts.fillStyle;
         	}
-        	// Trigger on load
-            $(window).resize();
         });
+    	// Trigger first resize event on load
+        $(window).resize();
     },
     toString: function() {
 //        return "ArcadeJS '" + this.name + "', activity: '" + this._activity + "'";

@@ -61,12 +61,17 @@ body.landscape {
 div.arcade-js {
     border: 1px dotted red;
     padding: 0;
+    width: device-width;  /* 320px or 480px on an iPhone */
+    height: device-height;  
+/*
+    max-width: 320px;  
     width: 95%;
-/*    position: absolute;
+    position: absolute;
     top: 50px;
     left: 10px;
     bottom: 10px;
-    right: 10px;*/
+    right: 10px;
+*/
     text-align: center;  
 }
 body.portait div.arcade-js {

@@ -58,9 +58,9 @@
             game.debug("onorientationchange: e=" + e);
             alert("ooc");
             if(Math.abs(window.orientation) === 90){
-                $("body").removeClass("portrait").addClass("landscape");
+//                $("body").removeClass("portrait").addClass("landscape");
             }else{
-                $("body").removeClass("landscape").addClass("portrait");
+//                $("body").removeClass("landscape").addClass("portrait");
             }
             game.debug("onorientationchange: class=" + $("body").attr("class") + ", e=" + e);
             // Scroll one pixel down, so Safari URL toolbar disappears

@@ -353,32 +353,32 @@ var ArcadeJS = Class.extend(
         	}
         });
         // Adjust canvas height and width on resize events
-//        $(window).resize(function(e){
-//			var $c = $(self.canvas);
-//        	var width = $c.width(),
-//        		height = $c.height();
-//        	if(!self.onResize || self.onResize(e, width, height) !== false) {
-//        		switch(self.resizeMode) {
-//				case "adjust":
-//	        		self.debug("window.resize: adjusting canvas from " + self.canvas.width + "px x " + self.canvas.height + "px");
-//	        		if(self.canvas.width != width)
-//	        			self.canvas.width = width;
-//	        		if(self.canvas.height != height)
-//	        			self.canvas.height = height;
-//	        		self.debug("window.resize: adjusting canvas to " + self.canvas.width + "px x " + self.canvas.height + "px");
-//					break;
-//				default:
-//					// Keep current coordinate range and zoom/shrink output(default 300x150)
-//				}
-//        		// Resizing resets the canvas context(?) 
-//        		self.context.strokeStyle = self.opts.strokeStyle;
-//        		self.context.fillStyle = self.opts.fillStyle;
-//        		// Trigger afterResize callback
-//            	self.afterResize && self.afterResize(e);
-//        	}
-//        });
+        $(window).resize(function(e){
+			var $c = $(self.canvas);
+        	var width = $c.width(),
+        		height = $c.height();
+        	if(!self.onResize || self.onResize(e, width, height) !== false) {
+        		switch(self.resizeMode) {
+				case "adjust":
+	        		self.debug("window.resize: adjusting canvas from " + self.canvas.width + "px x " + self.canvas.height + "px");
+	        		if(self.canvas.width != width)
+	        			self.canvas.width = width;
+	        		if(self.canvas.height != height)
+	        			self.canvas.height = height;
+	        		self.debug("window.resize: adjusting canvas to " + self.canvas.width + "px x " + self.canvas.height + "px");
+					break;
+				default:
+					// Keep current coordinate range and zoom/shrink output(default 300x150)
+				}
+        		// Resizing resets the canvas context(?) 
+        		self.context.strokeStyle = self.opts.strokeStyle;
+        		self.context.fillStyle = self.opts.fillStyle;
+        		// Trigger afterResize callback
+            	self.afterResize && self.afterResize(e);
+        	}
+        });
     	// Trigger first resize event on load
-        $(window).resize();
+//        $(window).resize();
     },
     toString: function() {
 //        return "ArcadeJS '" + this.name + "', activity: '" + this._activity + "'";

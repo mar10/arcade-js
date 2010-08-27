@@ -27,7 +27,7 @@ function _getTouchWithId(touchList, id){
 
 /*----------------------------------------------------------------------------*/
 
-/**Button for touchscreen devices. 
+/**Button for mouse touch screen devices. 
  * @class
  * @extends Movable 
  */
@@ -67,7 +67,7 @@ var TouchButton = Movable.extend(
     },
     onMouseup: function(e) {
     	if(this.clicked && this.contains(this.game.mousePos))
-    		this.onClick(this);
+    		this.onClick.call(this);
     	this.down = this.clicked = false;
     },
     onTouchevent: function(e, orgEvent) {
@@ -95,7 +95,7 @@ var TouchButton = Movable.extend(
 			break;
 		case "touchend":
         	if(this.down && isInside){
-        		this.onClick(this);
+        		this.onClick.call(this);
         	}
         	this.touchDownId = null;
         	this.down = false;
@@ -106,13 +106,19 @@ var TouchButton = Movable.extend(
 			break;
 		}
 	},
+	/**Return true if button is down (but mouse key is also still down). */
+    isDown: function() {
+		return this.down === true;
+    },
+	/**Called when button was clicked (i.e. pushed and released). */
+    onClick: undefined,
     // --- end of class
     lastentry: undefined
 });
 
 /*----------------------------------------------------------------------------*/
 
-/**Joystick emulation for touchscreen devices. 
+/**Joystick emulation for mouse and touch screen devices. 
  * @class
  * @extends Movable 
  */
@@ -126,6 +132,7 @@ var TouchStick = Movable.extend(
 		}, opts));
 		// Copy selected options as object attributes
         ArcadeJS.extendAttributes(this, this.opts, "r1 r2");
+		this.active = false; 
         this.touchDownPos = null;
         this.touchDownId = null;
         this.touchDragOffset = null;
@@ -145,10 +152,14 @@ var TouchStick = Movable.extend(
     	var pos2 = new Point2(0, 0);
     	if(this.touchDragOffset){
     		pos2.translate(this.touchDragOffset.limit(this.r2));
-//        	this.game.debug("Render: touchPos: " + this.touchPos+", "+this.touchDragOffset);
-    	}else if(this.game.dragOffset) {
-    		pos2.translate(this.game.dragOffset.limit(this.r2));
     	}
+//    	var pos2 = new Point2(0, 0);
+//    	if(this.touchDragOffset){
+//    		pos2.translate(this.touchDragOffset.limit(this.r2));
+////        	this.game.debug("Render: touchPos: " + this.touchPos+", "+this.touchDragOffset);
+//    	}else if(this.game.dragOffset) {
+//    		pos2.translate(this.game.dragOffset.limit(this.r2));
+//    	}
     	var gradient = ctx.createRadialGradient(pos2.x, pos2.y, 0, pos2.x+3, pos2.y-3, this.r1);
     	gradient.addColorStop(0, "#fff");
     	gradient.addColorStop(0.7, "#ccc");
@@ -157,11 +168,25 @@ var TouchStick = Movable.extend(
     	ctx.fillCircle2(pos2.x, pos2.y, this.r1);
 	},
     onDragstart: function(clickPos) {
-		// We want drag events
-		return this.contains(this.game.mousePos);
+		if(this.contains(this.game.mousePos)){
+			this.touchDownPos = this.pos;
+			return true;
+		}
+		this.touchDownPos = null;
+		return false;
+    },
+    onDrag: function(dragOffset) {
+		if(this.touchDownPos){
+        	this.touchDragOffset = dragOffset.copy();
+		}
+    },
+    onDragcancel: function(dragOffset) {
+    	this.touchDownPos = this.touchDownId = this.touchDragOffset = null;
+    },
+    onDrop: function(dragOffset) {
+    	this.touchDownPos = this.touchDownId = this.touchDragOffset = null;
     },
     onTouchevent: function(e, orgEvent) {
-		// We want drag events
         // http://developer.apple.com/safari/library/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW1
     	// http://www.sitepen.com/blog/2008/07/10/touching-and-gesturing-on-the-iphone/
     	this.game.debug("Canvas touch event '" + e.type + "',  id=" + this.touchDownId + ", pos=" + this.touchDownPos + ", drag=" + this.touchDragOffset);
@@ -201,6 +226,26 @@ var TouchStick = Movable.extend(
 			break;
 		}
     },
+	/**Return true if joystick is currently used. */
+    isActive: function() {
+		return !!this.touchDownPos;
+    },
+	/**Return x deflection [-1.0 .. +1.0]. */
+    getX: function() {
+		return this.isActive() ? (this.game.mousePos.x - this.touchDownPos.x) / this.r2 : 0;
+    },
+	/**Return y deflection [-1.0 .. +1.0]. */
+    getY: function() {
+		return this.isActive() ? (this.game.mousePos.y - this.touchDownPos.y) / this.r2 : 0;
+    },
+	/**Return deflection vector with length [0..r2]. */
+    getDeflection: function() {
+		if(!this.isActive())
+			return Vec2(0, 0);
+		return this.touchDownPos.vectorTo(this.game.mousePos).limit(this.r2);
+    },
+	/**Called when button was clicked (i.e. pushed and released). */
+    onClick: undefined,
     // --- end of class
     lastentry: undefined
 });

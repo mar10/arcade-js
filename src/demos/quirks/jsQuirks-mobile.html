@@ -43,8 +43,28 @@
         }));
         var btn1 = game.addObject(new TouchButton({
             pos: new Point2(canvas.width - 40, canvas.height - 40),
-            r: 20
+            r: 20,
+            onClick: function(){
+                if(this.game.quirk.color == "red")
+                	this.game.quirk.color = "green";
+                else
+                	this.game.quirk.color = "red";
+            }
         }));
+        game.preStep = function(){
+            var dx = -stick.getY(); 
+            if(dx) {
+                var f = 1 + (dx / 10); // [0.9 .. 1.1]
+                if( f > 1 || game.quirk.velocity1.length() > 1)
+                    game.quirk.velocity1.scale(f).limit(30);
+                if( f > 1 || game.quirk.velocity2.length() > 1)
+                    game.quirk.velocity2.scale(f).limit(30);
+            }
+            var dy = stick.getX(); 
+            if((dy < 0 && game.quirk.maxLines > 2) || (dy > 0 && game.quirk.maxLines < 150))
+                game.quirk.maxLines += dy;
+            return true; 
+        };
         game.onResize = function(e, width, height){
             game.debug("onResize: " + width + " x " + height);
             // Adjust controls that are relative to right or bottom border 

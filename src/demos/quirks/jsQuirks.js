@@ -14,7 +14,8 @@ var QuirksGame = ArcadeJS.extend({
         this._super(canvas, opts);
         
         // Create an object and add it to the game
-        this.addObject(new Quirk());
+        this.quirk = this.addObject(new Quirk());
+        
         // Start render loop
         this.startLoop()
     },
@@ -28,8 +29,9 @@ var Quirk = Movable.extend({
     init: function(opts) {
 		// Inititalize this game object
         this._super("quirk");
-        // Initialize the first of max. 50 lines and velocity
         this.maxLines = 50;
+    	this.color = "#80ff80";
+    	// Initialize the first of max. 50 lines and velocity
         this.lines = [];
         this.pos1 = new Point2(LinaJS.randomInt(100, 200), LinaJS.randomInt(100, 200));
         this.velocity1 = new Vec2(LinaJS.randomInt(2, 10), LinaJS.randomInt(1, 10));
@@ -39,7 +41,7 @@ var Quirk = Movable.extend({
     step: function() {
     	// Add another line (discard oldest, if max. is reached)
     	// Note that we use pos.copy() so every line has it's own Point2 instance
-    	if( this.lines.length > this.maxLines )
+    	while( this.lines.length > this.maxLines )
     		this.lines.shift();
     	this.lines.push({pos1: this.pos1.copy(), pos2: this.pos2.copy()});
     	// Calculate new position for first point
@@ -66,7 +68,8 @@ var Quirk = Movable.extend({
     },
     render: function(ctx) {
     	// Draw the list of lines to the canvas
-    	ctx.strokeStyle = "#80ff80";
+    	ctx.strokeStyle = this.color;
+    	this.game.debug("render: " + this.color);
 		for(var i=0; i<this.lines.length; i++){
 			var l = this.lines[i];
 			ctx.beginPath();  

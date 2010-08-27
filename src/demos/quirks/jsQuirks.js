@@ -45,16 +45,24 @@ var Quirk = Movable.extend({
     	// Calculate new position for first point
     	this.pos1.translate(this.velocity1);
     	// Invert velocity vector, when bouncing at the canvas borders
-    	if(this.pos1.x < 0 || this.pos1.x >= this.game.canvas.width)
+    	if((this.pos1.x < 0 && this.velocity1.dx < 0)
+    		|| (this.pos1.x >= this.game.canvas.width && this.velocity1.dx > 0)) {
     		this.velocity1.dx *= -1;
-    	if(this.pos1.y < 0 || this.pos1.y >= this.game.canvas.height)
-    		this.velocity1.dy *= -1;
+    	}
+    	if((this.pos1.y < 0 && this.velocity1.dy < 0)
+        		|| (this.pos1.y >= this.game.canvas.height && this.velocity1.dy > 0)) {
+        		this.velocity1.dy *= -1;
+    	}
     	// Calculate new position and velocity for second point
     	this.pos2.translate(this.velocity2);
-    	if(this.pos2.x < 0 || this.pos2.x >= this.game.canvas.width)
-    		this.velocity2.dx *= -1;
-    	if(this.pos2.y < 0 || this.pos2.y >= this.game.canvas.height)
-    		this.velocity2.dy *= -1;
+    	if((this.pos2.x < 0 && this.velocity2.dx < 0)
+        		|| (this.pos2.x >= this.game.canvas.width && this.velocity2.dx > 0)) {
+        		this.velocity2.dx *= -1;
+    	}
+    	if((this.pos2.y < 0 && this.velocity2.dy < 0)
+        		|| (this.pos2.y >= this.game.canvas.height && this.velocity2.dy > 0)) {
+        		this.velocity2.dy *= -1;
+    	}
     },
     render: function(ctx) {
     	// Draw the list of lines to the canvas

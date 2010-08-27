@@ -84,7 +84,7 @@
 })();
 
 
-/******************************************************************************/
+/*----------------------------------------------------------------------------*/
 
 
 /**
@@ -354,18 +354,26 @@ var ArcadeJS = Class.extend(
         });
         // Adjust canvas height and width on resize events
         $(window).resize(function(e){
-        	if(!this.onResize || this.onResize(e) !== false) {
+			var $c = $(self.canvas);
+        	var width = $c.width(),
+        		height = $c.height();
+        	if(!self.onResize || self.onResize(e, width, height) !== false) {
         		switch(self.resizeMode) {
 				case "adjust":
-					var $c = $(self.canvas);
-	        		self.canvas.width = $c.width();
-	        		self.canvas.height = $c.height();
+	        		self.debug("window.resize: adjusting canvas from " + self.canvas.width + "px x " + self.canvas.height + "px");
+	        		self.canvas.width = width;
+	        		self.canvas.height = height;
+	        		self.debug("window.resize: adjusting canvas to " + self.canvas.width + "px x " + self.canvas.height + "px");
 					break;
 				default:
 					// Keep current coordinate range and zoom/shrink output(default 300x150)
 				}
-//        		self.debug("ArcadeJS resized to: %sx%s", self.canvas.width, self.canvas.height);
+        		// Resizing resets the canvas context(?) 
+        		self.context.strokeStyle = self.opts.strokeStyle;
+        		self.context.fillStyle = self.opts.fillStyle;
         	}
+        	// Trigger on load
+            $(window).resize();
         });
     },
     toString: function() {
@@ -678,6 +686,8 @@ var ArcadeJS = Class.extend(
     /**@function Called when window is resized (and on start).
      * The default processing depends on the 'resizeMode' option.
      * @param {Event} e
+     * @param {Int} width
+     * @param {Int} height
      * @returns false to prevent default handling
      */
     onResize: undefined,

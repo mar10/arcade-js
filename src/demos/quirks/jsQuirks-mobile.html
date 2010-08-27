@@ -29,35 +29,42 @@
 	// http://articles.sitepoint.com/article/iphone-development-12-tips/
 	
 	$(function(){
-	
+        $("#btnLandscape").click(function(){$("body").removeClass("portrait").addClass("landscape");});
+        $("#btnPortrait").click(function(){$("body").removeClass("landscape").addClass("portrait");});
 		var canvas = document.getElementById("canvas1");
 		var game = new QuirksGame(canvas, {
 			debug: {showFps: true}
 			});
-        game.addObject(new TouchStick({
+        // Add iPod extensions
+        var stick = game.addObject(new TouchStick({
             pos: new Point2(60, canvas.height - 60),
             r1: 10,
             r2: 30
         }));
-        game.addObject(new TouchButton({
+        var btn1 = game.addObject(new TouchButton({
             pos: new Point2(canvas.width - 40, canvas.height - 40),
             r: 20
         }));
-
-        // Evaluate canvas size changes
-        $(canvas).bind("resize", function() {
-            //alert("canvas resized: "+this);
-        });
-        $(canvas).trigger("resize");
-        
+        game.onResize = function(e, width, height){
+            game.debug("onResize: " + width + " x " + height);
+            // Adjust controls that are relative to right or bottom border 
+            stick.pos = new Point2(60, height - 60);
+            btn1.pos = new Point2(width - 40, height - 40);
+            // Let ArcadeGame adjust canvas size to new dimensions
+            return true; 
+        };
 		// Evaluate orientation changes
-        $(document).bind("onorientationchange", function() {
+        $(document).bind("onorientationchange", function(e) {
+            if(window.orientation === undefined)
+                return;
+            
             if(Math.abs(window.orientation) === 90){
                 $("body").removeClass("portrait").addClass("landscape");
             }else{
                 $("body").removeClass("landscape").addClass("portrait");
             }
-//            alert("onorientationchange: " + window.orientation + ": class=" + $("body").attr("class"));
+            game.debug("onorientationchange: class=" + $("body").attr("class") + ", e=" + e);
+            return false;
         });
         $(document).trigger("onorientationchange");
         
@@ -67,13 +74,17 @@
 	});
 	--></script>
 </head>
-<body class="portrait">
+<body>
+<!--
 <div class="box">
-<!--     <h1>jsQuirks</h1>  -->
+     <h1>jsQuirks</h1>
     <a href="http://arcade-js.googlecode.com/">jsQuirks - iPhone edition</a>
 </div>
-
-<canvas id="canvas1" class="arcade-js">This game requires HTML 5 support.</canvas>
-
+-->
+<div class="arcade-js">
+    <canvas id="canvas1" class="arcade-js">This game requires HTML 5 support.</canvas>
+</div>
+<button id="btnLandscape">Landscape</button>
+<button id="btnPortrait">Portrait</button>
 </body>
 </html>

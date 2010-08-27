@@ -46,32 +46,46 @@ body {
 .box {  
    -webkit-border-radius: 5px;  
    -moz-border-radius: 5px;  
+   padding: 5px;
+   text-align: center;
    background: #ddd;  
    border: 1px solid #aaa;  
 }
 
 body.portrait {  
-   color: red;  
 }  
  
 body.landscape {  
-   color: blue;  
 }
 
-canvas.arcade-js {
-    width: 95%;  /* 320px on an iPhone */
-    width: device-width;  /* 320px or 480 on an iPhone */
+div.arcade-js {
+    border: 1px dotted red;
+    padding: 0;
+    width: 95%;
+/*    position: absolute;
+    top: 50px;
+    left: 10px;
+    bottom: 10px;
+    right: 10px;*/
+    text-align: center;  
+}
+body.portait div.arcade-js {
+    width: device-width;  /* 320px or 480px on an iPhone */
+    max-width: 320px;  
     height: device-height;  
+    max-height: 356px; /* Free viewport size, when URL bar is visible: 356px.*/
 }
-
-body.portrait canvas.arcade-js {
-    width: device-width;  /* 320px on an iPhone */
-    height: 356px; /* Free viewport size, when URL bar is visible: 356px.*/  
-/*    border: 3px solid red;*/
+body.landscape div.arcade-js {
+    width: device-width;  /* 320px or 480 on an iPhone */
+    max-width: 480px;  
+    height: device-height;  
+    max-height: 208px;  /* Free viewport size, when URL bar is visible: 208px. */
 }
-
-body.landscape canvas.arcade-js {
-    width: device-width;  /* 480px on an iPhone */
-    height: 208px; /* Free viewport size, when URL bar is visible: 208px. */  
-/*    border: 3px solid blue;*/
+canvas.arcade-js {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;  
+   -webkit-border-radius: 5px;  
+   -moz-border-radius: 5px;  
 }

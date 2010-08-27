@@ -373,6 +373,8 @@ var ArcadeJS = Class.extend(
         		// Resizing resets the canvas context(?) 
         		self.context.strokeStyle = self.opts.strokeStyle;
         		self.context.fillStyle = self.opts.fillStyle;
+        		// Trigger afterResize callback
+            	self.afterResize && self.afterResize(e);
         	}
         });
     	// Trigger first resize event on load

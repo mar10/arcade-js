@@ -55,22 +55,17 @@
         };
 		// Evaluate orientation changes
         $(document).bind("onorientationchange", function(e) {
-            if(window.orientation === undefined)
-                return;
-            
             if(Math.abs(window.orientation) === 90){
                 $("body").removeClass("portrait").addClass("landscape");
             }else{
                 $("body").removeClass("landscape").addClass("portrait");
             }
             game.debug("onorientationchange: class=" + $("body").attr("class") + ", e=" + e);
-            return false;
+            // Scroll one pixel down, so Safari URL toolbar disappears
+            setTimeout(scrollTo, 0, 0, 1);
         });
-        $(document).trigger("onorientationchange");
-        
-        // Scroll one pixel down, so Safari URL toolbar disappears
-        setTimeout(scrollTo, 0, 0, 1);
-
+        if(window.orientation !== undefined)
+            $(document).trigger("onorientationchange");
 	});
 	--></script>
 </head>

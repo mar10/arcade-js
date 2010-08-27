@@ -19,7 +19,7 @@
     <!-- Safari/iPhone: Display web content in full-screen mode: -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <!-- Safari/iPhone: Hide status bar (requires full-screen mode) -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <!-- Safari/iPhone: Set fixed viewport -->
 	<meta name="viewport" content="user-scalable = no, width = device-width">
     <!-- Safari/iPhone: Define App icon: -->
@@ -54,7 +54,7 @@
             return true; 
         };
 		// Evaluate orientation changes
-        $(window).live("onorientationchange", function(e) {
+        $(window).bind("onorientationchange", function(e) {
             game.debug("onorientationchange: e=" + e);
             alert("ooc");
             if(Math.abs(window.orientation) === 90){
@@ -66,8 +66,8 @@
             // Scroll one pixel down, so Safari URL toolbar disappears
             setTimeout(scrollTo, 10, 0, 1);
         });
-        if(window.orientation !== undefined)
-            $(window).trigger("onorientationchange");
+//        if(window.orientation !== undefined)
+//            $(window).trigger("onorientationchange");
 	});
 	--></script>
 </head>
@@ -78,9 +78,9 @@
     <a href="http://arcade-js.googlecode.com/">jsQuirks - iPhone edition</a>
 </div>
 -->
-<div class="arcade-js">
-    <canvas id="canvas1" class="arcade-js">This game requires HTML 5 support.</canvas>
+<div class="arcade-jsXXX">
 </div>
+<canvas id="canvas1" class="arcade-js">This game requires HTML 5 support.</canvas>
 <button id="btnLandscape">Landscape</button>
 <button id="btnPortrait">Portrait</button>
 </body>

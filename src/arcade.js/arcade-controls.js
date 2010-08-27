@@ -125,16 +125,18 @@ var TouchStick = Movable.extend(
 		// We want drag events
         // http://developer.apple.com/safari/library/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW1
     	// http://www.sitepen.com/blog/2008/07/10/touching-and-gesturing-on-the-iphone/
-//    	this.game.debug("Canvas touch event '" + e.type + "': e=" + e);
+    	this.game.debug("Canvas touch event '" + e.type + "'");
     	var touch = orgEvent.changedTouches.length == 1 ? orgEvent.changedTouches[0] : null;
     	var touchPos = touch ? new Point2(
         	touch.pageX - this.game.canvas.offsetLeft, 
         	touch.pageY - this.game.canvas.offsetTop) : null;
-
+    	this.game.debug("Canvas touch event '" + e.type + "': id=" + touch.identifier + ", t=" + touch.target);
+       	this.game.debug("- touchDownPos: id=" + orgEvent.identifier + ", " + this.touchDownPos + ", drag: " + this.touchDragOffset);
         switch (e.type) {
 		case "touchstart":
 			if(this.contains(touchPos)){
 	        	this.touchDownPos = touchPos;
+	        	this.touchDownId = touch.identifier;
 	        	orgEvent.preventDefault();
 			}
 			break;

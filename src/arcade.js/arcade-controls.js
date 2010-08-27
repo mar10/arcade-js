@@ -14,12 +14,24 @@
  * @version 0.0.1
  */
 
+function _getTouchWithId(touchList, id){
+	if(id && touchList && touchList.length){
+		for(var i=0; i<touchList.length; i++) {
+			var touch = touchList[i]; 
+			if(touch.identifier === id)
+				return touch;
+		}
+	}
+	return null;
+}
+
 /*----------------------------------------------------------------------------*/
 
 /**Button for touchscreen devices. 
  * @class
  * @extends Movable 
  */
+
 var TouchButton = Movable.extend(
 /** @lends TouchButton.prototype */
 {
@@ -30,6 +42,8 @@ var TouchButton = Movable.extend(
 		}, opts));
 		// Copy selected options as object attributes
         ArcadeJS.extendAttributes(this, this.opts, "r onClick");
+        this.touchDownId = null;
+        this.clicked = false;
         this.down = false;
     },
     getBoundingRadius: function() {
@@ -45,24 +59,49 @@ var TouchButton = Movable.extend(
     	ctx.fillStyle = gradient;    	
     	ctx.fillCircle2(0, 0, this.r);
 	},
+    onMousedown: function(e) {
+    	this.down = this.clicked = this.contains(this.game.mousePos);
+    },
+    onMousemove: function(e) {
+    	this.down = this.clicked && this.contains(this.game.mousePos);
+    },
+    onMouseup: function(e) {
+    	if(this.clicked && this.contains(this.game.mousePos))
+    		this.onClick(this);
+    	this.down = this.clicked = false;
+    },
     onTouchevent: function(e, orgEvent) {
-    	var touch = orgEvent.changedTouches[0];
-    	var touchPos = touch ? new Point2(
+    	var touch = null;
+    	if(this.touchDownId){
+    		touch = _getTouchWithId(orgEvent.changedTouches, this.touchDownId);    		
+    	}else if(e.type == "touchstart" && orgEvent.changedTouches.length == 1) {
+        	touch =  orgEvent.changedTouches[0];
+    	}
+    	// Ignore event, if touch identifier is different from start event
+    	if(!touch)
+    		return;
+    	// Otherwise, prevent default handling
+    	orgEvent.preventDefault();
+
+    	var touchPos = new Point2(
         	touch.pageX - this.game.canvas.offsetLeft, 
-        	touch.pageY - this.game.canvas.offsetTop) : null;
-        var isInside = touchPos && this.contains(touchPos);
+        	touch.pageY - this.game.canvas.offsetTop);
+        var isInside = this.contains(touchPos);
     	switch (e.type) {
 		case "touchstart":
 		case "touchmove":
+        	this.touchDownId = touch.identifier;
         	this.down = isInside;
 			break;
 		case "touchend":
         	if(this.down && isInside){
         		this.onClick(this);
         	}
+        	this.touchDownId = null;
         	this.down = false;
 			break;
 		default:
+        	this.touchDownId = null;
         	this.down = false;
 			break;
 		}
@@ -88,7 +127,7 @@ var TouchStick = Movable.extend(
 		// Copy selected options as object attributes
         ArcadeJS.extendAttributes(this, this.opts, "r1 r2");
         this.touchDownPos = null;
-        this.touchPos = null;
+        this.touchDownId = null;
         this.touchDragOffset = null;
     },
     getBoundingRadius: function() {
@@ -119,39 +158,46 @@ var TouchStick = Movable.extend(
 	},
     onDragstart: function(clickPos) {
 		// We want drag events
-		return true;
+		return this.contains(this.game.mousePos);
     },
     onTouchevent: function(e, orgEvent) {
 		// We want drag events
         // http://developer.apple.com/safari/library/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW1
     	// http://www.sitepen.com/blog/2008/07/10/touching-and-gesturing-on-the-iphone/
-    	this.game.debug("Canvas touch event '" + e.type + "'");
-    	var touch = orgEvent.changedTouches.length == 1 ? orgEvent.changedTouches[0] : null;
-    	var touchPos = touch ? new Point2(
+    	this.game.debug("Canvas touch event '" + e.type + "',  id=" + this.touchDownId + ", pos=" + this.touchDownPos + ", drag=" + this.touchDragOffset);
+    	var touch = null;
+    	if(this.touchDownId){
+    		touch = _getTouchWithId(orgEvent.changedTouches, this.touchDownId);    		
+    	}else if(e.type == "touchstart" && orgEvent.changedTouches.length == 1) {
+        	touch =  orgEvent.changedTouches[0];
+    	}
+    	// Ignore event, if touch identifier is different from start event
+    	if(!touch)
+    		return;
+    	// Otherwise, prevent default handling
+    	orgEvent.preventDefault();
+
+    	var touchPos = new Point2(
         	touch.pageX - this.game.canvas.offsetLeft, 
-        	touch.pageY - this.game.canvas.offsetTop) : null;
-    	this.game.debug("Canvas touch event '" + e.type + "': id=" + touch.identifier + ", t=" + touch.target);
-       	this.game.debug("- touchDownPos: id=" + orgEvent.identifier + ", " + this.touchDownPos + ", drag: " + this.touchDragOffset);
+        	touch.pageY - this.game.canvas.offsetTop);
+//    	this.game.debug("Canvas touch event '" + e.type + "': id=" + touch.identifier + ", t=" + touch.target);
+//      this.game.debug("- touchDownPos: id=" + this.touchDownId + ", " + this.touchDownPos + ", drag: " + this.touchDragOffset);
         switch (e.type) {
 		case "touchstart":
 			if(this.contains(touchPos)){
 	        	this.touchDownPos = touchPos;
 	        	this.touchDownId = touch.identifier;
-	        	orgEvent.preventDefault();
 			}
 			break;
 		case "touchmove":
-			if(this.touchDownPos){
-				// Drag vector is always relative to controls center
-            	this.touchDragOffset = new Vec2(
-            		touchPos.x - this.pos.x, 
-            		touchPos.y - this.pos.y);
+			// Drag vector is always relative to controls center
+        	this.touchDragOffset = new Vec2(
+        		touchPos.x - this.pos.x, 
+        		touchPos.y - this.pos.y);
 //            	this.game.debug("- touchDownPos: " + this.touchDownPos + ", drag: " + this.touchDragOffset);
-	        	orgEvent.preventDefault();
-			}
 			break;
 		default:
-        	this.touchDownPos = this.touchDragOffset = null;
+        	this.touchDownPos = this.touchDownId = this.touchDragOffset = null;
 			break;
 		}
     },

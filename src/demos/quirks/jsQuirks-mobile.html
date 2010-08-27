@@ -54,7 +54,7 @@
             return true; 
         };
 		// Evaluate orientation changes
-        $(window).bind("onorientationchange", function(e) {
+        $(window).live("onorientationchange", function(e) {
             game.debug("onorientationchange: e=" + e.originalEvent);
             alert("ooc");
             if(Math.abs(window.orientation) === 90){

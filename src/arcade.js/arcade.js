@@ -361,8 +361,10 @@ var ArcadeJS = Class.extend(
         		switch(self.resizeMode) {
 				case "adjust":
 	        		self.debug("window.resize: adjusting canvas from " + self.canvas.width + "px x " + self.canvas.height + "px");
-	        		self.canvas.width = width;
-	        		self.canvas.height = height;
+	        		if(self.canvas.width != width)
+	        			self.canvas.width = width;
+	        		if(self.canvas.height != height)
+	        			self.canvas.height = height;
 	        		self.debug("window.resize: adjusting canvas to " + self.canvas.width + "px x " + self.canvas.height + "px");
 					break;
 				default:

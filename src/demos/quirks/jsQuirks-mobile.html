@@ -1,29 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
     <title>jsQuirks - Mobile</title>
     <!-- 
     <link href="../../depends/sample.css" rel="stylesheet" media="screen and (min-width:481px)">
     <link href="iphone.css" rel="stylesheet" media="only screen and (max-width:480px)">
      -->
     <link href="iphone.css" rel="stylesheet">
-	<script src="../../depends/jquery.js"></script>
-	<script src="../../depends/jquery.mousewheel.js"></script>
+	<script src="../../depends/jquery.js" type="text/javascript"></script>
+	<script src="../../depends/jquery.mousewheel.js" type="text/javascript"></script>
 
-	<script src="../../lina.js/lina.js"></script>
-    <script src="../../arcade.js/arcade.js"></script>
-    <script src="../../arcade.js/arcade-controls.js"></script>
+	<script src="../../lina.js/lina.js" type="text/javascript"></script>
+    <script src="../../arcade.js/arcade.js" type="text/javascript"></script>
+    <script src="../../arcade.js/arcade-controls.js" type="text/javascript"></script>
 
-	<script src="jsQuirks.js"></script>
+	<script src="jsQuirks.js" type="text/javascript"></script>
 
     <!-- Safari/iPhone: Display web content in full-screen mode: -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
+<!-- 
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <!-- Safari/iPhone: Hide status bar (requires full-screen mode) -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<!-- 
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <!-- Safari/iPhone: Set fixed viewport -->
+<!-- 
 	<meta name="viewport" content="user-scalable = no, width = device-width">
     <!-- Safari/iPhone: Define App icon: -->
-	<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+	<link rel="apple-touch-icon" href="apple-touch-icon.png">
 
 	<script type="text/javascript"><!--
 	// http://articles.sitepoint.com/article/iphone-development-12-tips/
@@ -41,10 +45,13 @@
             r1: 10,
             r2: 30
         }));
+        var thrustSound = new AudioJS("thrust.wav");
+        
         var btn1 = game.addObject(new TouchButton({
             pos: new Point2(canvas.width - 40, canvas.height - 40),
             r: 20,
             onClick: function(){
+        	    thrustSound.play();
                 if(this.game.quirk.color == "red")
                 	this.game.quirk.color = "green";
                 else
@@ -74,20 +81,20 @@
             return true; 
         };
 		// Evaluate orientation changes
-        $(window).bind("onorientationchange", function(e) {
-            game.debug("onorientationchange: e=" + e);
-            alert("ooc");
+        game.debug("bindong ooc: ");
+        $(window).bind("orientationchange", function(e) {
+//            game.debug("orientationchange: e=" + e);
             if(Math.abs(window.orientation) === 90){
-//                $("body").removeClass("portrait").addClass("landscape");
+                $("body").removeClass("portrait").addClass("landscape");
             }else{
-//                $("body").removeClass("landscape").addClass("portrait");
+                $("body").removeClass("landscape").addClass("portrait");
             }
-            game.debug("onorientationchange: class=" + $("body").attr("class") + ", e=" + e);
+            game.debug("orientationchange: class=" + $("body").attr("class") + ", e=" + e);
             // Scroll one pixel down, so Safari URL toolbar disappears
             setTimeout(scrollTo, 10, 0, 1);
         });
-//        if(window.orientation !== undefined)
-//            $(window).trigger("onorientationchange");
+        if(window.orientation !== undefined)
+            $(window).trigger("orientationchange");
 	});
 	--></script>
 </head>
@@ -98,6 +105,11 @@
     <a href="http://arcade-js.googlecode.com/">jsQuirks - iPhone edition</a>
 </div>
 -->
+<audio id="clip" controls="false" preload="auto" src="thrust.mp3" autoplay="true">
+           <source src="thrust.wav" type="audio/wave">
+           <source src="thrust.mp3" type="audio/mpeg">
+        </audio>
+
 <div class="arcade-jsXXX">
 </div>
 <canvas id="canvas1" class="arcade-js">This game requires HTML 5 support.</canvas>

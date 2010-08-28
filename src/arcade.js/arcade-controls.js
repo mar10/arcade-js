@@ -153,13 +153,6 @@ var TouchStick = Movable.extend(
     	if(this.touchDragOffset){
     		pos2.translate(this.touchDragOffset.limit(this.r2));
     	}
-//    	var pos2 = new Point2(0, 0);
-//    	if(this.touchDragOffset){
-//    		pos2.translate(this.touchDragOffset.limit(this.r2));
-////        	this.game.debug("Render: touchPos: " + this.touchPos+", "+this.touchDragOffset);
-//    	}else if(this.game.dragOffset) {
-//    		pos2.translate(this.game.dragOffset.limit(this.r2));
-//    	}
     	var gradient = ctx.createRadialGradient(pos2.x, pos2.y, 0, pos2.x+3, pos2.y-3, this.r1);
     	gradient.addColorStop(0, "#fff");
     	gradient.addColorStop(0.7, "#ccc");
@@ -170,6 +163,7 @@ var TouchStick = Movable.extend(
     onDragstart: function(clickPos) {
 		if(this.contains(this.game.mousePos)){
 			this.touchDownPos = this.pos;
+        	this.touchDragOffset = new Vec2(0, 0);
 			return true;
 		}
 		this.touchDownPos = null;
@@ -189,16 +183,18 @@ var TouchStick = Movable.extend(
     onTouchevent: function(e, orgEvent) {
         // http://developer.apple.com/safari/library/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW1
     	// http://www.sitepen.com/blog/2008/07/10/touching-and-gesturing-on-the-iphone/
-    	this.game.debug("Canvas touch event '" + e.type + "',  id=" + this.touchDownId + ", pos=" + this.touchDownPos + ", drag=" + this.touchDragOffset);
+//    	this.game.debug("Canvas touch event '" + e.type + "',  id=" + this.touchDownId + ", pos=" + this.touchDownPos + ", drag=" + this.touchDragOffset);
     	var touch = null;
     	if(this.touchDownId){
     		touch = _getTouchWithId(orgEvent.changedTouches, this.touchDownId);    		
+//        	alert("1 Canvas touch event '" + e.type + "'"+touch);
     	}else if(e.type == "touchstart" && orgEvent.changedTouches.length == 1) {
         	touch =  orgEvent.changedTouches[0];
     	}
     	// Ignore event, if touch identifier is different from start event
     	if(!touch)
     		return;
+//    	if(e.type!="touchstart") alert("3 Canvas touch event '" + e.type + "'"+touch);
     	// Otherwise, prevent default handling
     	orgEvent.preventDefault();
 
@@ -211,6 +207,7 @@ var TouchStick = Movable.extend(
 		case "touchstart":
 			if(this.contains(touchPos)){
 	        	this.touchDownPos = touchPos;
+	        	this.touchDragOffset = new Vec2(0, 0);
 	        	this.touchDownId = touch.identifier;
 			}
 			break;
@@ -232,17 +229,16 @@ var TouchStick = Movable.extend(
     },
 	/**Return x deflection [-1.0 .. +1.0]. */
     getX: function() {
-		return this.isActive() ? (this.game.mousePos.x - this.touchDownPos.x) / this.r2 : 0;
+//		return this.isActive() ? (this.game.mousePos.x - this.touchDownPos.x) / this.r2 : 0;
+		return this.isActive() ? this.touchDragOffset.dx / this.r2 : 0;
     },
 	/**Return y deflection [-1.0 .. +1.0]. */
     getY: function() {
-		return this.isActive() ? (this.game.mousePos.y - this.touchDownPos.y) / this.r2 : 0;
+		return this.isActive() ? this.touchDragOffset.dy / this.r2 : 0;
     },
 	/**Return deflection vector with length [0..r2]. */
     getDeflection: function() {
-		if(!this.isActive())
-			return Vec2(0, 0);
-		return this.touchDownPos.vectorTo(this.game.mousePos).limit(this.r2);
+		return this.isActive() ? this.touchDragOffset.copy().normalize() : 0;
     },
 	/**Called when button was clicked (i.e. pushed and released). */
     onClick: undefined,

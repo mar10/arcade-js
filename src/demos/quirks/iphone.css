@@ -75,8 +75,9 @@ div.arcade-js {
     text-align: center;  
 }
 body.portait div.arcade-js {
-    width: device-width;  /* 320px or 480px on an iPhone */
-    max-width: 320px;  
+/*    width: device-width;  /* 320px or 480px on an iPhone */
+/*    max-width: 320px;*/
+    width: 416px;  
     height: device-height;  
     max-height: 356px; /* Free viewport size, when URL bar is visible: 356px.*/
 }
@@ -86,15 +87,22 @@ body.landscape div.arcade-js {
     height: device-height;  
     max-height: 208px;  /* Free viewport size, when URL bar is visible: 208px. */
 }
+/* http://developer.apple.com/safari/library/documentation/internetweb/conceptual/iPhoneWebAppHIG/MetricsLayout/MetricsLayout.html */
 canvas.arcade-js {
     padding: 0;
     margin: 0;
     width: device-width;  /* 320px or 480 on an iPhone */
-    height: device-height;  
+/*    width: 320px;*/
+    height: 416px;  
 /*
     width: 100%;
     height: 100%;
 */
    -webkit-border-radius: 5px;  
    -moz-border-radius: 5px;  
+}
+body.landscape canvas.arcade-js {
+	/*width: 480px;*/
+    width: device-width;  /* 320px or 480 on an iPhone */
+	height: 208px;  
 }

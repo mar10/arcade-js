@@ -126,7 +126,7 @@ $.extend(AudioJS,
 			if( !this._soundElement ) {
 				this._soundElement = document.createElement("div");
 				this._soundElement.setAttribute("id", "AudioJS-sounds");
-				this._soundElement.setAttribute("hidden", true);
+//				this._soundElement.setAttribute("hidden", true);
 				document.body.appendChild(this._soundElement);		
 //				$(this._soundElement).bind('ended',{}, function() {
 //					window.console.log("AudioJS("+this+") loaded");
@@ -135,9 +135,12 @@ $.extend(AudioJS,
 			audio = this._audioList[url] = document.createElement("audio");
 //			audio.setAttribute("autoplay", true);
 			audio.setAttribute("preload", true);
+			audio.setAttribute("autobuffer", true);
 			audio.setAttribute("src", url);
 			this._soundElement.appendChild(audio);		
-			$(audio).bind('ended',{}, function() {
+			var audio2 = document.getElementsByTagName("audio");
+			var audio3 = document.createElement("audio");
+			$(audio).bind("ended", {}, function() {
 				// TODO: we can simulate looping if it is not natively supported:
 //			  	$(this).trigger('play');
 				if(window.console)
@@ -167,12 +170,17 @@ AudioJS.prototype = {
 	 *  @param {boolean} loop Optional, default: false
 	 */
 	play: function(loop) {
-		if(!this.audio.ended){
+		if(this.audio.ended === true){
 			// Interrupt currently playing sound
 			//this.audio.pause();
 			this.audio.currentTime = 0;
 		}
-		this.audio.play();
+		try{
+			this.audio.play();
+		}catch(e){
+			if(window.console)
+				window.console.log("audio.play() failed: " + e);
+		};
 	},
 	lastEntry: undefined
 }
@@ -380,7 +388,7 @@ var ArcadeJS = Class.extend(
         	}
         });
     	// Trigger first resize event on load
-//        $(window).resize();
+        $(window).resize();
     },
     toString: function() {
 //        return "ArcadeJS '" + this.name + "', activity: '" + this._activity + "'";
@@ -1016,7 +1024,8 @@ var Movable = Class.extend(
 	    // Set options
 	    this.opts = $.extend(true, {}, Movable.defaultOptions, opts);
 		// TODO: required?
-        this.opts.debug = $.extend({}, Movable.defaultOptions.debug, opts.debug);
+	    if(opts)
+	    	this.opts.debug = $.extend({}, Movable.defaultOptions.debug, opts.debug);
 		opts = this.opts; 
 		// Copy some options as direct attributes
         this.pos = opts.pos ? new Point2(opts.pos) : new Point2(0, 0);

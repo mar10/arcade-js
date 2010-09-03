@@ -707,65 +707,65 @@ Vec2.prototype = {
 	lastEntry : undefined
 }
 
-/**
- * 2d vector that has an internal polar coordinate representation:
-     * `a`: angle in radians
-     * `r`: distance 
-     * and support for transformations.
- * @constructor
-     * @param {radians|Polar2|JS-object} a
-     * @param {distance|undefined} r
- * @example 
- *   var v = new Polar2(Math.PI, 2);
- *   v.rotate(0.5*Math.PI).translate(1, 2);
- * 
- */
-Polar2 = function(a, r){
-	this.set(a, r);
-}
-Polar2.prototype = {
-		/** Return string representation '(a=_°, r=_)'. */
-		toString: function() {
-		    return "(a=" + LinaJS.DEG_TO_RAD*this.a + "°, r=" + this.r  + ")";
-		},
-		set: function(a, r) {
-			if(r === undefined){
-				if(a.a !== undefined){
-					// Copy from Polar2
-			        this.a = +a.a;
-			        this.r = +a.r;
-				}else{
-					// Copy from Vec2
-					this.a = Math.atan2(a.dy, a.dx);
-			    	this.r = Math.sqrt(a.dx * a.dx + a.dy * a.dy);
-				}
-			} else {
-		        this.a = +a;
-		        this.r = +r;
-			}
-			if( r === 0.0 )
-				throw "invalid argument";
-			return this;
-		},
-		getCartesian: function() {
-			// Return {x:.., y:..}
-			return {x: this.r * Math.cos(a),
-				    y: this.r * Math.sin(a) };
-		},
-		rotate: function(a) {
-			this.a += a;
-		},
-		normalize: function() {
-			this.r = 1;
-		},
-		scale: function(f) {
-			this.r *= 1;
-		},
-		setLength: function(l) {
-			this.r = l;
-		},
-		lastentry: undefined
-}
+///**
+// * 2d vector that has an internal polar coordinate representation:
+//     * `a`: angle in radians
+//     * `r`: distance 
+//     * and support for transformations.
+// * @constructor
+//     * @param {radians|Polar2|JS-object} a
+//     * @param {distance|undefined} r
+// * @example 
+// *   var v = new Polar2(Math.PI, 2);
+// *   v.rotate(0.5*Math.PI).translate(1, 2);
+// * 
+// */
+//Polar2 = function(a, r){
+//	this.set(a, r);
+//}
+//Polar2.prototype = {
+//	/** Return string representation '(a=_°, r=_)'. */
+//	toString: function() {
+//	    return "(a=" + LinaJS.DEG_TO_RAD*this.a + "°, r=" + this.r  + ")";
+//	},
+//	set: function(a, r) {
+//		if(r === undefined){
+//			if(a.a !== undefined){
+//				// Copy from Polar2
+//		        this.a = +a.a;
+//		        this.r = +a.r;
+//			}else{
+//				// Copy from Vec2
+//				this.a = Math.atan2(a.dy, a.dx);
+//		    	this.r = Math.sqrt(a.dx * a.dx + a.dy * a.dy);
+//			}
+//		} else {
+//	        this.a = +a;
+//	        this.r = +r;
+//		}
+//		if( r === 0.0 )
+//			throw "invalid argument";
+//		return this;
+//	},
+//	getCartesian: function() {
+//		// Return {x:.., y:..}
+//		return {x: this.r * Math.cos(a),
+//			    y: this.r * Math.sin(a) };
+//	},
+//	rotate: function(a) {
+//		this.a += a;
+//	},
+//	normalize: function() {
+//		this.r = 1;
+//	},
+//	scale: function(f) {
+//		this.r *= 1;
+//	},
+//	setLength: function(l) {
+//		this.r = l;
+//	},
+//	lastentry: undefined
+//}
 
 /*******************************************************************************
  * Class Matrix3

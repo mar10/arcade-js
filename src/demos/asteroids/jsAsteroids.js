@@ -20,19 +20,9 @@ var AsteroidsGame = ArcadeJS.extend({
 		}, customOpts);
         this._super(canvas, opts);
         
-        // Set the scene
-        var obj;
-        // Player rocket
-        obj = this.addObject(new Rocket())
-        // Asteroids
-        var speed = 0.5;
-		this._makeAsteroid(3, new Point2(0, 0), new Vec2(3, 4).setLength(speed));
-		this._makeAsteroid(3, new Point2(0, 0), new Vec2(-3, -1).setLength(speed));
-		this._makeAsteroid(3, new Point2(0, 0), new Vec2(-3, 3).setLength(speed));
-		this._makeAsteroid(3, new Point2(0, 0), new Vec2(1, -4).setLength(speed));
-
         // --- Status data -----------------------------------------------------
         this.liveCount = 3;
+        this.level = 1;
         this.score = 0;
         this.shotTtl = 40;
         this.shotDelay = 250; // ms
@@ -43,9 +33,33 @@ var AsteroidsGame = ArcadeJS.extend({
         this.gunSound = new AudioJS("fire.wav");
         this.explosionSound = new AudioJS("damage.wav");
         
+        // Set the scene
+        var obj;
+        // Player rocket
+        obj = this.addObject(new Rocket())
+        this._restartGame();
+
         // --- Start render loop -----------------------------------------------
-        this.setActivity("running");
         this.startLoop()
+    },
+    _restartGame: function(){
+        this.setActivity("prepare");
+
+        // Asteroids
+        var speed = 0.5 * (1.0 + (this.level - 1) * 0.3);
+        var pt0 = new Point2(0, 0);
+        for(var i=0; i<this.level; i++)
+			this._makeAsteroid(3, pt0, new Vec2(LinaJS.random(-3, 3), LinaJS.random(-3, 3)).setLength(speed));
+        /*
+		this._makeAsteroid(3, pt0, new Vec2(3, 4).setLength(speed));
+		this._makeAsteroid(3, pt0, new Vec2(-3, -1).setLength(speed));
+		this._makeAsteroid(3, pt0, new Vec2(-3, 3).setLength(speed));
+		if(this.level > 1)
+			this._makeAsteroid(3, pt0, new Vec2(1, -4).setLength(speed));
+			*/
+        this.setTimeout(2000, function(){
+            this.setActivity("running");
+        });
     },
     _makeAsteroid: function(size, pos, velocity){
     	this.addObject(new Asteroid({
@@ -60,6 +74,14 @@ var AsteroidsGame = ArcadeJS.extend({
 			}
     	}));
     },
+	preStep: function(){
+    	var hasAsteroids = this.getObjectsByType("asteroid").length > 0;
+    	if(!hasAsteroids){
+    		this.level += 1;
+    		this.score += 1000;
+    		this._restartGame();
+    	}
+    },
 	preDraw: function(ctx){
     	ctx.save();
 	    // Display score
@@ -69,6 +91,10 @@ var AsteroidsGame = ArcadeJS.extend({
     	if(this.getActivity() === "over"){
         	ctx.font = "30px sans-serif";
     		ctx.strokeText("Game over (hit [F5])", 200, 200);
+    	}
+    	if(this.getActivity() === "prepare"){
+        	ctx.font = "30px sans-serif";
+    		ctx.strokeText("Level " + this.level, 200, 200);
     	}
 	    // Draw lives
     	var live = new Polygon2([0, 5,
@@ -202,7 +228,7 @@ var Rocket = Movable.extend({
 		}
     },
     onKeypress: function(e) {
-    	this.game.debug("%s: '%s', %o", e.type, this.game.downKeyCodes);
+//    	this.game.debug("%s: '%s', %o", e.type, this.game.downKeyCodes);
     	if(this.game.isKeyDown(32)){ // Space
     		this.fire();
     	}

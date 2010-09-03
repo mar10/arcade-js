@@ -90,8 +90,9 @@ var TouchButton = Movable.extend(
     	switch (e.type) {
 		case "touchstart":
 		case "touchmove":
-        	this.touchDownId = touch.identifier;
         	this.down = isInside;
+        	if(isInside)
+        		this.touchDownId = touch.identifier;
 			break;
 		case "touchend":
         	if(this.down && isInside){

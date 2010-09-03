@@ -193,6 +193,8 @@ var ArcadeJS = Class.extend(
     init: function(canvas, opts) {
 		/**Game options (defaultGameOptions + options passed to the constructor).*/
 		this.opts = $.extend(true, {}, ArcadeJS.defaultGameOptions, opts);
+		// TODO: required?
+        this.opts.debug = $.extend({}, ArcadeJS.defaultGameOptions.debug, opts.debug);
 		// Copy selected options as object attributes
 		ArcadeJS.extendAttributes(this, this.opts, "name,fps,resizeMode");
 		
@@ -200,7 +202,6 @@ var ArcadeJS = Class.extend(
 		this.canvas = canvas;
 		/**Canvas 2d context*/
 		this.context = canvas.getContext("2d");
-//		this.context = _extendCanvasContext(this.context);
 		$.extend(this.context, ArcadeCanvas);
 		
         var $canvas = $(this.canvas);
@@ -238,7 +239,8 @@ var ArcadeJS = Class.extend(
 
         this._runLoopId = null;
     	this.stopRequest = false;
-        
+        this.timeout = 0;
+
 		this.clickPos = undefined;
 		this.mousePos = undefined;
 		this.dragOffset = undefined;
@@ -412,6 +414,29 @@ var ArcadeJS = Class.extend(
     			obj.onSetActivity(this, activity, prev);
     	}
         return prev;
+    },
+    /**Set current activity and trigger onSetActivity events.
+     * @param {Int} ms milliseconds
+     * @param {function} callback (optional), if ommited, this.onTimout is called.
+     * @returns {string} timer ID
+     */
+    setTimeout: function(ms, callback) {
+        // TODO: the param order differs from window.setTimeout
+        // TODO: required?
+    	// we have window.settimeout(), but that is not synchronized with the render loop
+    	var self = this;
+//    	callback = callback || function(){
+//    		self.onTimeout.call(self);
+//    	};
+    	if(callback){
+        	return window.setTimeout(function(){
+        		callback.call(self);
+        	}, ms);
+    	}else{
+        	return window.setTimeout(function(){
+        		self.onTimeout.call(self);
+        	}, ms);
+    	}
     },
     _renderLoop: function(){
 //        try {
@@ -687,6 +712,9 @@ var ArcadeJS = Class.extend(
 		// Narrow check required
 		return true;
     },
+    /**@function Callback, triggered when timeout expires (and no callback was given).
+     */
+    onTimeout: undefined,
     /**@function Called when window is resized (and on start).
      * The default processing depends on the 'resizeMode' option.
      * @param {Event} e
@@ -987,6 +1015,8 @@ var Movable = Class.extend(
         this._activity = null;
 	    // Set options
 	    this.opts = $.extend(true, {}, Movable.defaultOptions, opts);
+		// TODO: required?
+        this.opts.debug = $.extend({}, Movable.defaultOptions.debug, opts.debug);
 		opts = this.opts; 
 		// Copy some options as direct attributes
         this.pos = opts.pos ? new Point2(opts.pos) : new Point2(0, 0);
@@ -1030,11 +1060,12 @@ var Movable = Class.extend(
      */
     _step: function() {
     	// Fire timeout event, if one was scheduled
-      	if( this.timeout > 0 && this.onTimeout ) {
-    		this.timeout--;
-    		if( this.timeout == 0) {
-				this.onTimeout();
-    		}
+      	if( this.timeout && this.timeout < this.game.time && this.onTimeout ) {
+			this.onTimeout();
+//    		this.timeout--;
+//    		if( this.timeout == 0) {
+//				this.onTimeout();
+//    		}
     	}
     	// Kill this instance and fire 'die' event, if time-to-live has expired
       	if( this.ttl > 0) {
@@ -1077,7 +1108,7 @@ var Movable = Class.extend(
     	if( this.scale && this.scale != 1.0 )
     		ctx.scale(this.scale, this.scale);
     	if(this.opts.debug.showVelocity && this.velocity){
-        	ctx.strokeStyle = this.opts.debug.strokeStyle;
+        	ctx.strokeStyle = this.game.opts.debug.strokeStyle;
     		ctx.strokeVec2(this.velocity.copy().scale(this.opts.debug.velocityScale));
     	}
     	if( this.orientation )
@@ -1086,7 +1117,7 @@ var Movable = Class.extend(
     	this.render(ctx);
     	// Render optional debug infos
     	if(this.opts.debug.showBCircle && this.getBoundingRadius){
-        	ctx.strokeStyle = this.opts.debug.strokeStyle;
+        	ctx.strokeStyle = this.game.opts.debug.strokeStyle;
         	var circle = new Circle2({x:0, y:0}, this.getBoundingRadius());
     		var r = this.getBoundingRadius();
     		ctx.strokeCircle2({center:{x:0, y:0}, r:this.getBoundingRadius()});
@@ -1120,8 +1151,16 @@ var Movable = Class.extend(
 			this.onDie();
 		if(this._dead){
 			this.game._deadCount++;
-			this.game.purge(false);
+			if(!this.game.purge(false)){
+				// If we did not purge, make sure it is removed from the type map
+				var typeMap = this.game.typeMap[this.type]; 
+				var idx = typeMap.indexOf(this);
+				typeMap.splice(idx, 1);
+			}
 		}
+    },
+    isDead: function() {
+		return !!this._dead;
     },
     /**Return true, if point hits this object.
      * @param {Point2} pt Point in canvas coordinates
@@ -1205,7 +1244,7 @@ var Movable = Class.extend(
      * @param {string} prevActivity previous activity
      */
     onSetActivity: undefined,
-    /**@function Callback, triggered when timeout counter reaches zero.
+    /**@function Callback, triggered when timeout expires (and no callback was given).
      */
     onTimeout: undefined,
     /**@function Callback, triggered when this object dies.

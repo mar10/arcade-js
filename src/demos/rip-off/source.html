@@ -11,8 +11,8 @@
 		$.get (sourceFile, function(code){
             // Remove  Start_Exclude [...] End_Exclude  blocks:
             code = code.replace(/ Start_Exclude(.|\n|\r)*?End_Exclude /gi, " (Irrelevant source removed.) ");
-            // Reduce tabs from 8 to 2 characters
-            code = code.replace(/\t/g, "  ");
+            // Reduce tabs from 8 to 4 characters
+            code = code.replace(/\t/g, "    ");
             $("#code").text(code);
             // Format code samples
             try {

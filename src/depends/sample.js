@@ -47,8 +47,8 @@ function initCodeSamples() {
 					.replace(/<br><br>/g,'<br>');
 					.replace(/ /g,'&nbsp;');
 */
-				// Reduce tabs from 8 to 2 characters
-				code = code.replace(/\t/g, "  ");
+				// Reduce tabs from 8 to 4 characters
+				code = code.replace(/\t/g, "    ");
 				$("code", o.nextSibling).text(code);
 				o.nextSibling.hascode = true;
 				// Format code samples

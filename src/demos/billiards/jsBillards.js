@@ -73,10 +73,6 @@ var BillardsGame = ArcadeJS.extend({
         			isMoving = true;
         	}, "ball");
         	if(!isMoving) {
-    			if(this.hit1 && this.hit2){
-		    		this.applauseSound.play();
-		    		this.points += 1;
-    			}
     			this.hit1 = this.hit2 = false;
         		this.setActivity("idle");
         	}
@@ -169,10 +165,16 @@ var Ball = Movable.extend({
     		other.pos = coll.centerReflected2;
     		this.game.clickSound.play();
     		if(this.id == "player" || other.id == "player"){
-    			if(this.id == "ball_1" || other.id == "ball_1")
+    			var hasPoint = this.game.hit1 && this.game.hit2;
+    			if(this.id == "ball_1" || other.id == "ball_1"){
     				this.game.hit1 = true;
-    			else if(this.id == "ball_2" || other.id == "ball_2")
+    			} else if(this.id == "ball_2" || other.id == "ball_2") {
     				this.game.hit2 = true;
+    			}
+    			if(!hasPoint && this.game.hit1 && this.game.hit2){
+		    		this.game.applauseSound.play();
+		    		this.game.points += 1;
+    			}
     		}
     		// stop on next frame
 //	    	this.game.stopRequest = true;

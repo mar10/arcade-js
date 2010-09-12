@@ -24,10 +24,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <!-- Safari/iPhone: Set fixed viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;">
+<!--     
 	<meta name="viewport" content="user-scalable = no, width = device-width">
-
+ -->
     <!-- Safari/iPhone: Define App icon: -->
 	<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+    <!-- Safari/iPhone: Define startup icon: -->
+    <link rel="apple-touch-startup-image" href="startup.png">
 
 	<script type="text/javascript"><!--
 	// http://articles.sitepoint.com/article/iphone-development-12-tips/
@@ -81,7 +86,6 @@
             return true; 
         };
 		// Evaluate orientation changes
-        game.debug("bindong ooc: ");
         $(window).bind("orientationchange", function(e) {
 //            game.debug("orientationchange: e=" + e);
             if(Math.abs(window.orientation) === 90){
@@ -104,13 +108,13 @@
      <h1>jsQuirks</h1>
     <a href="http://arcade-js.googlecode.com/">jsQuirks - iPhone edition</a>
 </div>
+<button id="btnLandscape">Landscape</button>
+<button id="btnPortrait">Portrait</button>
+-->
 <audio id="clip" controls="false" preload="auto" src="thrust.mp3" autoplay="true">
            <source src="thrust.wav" type="audio/wave">
            <source src="thrust.mp3" type="audio/mpeg">
         </audio>
-<button id="btnLandscape">Landscape</button>
-<button id="btnPortrait">Portrait</button>
--->
 
 <div class="arcade-jsXXX">
 </div>

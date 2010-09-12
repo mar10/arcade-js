@@ -273,6 +273,7 @@ var ArcadeJS = Class.extend(
             		self.downKeyCodes.push(self.keyCode);
 //            	self.debug("Keydown %s: %o", self.key, self.downKeyCodes);
         	} else {
+//            	self.debug("Keypress %s: %o", self.key, e);
         		// keypress
         	}
         	for(var i=0; i<self.keyListeners.length; i++) {
@@ -1070,8 +1071,8 @@ var Movable = Class.extend(
     _step: function() {
     	// Fire timeout event, if one was scheduled
       	if( this.timeout && this.timeout < this.game.time && this.onTimeout ) {
+    		this.timeout = 0;
 			this.onTimeout();
-//    		this.timeout--;
 //    		if( this.timeout == 0) {
 //				this.onTimeout();
 //    		}

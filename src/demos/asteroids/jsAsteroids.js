@@ -48,16 +48,10 @@ var AsteroidsGame = ArcadeJS.extend({
         // Asteroids
         var speed = 0.5 * (1.0 + (this.level - 1) * 0.3);
         var pt0 = new Point2(0, 0);
-        for(var i=0; i<this.level; i++)
+        for(var i=0; i<this.level; i++){
 			this._makeAsteroid(3, pt0, new Vec2(LinaJS.random(-3, 3), LinaJS.random(-3, 3)).setLength(speed));
-        /*
-		this._makeAsteroid(3, pt0, new Vec2(3, 4).setLength(speed));
-		this._makeAsteroid(3, pt0, new Vec2(-3, -1).setLength(speed));
-		this._makeAsteroid(3, pt0, new Vec2(-3, 3).setLength(speed));
-		if(this.level > 1)
-			this._makeAsteroid(3, pt0, new Vec2(1, -4).setLength(speed));
-			*/
-        this.setTimeout(2000, function(){
+        }
+        this.setTimeout(5000, function(){
             this.setActivity("running");
         });
     },
@@ -91,8 +85,9 @@ var AsteroidsGame = ArcadeJS.extend({
     	if(this.getActivity() === "over"){
         	ctx.font = "30px sans-serif";
     		ctx.strokeText("Game over (hit [F5])", 200, 200);
-    	}
-    	if(this.getActivity() === "prepare"){
+    	}else if(this.getActivity() === "prepare"){
+    		// Doesn't work in chrome
+    		// http://code.google.com/p/chromium/issues/detail?id=44017
         	ctx.font = "30px sans-serif";
     		ctx.strokeText("Level " + this.level, 200, 200);
     	}
@@ -227,7 +222,8 @@ var Rocket = Movable.extend({
             this.setActivity("idle");
 		}
     },
-    onKeypress: function(e) {
+//    onKeypress: function(e) {
+    onKeydown: function(e, key) {
 //    	this.game.debug("%s: '%s', %o", e.type, this.game.downKeyCodes);
     	if(this.game.isKeyDown(32)){ // Space
     		this.fire();

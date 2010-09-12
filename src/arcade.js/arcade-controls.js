@@ -87,6 +87,13 @@ var TouchButton = Movable.extend(
         	touch.pageX - this.game.canvas.offsetLeft, 
         	touch.pageY - this.game.canvas.offsetTop);
         var isInside = this.contains(touchPos);
+
+    	// TODO: seems that we get touchend for both fingers, even if only the other 
+    	// finger was lifted!
+    	// http://stackoverflow.com/questions/3695128/webkit-iphone-ipad-issue-with-mutl-touch
+    	if(e.type!="touchmove") 
+        	this.game.debug("button " + e.type + " - isInside: " + isInside + ", drag: " + this.touchDragOffset + ", id=" + touch.identifier);
+
     	switch (e.type) {
 		case "touchstart":
 		case "touchmove":
@@ -101,10 +108,12 @@ var TouchButton = Movable.extend(
         	this.touchDownId = null;
         	this.down = false;
 			break;
-		default:
+		case "touchcancel":
         	this.touchDownId = null;
         	this.down = false;
 			break;
+		default:
+			alert("not handled " + e.type);
 		}
 	},
 	/**Return true if button is down (but mouse key is also still down). */
@@ -196,6 +205,7 @@ var TouchStick = Movable.extend(
     	if(!touch)
     		return;
 //    	if(e.type!="touchstart") alert("3 Canvas touch event '" + e.type + "'"+touch);
+    		
     	// Otherwise, prevent default handling
     	orgEvent.preventDefault();
 
@@ -204,6 +214,12 @@ var TouchStick = Movable.extend(
         	touch.pageY - this.game.canvas.offsetTop);
 //    	this.game.debug("Canvas touch event '" + e.type + "': id=" + touch.identifier + ", t=" + touch.target);
 //      this.game.debug("- touchDownPos: id=" + this.touchDownId + ", " + this.touchDownPos + ", drag: " + this.touchDragOffset);
+    	if(e.type!="touchmove") 
+        	this.game.debug("stick " + e.type + " - isInside: " + this.contains(touchPos) + ", drag: " + this.touchDragOffset + ", id=" + touch.identifier);
+    	
+    	// TODO: seems that we get touchend for both fingers, even if only the other 
+    	// finger was lifted!
+    	// http://stackoverflow.com/questions/3695128/webkit-iphone-ipad-issue-with-mutl-touch
         switch (e.type) {
 		case "touchstart":
 			if(this.contains(touchPos)){
@@ -219,7 +235,9 @@ var TouchStick = Movable.extend(
         		touchPos.y - this.pos.y);
 //            	this.game.debug("- touchDownPos: " + this.touchDownPos + ", drag: " + this.touchDragOffset);
 			break;
-		default:
+		case "touchend":
+		case "touchcancel":
+//        	this.game.debug("*** stick " + e.type + " - touchDownPos: " + this.touchDownPos + ", drag: " + this.touchDragOffset);
         	this.touchDownPos = this.touchDownId = this.touchDragOffset = null;
 			break;
 		}

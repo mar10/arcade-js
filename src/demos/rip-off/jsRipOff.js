@@ -168,7 +168,7 @@ var Tank = Movable.extend({
     		});
     	this.game.addObject(bullet);
     },
-    onKeypress: function(e) {
+    onKeydown: function(e, key) {
     	if(this.game.isKeyDown(32))
     		this.fire();
     },

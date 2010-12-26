@@ -1,4 +1,4 @@
-set JSDOC=C:\apps\jsdoc-toolkit
+set JSDOC=C:\apps\jsdoc-toolkit-2.4.0
 
 rem java -jar %JSDOC%\jsrun.jar %JSDOC%\app\run.js -v -a -t=%JSDOC%\templates\jsdoc -d=jsdoc ..\src\lina.js\ ..\src\arcade.js\ ..\src\rip-off\
 

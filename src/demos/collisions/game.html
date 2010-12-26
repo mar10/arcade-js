@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ArcadeJS demo</title>
+    <link href="../../depends/sample.css" rel="stylesheet">
+	<script src="../../depends/jquery.js"></script>
+	<script src="../../depends/jquery.mousewheel.js"></script>
+
+	<script src="../../lina.js/lina.js"></script>
+	<script src="../../arcade.js/arcade.js"></script>
+
+	<script src="game.js"></script>
+
+	<script type="text/javascript">
+	$(function(){
+		var canvas = document.getElementById("canvas1");
+		var game = new DemoGame(canvas);
+        $("#btnStop").click(function(){
+            if( game.isRunning() )
+                game.stopLoop();
+            else game.startLoop();
+        });
+        $("#btnStep").click(function(){
+            game.stopRequest = true;
+            if( !game.isRunning() )
+                game.startLoop();
+        });
+	});
+	</script>
+</head>
+<body>
+<h1>jsAsteroids</h1>
+<div class="info">
+<p>
+    A demo for <a href="http://arcade-js.googlecode.com/">arcade.js</a> 
+    (<a href="source.html">view the source</a> to learn more).
+</p>
+<p>
+This sample shows how to implement moving objects, circle-circle and
+circle-polygon collisions.
+</p> 
+</div>
+
+<p>
+<canvas id="canvas1" width="640" height="480">This game requires HTML 5 support.</canvas>
+</p>
+
+<div>
+    <span id="frames">-</span> frames
+    Keys: <span id="keys">-</span>
+</div>
+
+<div>
+    <button id="btnStop">Start/Stop</button> 
+    <button id="btnStep">Single step</button> 
+</div>
+</body>
+</html>

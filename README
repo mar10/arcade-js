@@ -1,0 +1,42 @@
+
+  A R C A D E . J S  - 0.0.1
+  
+
+  //////////////////////////////////////////////////////////////////////////////
+
+  License           MIT (see included LICENSE)
+  Original Author   Martin Wendt (http://wwWendt.de)
+                    see included AUTHORS file for contributer list
+
+  Web Site          http://wwWendt.de/jsripoff 
+
+  
+Arcade.js is ...
+  
+  Part of the distribution is
+  
+  - lina.js
+    An independent object oriented library for points, vectors, and homogeneous 
+    transformations in 2D space.
+    A polygon class helps with collision detection and hit testing.
+  - arcade.js
+    A 2D game engine that provides a render loop and support for multiple
+    moving objects. 
+  - Rip-off clone
+    A port of the Rip-Off arcade game written by Tim Skelly / Cinematronix in 
+    1980.
+
+Rip-off
+=======
+Rip-Off, was the first arcade game with two-player cooperative play.
+Written by Tim Skelly for Cinematronix in 1980.
+
+  //////////////////////////////////////////////////////////////////////////////
+
+  PLATFORM AND BROWSER COMPATIBILITY
+  
+  Arcade.js is explicitly developed for and actively tested on browsers that
+  support the HTML5 <Canvas> element. So it runs in FireFox, Safari, 
+  Chrome and Opera but is not currently supported in Internet Explorer.
+   
+  //////////////////////////////////////////////////////////////////////////////

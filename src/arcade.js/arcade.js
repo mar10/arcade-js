@@ -221,6 +221,8 @@ var ArcadeJS = Class.extend(
 		this.context.strokeStyle = this.opts.strokeStyle;
 		this.context.fillStyle = this.opts.fillStyle;
 
+		this.resetViewport();
+		
 		this.objects = [];
 		this.idMap = {};
 		this.keyListeners = [ this ];
@@ -382,6 +384,8 @@ var ArcadeJS = Class.extend(
 						self.canvas.height = height;
 					}
 					self.debug("window.resize: adjusting canvas to " + self.canvas.width + "px x " + self.canvas.height + "px");
+					// Adjust WC-to-CC transformationss
+					self._realizeViewport();
 					break;
 				default:
 					// Keep current coordinate range and zoom/shrink output(default 300x150)
@@ -478,6 +482,79 @@ var ArcadeJS = Class.extend(
 		this._timeout = frames;
 		this._timeoutCallback = callback || this.onTimeout;
 	},
+	
+	/**Define the visible part of the world.
+	 * @param {float} x lower left corner in world coordinates
+	 * @param {float} y lower left corner in world coordinates
+	 * @param {float} width in world coordinate units
+	 * @param {float} height in world coordinate units
+	 * @param {string} mapMode 'stretch' | 'fit' | 'trim' | 'keep'
+	 */
+	setViewport: function(x, y, width, height, mapMode) {
+		mapMode = mapMode || "extend";
+		this.viewport = {x: x, y: y, width: width, height: height, mapMode: mapMode};
+		this._realizeViewport();
+	},
+
+	/**Set viewport to be identical to the canvas size, thus making WC = CC.
+	 */
+	resetViewport: function() {
+		var $canvas = $(this.canvas);
+		this.setViewport(0,$canvas.height(), $canvas.width(), -$canvas.height(), "stretch");
+	},
+
+	_realizeViewport: function() {
+		this.debug("_realizeViewport: %o", this.viewport);
+		// 
+		var vp = this.viewport,
+			vpa = {x: vp.x, y: vp.y, width: vp.width, height: vp.height, mapMode: vp.mapMode}, 
+			$canvas = $(this.canvas),
+			ccWidth = $canvas.width(),
+			ccHeight = $canvas.height(),
+			vpAspect = vp.width / vp.height,
+			ccAspect = ccWidth / ccHeight;
+		// Calculate the adjusted viewport dimensions
+		this.viewportAdjusted = vpa;
+		switch(vp.mapMode){
+		case "fit":
+		case "extend":
+			if(vpAspect > ccAspect){
+				// Increase viewport height
+				vpa.height = vp.width / ccAspect;
+				vpa.y -= 0.5 * (vpa.height - vp.height);
+			}else{
+				// Increase viewport width
+				vpa.width = vp.height * ccAspect;
+				vpa.x -= 0.5 * (vpa.width - vp.width);
+			}
+			break;
+		case "trim":
+			if(vpAspect > ccAspect){
+				// Decrease viewport width
+				vpa.width = vp.height * ccAspect;
+				vpa.x -= 0.5 * (vpa.width - vp.width);
+			}else{
+				// Decrease viewport height
+				vpa.height = vp.width / ccAspect;
+				vpa.y -= 0.5 * (vpa.height - vp.height);
+			}
+			break;
+		case "stretch":
+			break;
+		default:
+			throw "Invalid mapMode: '" + vp.mapMode + "'";
+		}
+		this.debug("_realizeViewport: adjusted %o", this.viewportAdjusted);
+		// Define transformation matrices
+		this.wc2cc = new Matrix3()
+			.translate(-vpa.x, -vpa.y)
+			.scale(ccWidth/vpa.width, -ccHeight/vpa.height)
+			.translate(1, ccHeight);
+//		this.debug("wc2cc: %s", this.wc2cc);
+		this.cc2wc = this.wc2cc.copy().invert();
+//		this.debug("wc2cc: %s", this.cc2wc);
+	},
+	
 	_renderLoop: function(){
 //        try {
 //        	p.focused = document.hasFocus();
@@ -568,17 +645,9 @@ var ArcadeJS = Class.extend(
 		if(this.opts.debug.showObjects){
 			infoList.push("Objects: " + this.objects.length + " (dead: "+ this._deadCount+")");
 		}
-		if(true || this.opts.debug.showMouse){
-			var viewport = {x: 0, y: 0, width: 100, height: 100};
-			var $c = $(self.canvas);
-			var cc = {x: 0, y: 0, width: $c.width(), height: $c.height()};
-			var WCtoCC = new Matrix3();
-			WCtoCC.translate();
-			var CCtoWC = WCtoCC.copy().invert();
-			var vpCorr = {x: 0, y: 0, width: 100, height: 100};
-//			var posWC = this.mousePos.copy();
-			
-			infoList.push("Mouse: " + this.mousePos);
+		if(this.opts.debug.showMouse && this.mousePos){
+			infoList.push("CC: " + this.mousePos);
+			infoList.push("WC: " + Point2.transform(this.mousePos, this.cc2wc));
 		}
 		if(infoList.length){
 			ctx.save();
@@ -845,6 +914,7 @@ ArcadeJS.defaultGameOptions = {
 	strokeStyle: "#ffffff", // default line color
 	fillStyle: "#c0c0c0", // default solid filll color
 	resizeMode: "adjust",
+	viewport: {x: 0, y: 0, width: 100, height: 100, mapMode: "stretch"},
 	fps: 30,
 	debug: {
 		level: 1,
@@ -852,7 +922,8 @@ ArcadeJS.defaultGameOptions = {
 		showActivity: true,
 		showKeys: false,
 		showFps: true,
-		showObjects: false
+		showObjects: false,
+		showMouse: true
 	},
 	purgeRate: 0.5,
 	lastEntry: undefined
@@ -1142,7 +1213,7 @@ var Movable = Class.extend(
 		}
 		return false;
 	},
-	/**Run callback siom e frames later.
+	/**Schedule a callback to be triggered n frames later.
 	 * @param {Int} frames number of frames until callback is triggered
 	 * @param {function} callback (optional), if ommited, this.onTimout is called.
 	 */
@@ -1241,12 +1312,14 @@ var Movable = Class.extend(
 	/**Remove this object from the game.
 	 */
 	die: function() {
-		if( this._dead )
+		if( this._dead ){
 			return;
+		}
 		this._dead = true;
 		this.hidden = true;
-		if( this.onDie )
+		if( this.onDie ){
 			this.onDie();
+		}
 		if(this._dead){
 			this.game._deadCount++;
 			if(!this.game.purge(false)){

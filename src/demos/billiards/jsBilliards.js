@@ -1,12 +1,12 @@
 /*******************************************************************************
- * jsRipOff.js
+ * jsBilliards.js
  *
  * Main classes.
  *
  */
 
 /*******************************************************************************
- * Class Bullet
+ * Class BilliardsGame
  */
 
 var BilliardsGame = ArcadeJS.extend({
@@ -24,14 +24,14 @@ var BilliardsGame = ArcadeJS.extend({
 		this.applauseSound = new AudioJS("applause.wav");
 
 		// --- Create objects and add them to the game -------------------------
-		var obj;
 		// Bounding polygon that defines the playing area of the table.
-		// It is clock wise oriented, so the balls are reflected when they
-		// approach from the inside.
+		// It is counter clock wise oriented, so the balls are reflected when 
+		// they approach from the inside.
 		var pg = new Polygon2([ 10,  10,
 							   630,  10,
 							   630, 470,
 								10, 470]).makeCCW();
+		var obj;
 		obj = this.addObject(new WallObject({
 			pg: pg,
 			color: "green"
@@ -66,7 +66,7 @@ var BilliardsGame = ArcadeJS.extend({
 	},
 	postStep: function() {
 		// Reset game activity to 'idle', if all balls have zero velocity
-		if(this.getActivity() == "rolling") {
+		if(this.isActivity("rolling")) {
 			var isMoving = false;
 			this.visitObjects(function(obj){
 				if(obj.velocity.length() >= 0.1)
@@ -120,7 +120,7 @@ var Ball = Movable.extend({
 		}, opts);
 		this._super("ball", opts);
 		// Copy selected options as object attributes
-		ArcadeJS.extendAttributes(this, opts, "r,color");
+		ArcadeJS.extendAttributes(this, opts, "r color");
 		//
 		this.hitByPlayer = false;
 	},
@@ -183,13 +183,14 @@ var Ball = Movable.extend({
 	render: function(ctx) {
 		// Draw this ball
 		ctx.fillStyle = this.opts.color;
-		if(this.id == "player" && this.game.getActivity() == "rolling")
+		if(this.id == "player" && this.game.isActivity("rolling")){
 			ctx.fillStyle = "darkred";
+		}
 //		ArcadeJS.renderCircle(ctx, {x:0, y:0}, this.r, "solid");
 		var circle = new Circle2({x:0, y:0}, this.r);
 		ctx.fillCircle2(circle);
 		// Draw drag-vector while aiming
-		if(this.id == "player" && this.game.getActivity() == "aiming") {
+		if(this.id == "player" && this.game.isActivity("aiming")) {
 			ctx.strokeStyle = "yellow";
 //			ArcadeJS.renderVector(ctx, this.game.dragOffset);
 			ctx.moveTo(0, 0);
@@ -200,7 +201,7 @@ var Ball = Movable.extend({
 	},
 	onDragstart: function(clickPos) {
 		// We want drag'n'drop events for the red ball
-		if(this.id == "player" && this.game.getActivity() == "idle") {
+		if(this.id == "player" && this.game.isActivity("idle")) {
 			this.game.setActivity("aiming");
 			return true;
 		}
@@ -214,5 +215,5 @@ var Ball = Movable.extend({
 		this.game.setActivity("rolling");
 	},
 	// --- end of class
-	lastentry: undefined
+	__lastentry: undefined
 });

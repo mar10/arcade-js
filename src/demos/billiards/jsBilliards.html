@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>jsBillards</title>
+	<title>jsBilliards</title>
 
 	<link href="../../depends/sample.css" rel="stylesheet">
 	<script src="../../depends/jquery.js"></script>
@@ -10,12 +10,12 @@
 	<script src="../../lina.js/lina.js"></script>
 	<script src="../../arcade.js/arcade.js"></script>
 
-	<script src="jsBillards.js"></script>
+	<script src="jsBilliards.js"></script>
 
 	<script type="text/javascript">
 	$(function(){
 		var canvas = document.getElementById("canvas1");
-		var game = new BillardsGame(canvas);
+		var game = new BilliardsGame(canvas);
 		$("#btnStop").click(function(){
 			if( game.isRunning() )
 				game.stopLoop();

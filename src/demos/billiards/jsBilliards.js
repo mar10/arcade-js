@@ -9,11 +9,11 @@
  * Class Bullet
  */
 
-var BillardsGame = ArcadeJS.extend({
+var BilliardsGame = ArcadeJS.extend({
 	init: function(canvas, customOpts) {
 		// --- Init ArcadeJS ---------------------------------------------------
 		var opts = $.extend({
-			name: "jsBillards",
+			name: "jsBilliards",
 			backgroundColor: "brown",
 			fps: 30
 		}, customOpts);

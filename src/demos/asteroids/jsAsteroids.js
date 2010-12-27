@@ -50,7 +50,7 @@ var AsteroidsGame = ArcadeJS.extend({
 		for(var i=0; i<this.level; i++){
 			this._makeAsteroid(3, pt0, new Vec2(LinaJS.random(-3, 3), LinaJS.random(-3, 3)).setLength(speed));
 		}
-		this.setTimeout(5000, function(){
+		this.later(200, function(){
 			this.setActivity("running");
 		});
 	},

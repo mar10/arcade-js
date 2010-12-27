@@ -178,8 +178,9 @@ AudioJS.prototype = {
 		try{
 			this.audio.play();
 		}catch(e){
-			if(window.console)
+			if(window.console){
 				window.console.log("audio.play() failed: " + e);
+			}
 		};
 	},
 	lastEntry: undefined
@@ -204,7 +205,7 @@ var ArcadeJS = Class.extend(
 		// TODO: required?
 		this.opts.debug = $.extend({}, ArcadeJS.defaultGameOptions.debug, opts.debug);
 		// Copy selected options as object attributes
-		ArcadeJS.extendAttributes(this, this.opts, "name,fps,resizeMode");
+		ArcadeJS.extendAttributes(this, this.opts, "name fps resizeMode");
 
 		/**HTML5 canvas element*/
 		this.canvas = canvas;
@@ -247,7 +248,8 @@ var ArcadeJS = Class.extend(
 
 		this._runLoopId = null;
 		this.stopRequest = false;
-		this.timeout = 0;
+		this._timeout = 0;
+		this._timoutCallback = null;
 
 		this.clickPos = undefined;
 		this.mousePos = undefined;
@@ -317,7 +319,7 @@ var ArcadeJS = Class.extend(
 				}
 				break;
 			}
-			for( var i=0; i<self.mouseListeners.length; i++) {
+			for(var i=0, l=self.mouseListeners.length; i<l; i++) {
 				var obj = self.mouseListeners[i];
 				if(e.type == "mousemove" && obj.onMousemove) {
 					obj.onMousemove(arguments[0]);
@@ -356,7 +358,7 @@ var ArcadeJS = Class.extend(
 		});
 		// Bind touch and gesture events
 		$(canvas).bind("touchstart touchend touchmove touchcancel gesturestart gestureend gesturechange", function(e){
-			for( var i=0; i<self.touchListeners.length; i++) {
+			for(var i=0, l=self.touchListeners.length; i<l; i++) {
 				var obj = self.touchListeners[i];
 				if(obj.onTouchevent) {
 					obj.onTouchevent(e, e.originalEvent);
@@ -372,10 +374,13 @@ var ArcadeJS = Class.extend(
 				switch(self.resizeMode) {
 				case "adjust":
 					self.debug("window.resize: adjusting canvas from " + self.canvas.width + "px x " + self.canvas.height + "px");
-					if(self.canvas.width != width)
+					if(self.canvas.width != width){
+						self.debug("self.canvas.width: " + self.canvas.width + ", width:" + width);
 						self.canvas.width = width;
-					if(self.canvas.height != height)
+					}
+					if(self.canvas.height != height){
 						self.canvas.height = height;
+					}
 					self.debug("window.resize: adjusting canvas to " + self.canvas.width + "px x " + self.canvas.height + "px");
 					break;
 				default:
@@ -417,10 +422,11 @@ var ArcadeJS = Class.extend(
 	setActivity: function(activity) {
 		var prev = this._activity;
 		this._activity = activity;
-		for(var i=0; i<this.activityListeners.length; i++) {
+		for(var i=0, l=this.activityListeners.length; i<l; i++) {
 			var obj = this.activityListeners[i];
-			if(obj.onSetActivity)
+			if(obj.onSetActivity){
 				obj.onSetActivity(this, activity, prev);
+			}
 		}
 		return prev;
 	},
@@ -439,11 +445,12 @@ var ArcadeJS = Class.extend(
 		}
 		return false;
 	},
+/*	
 	/**Set current activity and trigger onSetActivity events.
 	 * @param {Int} ms milliseconds
 	 * @param {function} callback (optional), if ommited, this.onTimout is called.
 	 * @returns {string} timer ID
-	 */
+
 	setTimeout: function(ms, callback) {
 		// TODO: the param order differs from window.setTimeout
 		// TODO: required?
@@ -462,10 +469,27 @@ var ArcadeJS = Class.extend(
 			}, ms);
 		}
 	},
+*/
+	/**Run callback siom e frames later.
+	 * @param {Int} frames number of frames until callback is triggered
+	 * @param {function} callback (optional), if ommited, this.onTimout is called.
+	 */
+	later: function(frames, callback) {
+		this._timeout = frames;
+		this._timeoutCallback = callback || this.onTimeout;
+	},
 	_renderLoop: function(){
 //        try {
 //        	p.focused = document.hasFocus();
 //		} catch(e) {}
+		// Fire timeout event, if one was scheduled
+		if( this._timeout > 0) {
+			this._timeout--;
+			if( this._timeout === 0) {
+		    	var callback = this._timeoutCallback || self.onTimeout;
+				callback.call(this);
+			}
+		}
 		try {
 			this.frameCache = {collisionCache: {}};
 			this._stepAll();
@@ -492,35 +516,37 @@ var ArcadeJS = Class.extend(
 			this.realFps = (ticks > this._lastSecondTicks) ? 1000.0 * this.fps / (ticks - this._lastSecondTicks) : 0;
 			this._lastSecondTicks = ticks;
 		}
-
-		if(this.preStep)
+		if(this.preStep){
 			this.preStep();
-
+		}
 		var ol = this.objects;
-		for(var i=0; i<ol.length; i++){
+		for(var i=0, l=ol.length; i<l; i++){
 			var o = ol[i];
 			if( !o._dead )
 				o._step();
 		}
-		if(this.postStep)
+		if(this.postStep){
 			this.postStep();
+		}
 	},
 	_redrawAll: function() {
 		var ctx = this.context;
 		ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 		// Push current transformation and rendering context
 		ctx.save();
-		if(this.preDraw)
+		if(this.preDraw){
 			this.preDraw(ctx);
+		}
 		var ol = this.objects;
-		for(var i=0; i<ol.length; i++){
+		for(var i=0, l=ol.length; i<l; i++){
 			var o = ol[i];
 			if( !o._dead && !o.hidden ) {
 				o._redraw(ctx);
 			}
 		}
-		if(this.postDraw)
+		if(this.postDraw){
 			this.postDraw(ctx);
+		}
 		// Restore previous transformation and rendering context
 		ctx.restore();
 		// Display FpS
@@ -541,6 +567,18 @@ var ArcadeJS = Class.extend(
 		}
 		if(this.opts.debug.showObjects){
 			infoList.push("Objects: " + this.objects.length + " (dead: "+ this._deadCount+")");
+		}
+		if(true || this.opts.debug.showMouse){
+			var viewport = {x: 0, y: 0, width: 100, height: 100};
+			var $c = $(self.canvas);
+			var cc = {x: 0, y: 0, width: $c.width(), height: $c.height()};
+			var WCtoCC = new Matrix3();
+			WCtoCC.translate();
+			var CCtoWC = WCtoCC.copy().invert();
+			var vpCorr = {x: 0, y: 0, width: 100, height: 100};
+//			var posWC = this.mousePos.copy();
+			
+			infoList.push("Mouse: " + this.mousePos);
 		}
 		if(infoList.length){
 			ctx.save();
@@ -750,6 +788,10 @@ var ArcadeJS = Class.extend(
 	 * @returns false to prevent default handling
 	 */
 	onResize: undefined,
+	/**@function Called after window was resized.
+	 * @param {Event} e
+	 */
+	afterResize: undefined,
 	/**@function Called on miscelaneous touch... and gesture... events.
 	 * @param {Event} event jQuery event
 	 * @param {OriginalEvent} originalEvent depends on mobile device
@@ -771,7 +813,7 @@ var ArcadeJS = Class.extend(
 	 */
 	postDraw: undefined,
 	// --- end of class
-	lastentry: undefined
+	__lastentry: undefined
 });
 
 /**Copy selected dictionary members as object attributes.
@@ -783,7 +825,7 @@ var ArcadeJS = Class.extend(
  */
 ArcadeJS.extendAttributes = function(object, dict, attrNames){
 	if(typeof attrNames === "string")
-		attrNames = attrNames.replace(" ", ",").split(",");
+		attrNames = attrNames.replace(",", " ").split(" ");
 	for(var i=0; i<attrNames.length; i++){
 		var name = $.trim(attrNames[i]);
 		if(dict[name] === undefined)
@@ -1056,7 +1098,7 @@ var Movable = Class.extend(
 		this.rotationalSpeed = opts.rotationalSpeed || null; //0.0 * LinaJS.DEG_TO_RAD;  // rad / tick
 		this.screenModeX = opts.screenModeX || "none";
 		this.screenModeY = opts.screenModeY || "none";
-		this._timeout = +opts.timeout;
+		this._timeout = 0; //+opts.timeout;
 		this._timoutCallback = null;
 		this.ttl = +opts.ttl;
 
@@ -1101,12 +1143,10 @@ var Movable = Class.extend(
 		return false;
 	},
 	/**Run callback siom e frames later.
-	 * @param {Int} ms milliseconds
+	 * @param {Int} frames number of frames until callback is triggered
 	 * @param {function} callback (optional), if ommited, this.onTimout is called.
-	 * @returns {string} timer ID
 	 */
 	later: function(frames, callback) {
-//		var self = this;
 		this._timeout = frames;
 		this._timeoutCallback = callback || this.onTimeout;
 	},
@@ -1148,8 +1188,9 @@ var Movable = Class.extend(
 			}
 		}
 		// Let derived class change it
-		if(typeof this.step == "function")
+		if(typeof this.step == "function"){
 			this.step();
+		}
 		// Update MC-to-WC transformation
 	},
 	_redraw: function(ctx) {
@@ -1160,14 +1201,16 @@ var Movable = Class.extend(
 		ctx.save();
 		// Apply object translation, rotation and scale
 		ctx.translate(this.pos.x, this.pos.y);
-		if( this.scale && this.scale != 1.0 )
+		if( this.scale && this.scale != 1.0 ){
 			ctx.scale(this.scale, this.scale);
+		}
 		if(this.opts.debug.showVelocity && this.velocity){
 			ctx.strokeStyle = this.game.opts.debug.strokeStyle;
 			ctx.strokeVec2(this.velocity.copy().scale(this.opts.debug.velocityScale));
 		}
-		if( this.orientation )
+		if( this.orientation ){
 			ctx.rotate(this.orientation);
+		}
 		// Let object render itself
 		this.render(ctx);
 		// Render optional debug infos

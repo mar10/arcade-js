@@ -23,54 +23,68 @@ var BilliardsGame = ArcadeJS.extend({
 		this.clickSound = new AudioJS("click.wav");
 		this.applauseSound = new AudioJS("applause.wav");
 
+		// Official table size: big: 2840 × 1420 mm, middle: 2300x1150, small:2100x1050
+		var tableWidth = 2.100,
+			tableHeight = 0.5 * tableWidth, //1.420,
+			vpPadding = 0.2, // add 20 cm around the table
+			ballRadius = 0.5 * 0.0615, // diameter 61.5 mm
+			quart = tableWidth / 4; 
+		this.setViewport(-vpPadding, -vpPadding, 
+				tableWidth + 2 * vpPadding, tableHeight + 2 * vpPadding)
+
 		// --- Create objects and add them to the game -------------------------
 		// Bounding polygon that defines the playing area of the table.
 		// It is counter clock wise oriented, so the balls are reflected when 
 		// they approach from the inside.
-		var pg = new Polygon2([ 10,  10,
-							   630,  10,
-							   630, 470,
-								10, 470]).makeCCW();
+		var pg = new Polygon2([0,    0,
+		                       tableWidth, 0,
+		                       tableWidth, tableHeight,
+							   0,    tableHeight]).makeCCW();
 		var obj;
 		obj = this.addObject(new WallObject({
 			pg: pg,
 			color: "green"
 			}));
 
-		// Three balls
+		// Three balls (diameter 61.5mm)
 		obj = this.addObject(new Ball({
 			id: "player", // We define a special ID for the playing ball
-			r: 15,
-			pos: {x: 150, y: 240},
-			color: "#ff0000"
+			r: ballRadius,
+			pos: {x: quart, y: quart},
+			color: "red"
 			}));
 		obj = this.addObject(new Ball({
 			id: "ball_1",
-			r: 15,
-			pos: {x: 490, y: 240},
-			color: "#ffffff"
+			r: ballRadius,
+			pos: {x: 3*quart, y: quart},
+			color: "white"
 			}));
 		obj = this.addObject(new Ball({
 			id: "ball_2",
-			r: 15,
-			pos: {x: 490, y: 340},
-			color: "#c0c0c0"
+			r: ballRadius,
+			pos: {x: 3*quart, y: quart - 0.1825},
+			color: "yellow"
 			}));
 		// --- Status data -----------------------------------------------------
 		this.points = 0;
 		this.hit1 = false;
 		this.hit2 = false;
+		this.velocityScale = 2.0 / this.fps; // Ratio from drag length to initial speed
+		this.decellerationRate = 0.99;// * this.fps; // Decrease speed by 1% per second 
+		this.minVelocity = 0.01 / this.fps; // Stop ball when slower than 1 cm/sec
 
 		// --- Start the render loop -------------------------------------------
-		this.startLoop()
+		this.startLoop();
 	},
 	postStep: function() {
 		// Reset game activity to 'idle', if all balls have zero velocity
 		if(this.isActivity("rolling")) {
 			var isMoving = false;
 			this.visitObjects(function(obj){
-				if(obj.velocity.length() >= 0.1)
+				//alert("this must be ArcadeGame: "+ this);
+				if(obj.velocity.length() >= this.minVelocity){
 					isMoving = true;
+				}
 			}, "ball");
 			if(!isMoving) {
 				this.hit1 = this.hit2 = false;
@@ -79,14 +93,22 @@ var BilliardsGame = ArcadeJS.extend({
 		}
 	},
 	postDraw: function(ctx){
+		// Draw drag-vector while aiming
+//		if(this.isActivity("aiming")) {
+//			ctx.strokeStyle = "blue";
+//			ctx.moveTo(this.pos.x, this.pos.y);
+//			ctx.lineTo(this.dragOffset.dx, this.dragOffset.dy);
+//			ctx.stroke();
+//			ctx.closePath();
+//		}
 		$("#frames").html("Frame #" + this.frameCount + ", FpS: " + this.realFps + " (want: " + this.fps + ")");
 		$("#points").html("Points: " + this.points);
 	},
 	onSetActivity: function(target, activity, prevActivity) {
-		this.debug("%s.setActivity %s -> %s", this, prevActivity, activity);
+		this.debug("%s.setActivity '%s' -> '%s'", this, prevActivity, activity);
 	},
 	// --- end of class
-	lastentry: undefined
+	__lastentry: undefined
 });
 
 
@@ -98,16 +120,15 @@ var WallObject = Movable.extend({
 		// Initialize this game object
 		this._super("wall", opts);
 		// Copy selected options as object attributes
-		ArcadeJS.extendAttributes(this, opts, "pg,color");
+		ArcadeJS.extendAttributes(this, opts, "pg color");
 	},
 	render: function(ctx) {
 		// Draw the list of lines to the canvas
 		ctx.fillStyle = this.color;
-//		ArcadeJS.renderPg(ctx, this.pg, "solid");
 		ctx.fillPolygon2(this.pg);
 	},
 	// --- end of class
-	lastentry: undefined
+	__lastentry: undefined
 });
 
 
@@ -122,42 +143,50 @@ var Ball = Movable.extend({
 		// Copy selected options as object attributes
 		ArcadeJS.extendAttributes(this, opts, "r color");
 		//
+		this.circle = new Circle2({x:0, y:0}, this.r);
 		this.hitByPlayer = false;
 	},
-	getBoundingRadius: function() {
-		return this.r;
+	getBoundingCircle: function() {
+		return new Circle2({x: this.pos.x, y: this.pos.y}, this.r);
 	},
 	step: function() {
-		if(this.velocity.isNull())
+		if(this.velocity.isNull()){
 			return;
+		}
 		var game = this.game;
 		// Get 1% slower with every step
-		this.velocity.scale(0.99);
-		if(this.velocity.length() < 0.1) {
+//		this.game.debug("%s.step(): pos=%s, velocity = %s", this, this.pos, this.velocity);
+		this.velocity.scale(this.game.decellerationRate);
+		if(this.velocity.length() < this.game.minVelocity) {
 			this.velocity.setNull();
 		}
+		var circle = this.getBoundingCircle();
 		// Check for wall collisions
-		var circle = new Circle2(this.pos, this.r);
 		var walls = game.getObjectsByType("wall");
 		for(var i=0; i<walls.length; i++) {
 			var other = walls[i];
-			if(!game.preCheckCollision(this, other))
+			if(!game.preCheckCollision(this, other)){
 				continue;
+			}
 			var coll = other.pg.intersectsCircle(circle, this.velocity);
 			if( coll && Math.abs(coll.t) <= 1  ){
 				this.velocity = coll.velocityReflected;
 				this.pos = coll.centerReflected;
 			}
 		}
+		// Check for ball-ball collisions
 		var balls = this.game.getObjectsByType("ball");
 		for(var i=0; i<balls.length; i++) {
 			var other = balls[i];
-			if(!game.preCheckCollision(this, other))
+			if(!game.preCheckCollision(this, other)){
 				continue;
-			var circle2 = new Circle2(other.pos, other.r);
+			}
+//			var circle2 = new Circle2(other.pos, other.r).transform(other.mc2wc);
+			var circle2 = other.getBoundingCircle();
 			var coll = circle.intersectsCircle(circle2, this.velocity, other.velocity);
-			if(!coll)
+			if(!coll){
 				continue;
+			}
 //     		game.debug("ball %o vs. %o: %o", this, other, coll);
 			this.velocity = coll.velocityReflected1;
 			this.pos = coll.centerReflected1;
@@ -179,6 +208,7 @@ var Ball = Movable.extend({
 			// stop on next frame
 //	    	this.game.stopRequest = true;
 		}
+//		this.game.debug(" 4> pos=%s, velocity = %s", this.pos, this.velocity);
 	},
 	render: function(ctx) {
 		// Draw this ball
@@ -186,17 +216,15 @@ var Ball = Movable.extend({
 		if(this.id == "player" && this.game.isActivity("rolling")){
 			ctx.fillStyle = "darkred";
 		}
-//		ArcadeJS.renderCircle(ctx, {x:0, y:0}, this.r, "solid");
-		var circle = new Circle2({x:0, y:0}, this.r);
-		ctx.fillCircle2(circle);
+		ctx.fillCircle2(this.circle);
 		// Draw drag-vector while aiming
 		if(this.id == "player" && this.game.isActivity("aiming")) {
-			ctx.strokeStyle = "yellow";
-//			ArcadeJS.renderVector(ctx, this.game.dragOffset);
+			ctx.strokeStyle = "#FFEE5B";
+			ctx.lineWidth = 2 * this.game.onePixelWC;
 			ctx.moveTo(0, 0);
 			ctx.lineTo(this.game.dragOffset.dx, this.game.dragOffset.dy);
 			ctx.stroke();
-			ctx.closePath();
+			//ctx.closePath();
 		}
 	},
 	onDragstart: function(clickPos) {
@@ -211,7 +239,9 @@ var Ball = Movable.extend({
 	},
 	onDrop: function(dragOffset) {
 		//
-		this.velocity = dragOffset.copy().revert().scale(.1);
+		this.game.debug("dragOffset:"+dragOffset);
+		this.velocity = dragOffset.copy().revert().scale(this.game.velocityScale);
+		this.game.debug("velocity:"+this.velocity);
 		this.game.setActivity("rolling");
 	},
 	// --- end of class

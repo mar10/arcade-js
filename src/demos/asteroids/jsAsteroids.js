@@ -137,8 +137,11 @@ var Bullet = Movable.extend({
 		ctx.lineTo(0, 0);
 		ctx.stroke();
 	},
-	getBoundingRadius: function() {
-		return 0.1;
+//	getBoundingRadius: function() {
+//		return 0.1;
+//	},
+	getBoundingCircle: function() {
+		return new Circle2({x:this.pos.x, y:this.pos.y}, 0.1);
 	},
 	// --- end of class
 	lastentry: undefined
@@ -177,8 +180,12 @@ var Rocket = Movable.extend({
 
 		this.lastShotTime = 0;
 	},
-	getBoundingRadius: function() {
-		return 13;
+//	getBoundingRadius: function() {
+//		return 13;
+//	},
+	getBoundingCircle: function() {
+//		return new Circle2({x:0, y:0}, 13);
+		return new Circle2({x:this.pos.x, y:this.pos.y}, 13);
 	},
 	step: function() {
 		if(this.isActivity("grace") || this.game.isActivity("over")){
@@ -210,7 +217,9 @@ var Rocket = Movable.extend({
 		ctx.strokeStyle = "white";
 		ctx.strokePolygon2(this.pg);
 		if(this.isActivity("grace")){
-			var circle = new Circle2(new Point2(0,0), this.getBoundingRadius() + LinaJS.random(-1, +1));
+//			var circle = new Circle2(new Point2(0,0), this.getBoundingRadius() + LinaJS.random(-1, +1));
+			var circle = this.getBoundingCircle();
+			circle.r += LinaJS.random(-1, +1);
 			ctx.strokeStyle = "#88f";
 			ctx.strokeCircle2(circle);
 		}
@@ -295,9 +304,15 @@ var Asteroid = Movable.extend({
 								2, -3.5
 								]);
 		this.pg.transform(LinaJS.scale33(2*this.size, -2*this.size));
+//		this.boundingCircle = this.pg.getBoundingCircle();
+//		this.boundingCircle = new Circle2({x:0, y:0}, 2*this.size * 4);
 	},
-	getBoundingRadius: function() {
-		return 2*this.size * 4;
+//	getBoundingRadius: function() {
+//		return 2*this.size * 4;
+//	},
+	getBoundingCircle: function() {
+//		return this.boundingCircle;
+		return new Circle2({x:this.pos.x, y:this.pos.y}, 2*this.size * 4);
 	},
 	render: function(ctx) {
 		ctx.strokeStyle = "white";

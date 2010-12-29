@@ -253,6 +253,7 @@ var ArcadeJS = Class.extend(
 
 		this._runLoopId = null;
 		this.stopRequest = false;
+		this.freezeMode = false;
 		this._timeout = 0;
 		this._timoutCallback = null;
 
@@ -612,6 +613,9 @@ var ArcadeJS = Class.extend(
 			this.realFps = (ticks > this._lastSecondTicks) ? 1000.0 * this.fps / (ticks - this._lastSecondTicks) : 0;
 			this._lastSecondTicks = ticks;
 		}
+		if(this.freezeMode){
+			return;
+		}
 		if(this.preStep){
 			this.preStep();
 		}
@@ -623,7 +627,7 @@ var ArcadeJS = Class.extend(
 			}
 		}
 		if(this.postStep){
-			this.postStep.call(this);
+			this.postStep();
 		}
 	},
 	_redrawAll: function() {
@@ -961,11 +965,14 @@ ArcadeJS.defaultGameOptions = {
 	debug: {
 		level: 1,
 		strokeStyle: "#80ff00",
-		showActivity: true,
+		showActivity: false,
 		showKeys: false,
 		showFps: true,
 		showObjects: false,
-		showMouse: true
+		showMouse: false,
+		// globally override object debug settings:
+		showVelocity: undefined,
+		showBCircle: undefined
 	},
 	purgeRate: 0.5,
 	lastEntry: undefined
@@ -1352,9 +1359,10 @@ var Movable = Class.extend(
 			if( this.scale && this.scale != 1.0 ){
 				ctx.scale(this.scale, this.scale);
 			}
-			if(this.opts.debug.showVelocity && this.velocity){
+			if(this.velocity && (this.opts.debug.showVelocity || this.game.opts.debug.showVelocity)){
 				ctx.strokeStyle = this.game.opts.debug.strokeStyle;
-				ctx.strokeVec2(Vec2.scale(this.velocity, this.opts.debug.velocityScale));
+//				ctx.strokeVec2(Vec2.scale(this.velocity, this.game.fps * this.opts.debug.velocityScale));
+				ctx.strokeVec2(Vec2.scale(this.velocity, this.game.fps));
 			}
 			if( this.orientation ){
 				ctx.rotate(this.orientation);
@@ -1362,7 +1370,7 @@ var Movable = Class.extend(
 			// Let object render itself
 			this.render(ctx);
 			// Render optional debug infos
-			if(this.opts.debug.showBCircle && this.getBoundingCircle){
+			if(this.getBoundingCircle && (this.opts.debug.showBCircle || this.game.opts.debug.showBCircle)){
 				ctx.strokeStyle = this.game.opts.debug.strokeStyle;
 				ctx.strokeCircle2(this.getBoundingCircle().copy().transform(this.wc2mc));
 			}

@@ -1,5 +1,5 @@
 /*************************************************************************
-	(c) 2008-2009 Martin Wendt
+	(c) 2010 Martin Wendt
  *************************************************************************/
 
 function viewSourceCode()
@@ -61,20 +61,54 @@ function initCodeSamples() {
 	}
 }
 
-
-
-$(function(){
-	// Log to Google Analytics, when not running locally
-	if ( document._gat && document.URL.toLowerCase().indexOf('wwwendt.de/')>=0 ) {
-		var pageTracker = _gat._getTracker("UA-316028-1");
-		pageTracker._trackPageview();
-	}
-
-	// Show some elements only, if (not) inside the Example Browser
-	if (top.location == self.location) 
-		$(".hideOutsideFS").hide();
-	else
-		$(".hideInsideFS").hide();
-	
-	initCodeSamples();
-});
+/*******************************************************************************
+ * Handle debug controls
+ */
+function initArcadeGameDebugControls(game)
+{
+	// Handle debug controls
+    $("#cbDebug")
+    .attr("checked", false)
+    .click(function(){
+        var flag = $(this).is(":checked");
+        game.opts.debug.showActivity = flag;
+        game.opts.debug.showVelocity = flag;
+        game.opts.debug.showBCircle = flag;
+        game.opts.debug.showKeys = flag;
+        game.opts.debug.showObjects = flag;
+        game.opts.debug.showMouse = flag;
+    });
+    $("#cbMaxFps")
+    .attr("checked", false)
+    .click(function(){
+        if($(this).is(":checked")){
+            game.fps = 1000;
+        }else{
+            game.fps = game.opts.fps;
+        }
+        game.stopLoop();
+        game.startLoop();
+        game.freezeMode = false;
+        $("#rbStepmode1").attr("checked", true);
+    });
+    $("#rbStepmode1")
+    .attr("checked", true)
+    .click(function(){
+        game.freezeMode = false;
+        game.startLoop();
+    });
+    $("#rbStepmode2").click(function(){
+        game.freezeMode = true;
+        game.startLoop();
+    });
+    $("#rbStepmode3").click(function(){
+        game.stopLoop();
+    });
+    $("#btnStep").click(function(){
+        game.stopRequest = true;
+        $("#rbStepmode3").attr("checked", true);
+        if( !game.isRunning() ){
+            game.startLoop();
+        }
+    });
+}

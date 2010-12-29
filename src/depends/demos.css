@@ -38,20 +38,6 @@ p.sample-links
 	padding: 5px;
 	font-size: small;
 }
-
-div.info
-{
-    background-color: #ffffa0;
-    padding: 5px;
-    margin: 8px;
-  /*  
-    padding-left: 40px;
-    background-image: url(iconInfo_32x32.png);
-    background-repeat: no-repeat;
-  */
-	/*text-align:*/ 
-}
-
 p.sample-links a,
 p.sample-links a:visited
 {
@@ -73,4 +59,42 @@ pre{
   padding:.5em;
   margin:.5em;
   font-size:.9em;
+}
+
+/*******************************************************************************
+ *
+ */
+canvas.demo
+{
+	width: 640px;
+	height: 480px;
+    margin: 8px;
+}
+
+div.info
+{
+   -webkit-border-radius: 5px;  
+   -moz-border-radius: 5px;  
+	background-color: #ffffa0;
+    padding: 5px;
+    margin: 8px;
+  /*  
+    padding-left: 40px;
+    background-image: url(iconInfo_32x32.png);
+    background-repeat: no-repeat;
+  */
+}
+
+div.debugPane
+{
+   -webkit-border-radius: 5px;  
+   -moz-border-radius: 5px;  
+    background-color: #a0a0a0;
+    padding: 5px;
+    margin: 8px;
+  /*  
+    padding-left: 40px;
+    background-image: url(iconInfo_32x32.png);
+    background-repeat: no-repeat;
+  */
 }

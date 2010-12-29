@@ -131,7 +131,7 @@ var Bullet = Movable.extend({
 		}
 	},
 	render: function(ctx) {
-		ctx.strokeStyle = "#ffffff";
+		ctx.strokeStyle = "white";
 		ctx.beginPath();
 		ctx.moveTo(-this.velocity.dx, -this.velocity.dy);
 		ctx.lineTo(0, 0);
@@ -158,8 +158,8 @@ var Rocket = Movable.extend({
 			id: "player1",
 			velocity: new Vec2(0, 0),
 			pos: new Point2(320, 200),
-			screenModeX: "wrap",
-			screenModeY: "wrap"
+			clipModeX: "wrap",
+			clipModeY: "wrap"
 			}, opts);
 		this._super("rocket", opts);
 		this.pg = new Polygon2([0, 5,
@@ -216,13 +216,15 @@ var Rocket = Movable.extend({
 	render: function(ctx) {
 		ctx.strokeStyle = "white";
 		ctx.strokePolygon2(this.pg);
+		// Draw reflector shield in grace mode
 		if(this.isActivity("grace")){
 //			var circle = new Circle2(new Point2(0,0), this.getBoundingRadius() + LinaJS.random(-1, +1));
-			var circle = this.getBoundingCircle();
-			circle.r += LinaJS.random(-1, +1);
+			var circle = new Circle2({x:0, y:0}, 13); //this.getBoundingCircle();
+			circle.r += LinaJS.random(-2, +2);
 			ctx.strokeStyle = "#88f";
 			ctx.strokeCircle2(circle);
 		}
+		// Draw thrust fire
 		if(this.game.isKeyDown(38)){ // Up
 			ctx.strokeStyle = "#f80";
 			ctx.translate(LinaJS.random(-1, +1), LinaJS.random(-1, +1));
@@ -287,8 +289,8 @@ var Rocket = Movable.extend({
 var Asteroid = Movable.extend({
 	init: function(opts) {
 		opts = $.extend({
-			screenModeX: "wrap",
-			screenModeY: "wrap",
+			clipModeX: "wrap",
+			clipModeY: "wrap",
 //			size: 3
 			}, opts);
 		this._super("asteroid", opts);
@@ -304,14 +306,8 @@ var Asteroid = Movable.extend({
 								2, -3.5
 								]);
 		this.pg.transform(LinaJS.scale33(2*this.size, -2*this.size));
-//		this.boundingCircle = this.pg.getBoundingCircle();
-//		this.boundingCircle = new Circle2({x:0, y:0}, 2*this.size * 4);
 	},
-//	getBoundingRadius: function() {
-//		return 2*this.size * 4;
-//	},
 	getBoundingCircle: function() {
-//		return this.boundingCircle;
 		return new Circle2({x:this.pos.x, y:this.pos.y}, 2*this.size * 4);
 	},
 	render: function(ctx) {

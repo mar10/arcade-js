@@ -13,9 +13,7 @@ var AsteroidsGame = ArcadeJS.extend({
 			name: "jsAsteroids",
 			fps: 30,
 			debug: {
-				showKeys: true,
 				showFps: true,
-				showObjects: true
 			}
 		}, customOpts);
 		this._super(canvas, opts);
@@ -61,9 +59,9 @@ var AsteroidsGame = ArcadeJS.extend({
 			velocity: new Vec2(velocity.dx + LinaJS.random(-0.2, +0.2), velocity.dx + LinaJS.random(-0.2, +0.2)),
 			rotationalSpeed: LinaJS.random(-2*LinaJS.DEG_TO_RAD, 2*LinaJS.DEG_TO_RAD),
 			debug: {
-				showBCircle: true,
-				showVelocity: true,
-				velocityScale: 15.0
+//				showBCircle: true,
+//				showVelocity: true,
+//				velocityScale: 15.0
 			}
 		}));
 	},

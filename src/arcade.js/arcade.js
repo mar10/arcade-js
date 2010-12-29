@@ -221,6 +221,9 @@ var ArcadeJS = Class.extend(
 		this.context.strokeStyle = this.opts.strokeStyle;
 		this.context.fillStyle = this.opts.fillStyle;
 
+		this.viewPortMapMode = null;
+		this.viewportOrg = null;
+		this.viewport = null;
 		this.resetViewport();
 		
 		this.objects = [];
@@ -296,28 +299,35 @@ var ArcadeJS = Class.extend(
 		$(document).bind("mousemove mousedown mouseup mousewheel", function(e){
 			// Mouse position in canvas coordinates
 //        	self.mousePos = new Point2(e.clientX-e.target.offsetLeft, e.clientY-e.target.offsetTop);
-			self.mousePos = new Point2(e.pageX - self.canvas.offsetLeft,
+			self.mousePosCC = new Point2(e.pageX - self.canvas.offsetLeft,
 					e.pageY - self.canvas.offsetTop);
-			var startDrag = false, drop = false, cancelDrag = false;
+			self.mousePos = Point2.transform(self.mousePosCC, self.cc2wc);
+//    		self.debug("%s: %s (%s)", e.type, self.mousePos, self.mousePosCC);
+			var startDrag = false, 
+				drop = false, 
+				cancelDrag = false;
 			switch (e.type) {
 			case "mousedown":
-				self.clickPos = new Point2(self.mousePos);
+				self.clickPosCC = self.mousePosCC.copy();
+				self.clickPos = self.mousePos.copy();
 				cancelDrag = !!self._dragging;
 				self._dragging = false;
 				break;
 			case "mouseup":
-				self.clickPos = null;
+				self.clickPosCC = self.clickPos = null;
 				drop = !!self._dragging;
 				self._dragging = false;
 				break;
 			case "mousemove":
-				if(self._dragging || self.clickPos && self.clickPos.distanceTo(self.mousePos) > 4 ){
+//	    		self.debug("%s: %s (%s) - %s", e.type, self.clickPosCC, self.mousePosCC, self.clickPosCC.distanceTo(self.mousePosCC));
+	    		if(self._dragging || self.clickPosCC && self.clickPosCC.distanceTo(self.mousePosCC) > 4 ){
 					startDrag = !self._dragging;
 					self._dragging = true;
+					self.dragOffsetCC = self.clickPosCC.vectorTo(self.mousePosCC);
 					self.dragOffset = self.clickPos.vectorTo(self.mousePos);
-//	        		self.debug("dragging: %s", self.dragOffset);
+//	        		self.debug("dragging: %s (%s)", self.dragOffset, self.dragOffsetCC);
 				} else {
-					self.dragOffset = null;
+					self.dragOffsetCC = self.dragOffset = null;
 				}
 				break;
 			}
@@ -491,8 +501,8 @@ var ArcadeJS = Class.extend(
 	 * @param {string} mapMode 'stretch' | 'fit' | 'trim' | 'keep'
 	 */
 	setViewport: function(x, y, width, height, mapMode) {
-		mapMode = mapMode || "extend";
-		this.viewport = {x: x, y: y, width: width, height: height, mapMode: mapMode};
+		this.viewPortMapMode = mapMode || "extend";
+		this.viewportOrg = {x: x, y: y, width: width, height: height};
 		this._realizeViewport();
 	},
 
@@ -501,21 +511,29 @@ var ArcadeJS = Class.extend(
 	resetViewport: function() {
 		var $canvas = $(this.canvas);
 		this.setViewport(0,$canvas.height(), $canvas.width(), -$canvas.height(), "stretch");
+//		this.setViewport(0,0, $canvas.width(), $canvas.height(), "none");
 	},
 
 	_realizeViewport: function() {
-		this.debug("_realizeViewport: %o", this.viewport);
+		this.debug("_realizeViewport: %o", this.viewportOrg);
 		// 
-		var vp = this.viewport,
-			vpa = {x: vp.x, y: vp.y, width: vp.width, height: vp.height, mapMode: vp.mapMode}, 
+		var vp = this.viewportOrg,
+			vpa = {x: vp.x, y: vp.y, width: vp.width, height: vp.height}, 
+			mapMode = this.viewPortMapMode,
 			$canvas = $(this.canvas),
 			ccWidth = $canvas.width(),
 			ccHeight = $canvas.height(),
 			vpAspect = vp.width / vp.height,
 			ccAspect = ccWidth / ccHeight;
 		// Calculate the adjusted viewport dimensions
-		this.viewportAdjusted = vpa;
-		switch(vp.mapMode){
+		this.viewport = vpa;
+		
+		switch(mapMode){
+		case "none":
+			this.wc2cc = new Matrix3();
+			this.cc2wc = new Matrix3();
+			this.onePixelWC = 1; //vp.width / ccWidth; 
+			return;
 		case "fit":
 		case "extend":
 			if(vpAspect > ccAspect){
@@ -544,15 +562,16 @@ var ArcadeJS = Class.extend(
 		default:
 			throw "Invalid mapMode: '" + vp.mapMode + "'";
 		}
-		this.debug("_realizeViewport: adjusted %o", this.viewportAdjusted);
+		this.debug("_realizeViewport: adjusted %o", this.viewport);
 		// Define transformation matrices
 		this.wc2cc = new Matrix3()
 			.translate(-vpa.x, -vpa.y)
 			.scale(ccWidth/vpa.width, -ccHeight/vpa.height)
-			.translate(1, ccHeight);
-//		this.debug("wc2cc: %s", this.wc2cc);
+			.translate(0, ccHeight);
+		this.debug("wc2cc: %s", this.wc2cc);
 		this.cc2wc = this.wc2cc.copy().invert();
-//		this.debug("wc2cc: %s", this.cc2wc);
+		this.onePixelWC = vpa.width / ccWidth; 
+		this.debug("cc2wc: %s", this.cc2wc);
 	},
 	
 	_renderLoop: function(){
@@ -599,33 +618,40 @@ var ArcadeJS = Class.extend(
 		var ol = this.objects;
 		for(var i=0, l=ol.length; i<l; i++){
 			var o = ol[i];
-			if( !o._dead )
+			if( !o._dead ){
 				o._step();
+			}
 		}
 		if(this.postStep){
-			this.postStep();
+			this.postStep.call(this);
 		}
 	},
 	_redrawAll: function() {
 		var ctx = this.context;
+		
 		ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 		// Push current transformation and rendering context
 		ctx.save();
-		if(this.preDraw){
-			this.preDraw(ctx);
-		}
-		var ol = this.objects;
-		for(var i=0, l=ol.length; i<l; i++){
-			var o = ol[i];
-			if( !o._dead && !o.hidden ) {
-				o._redraw(ctx);
+		try{
+			ctx.transformMatrix3(this.wc2cc);
+			ctx.lineWidth = this.onePixelWC; 
+			if(this.preDraw){
+				this.preDraw(ctx);
 			}
+			var ol = this.objects;
+			for(var i=0, l=ol.length; i<l; i++){
+				var o = ol[i];
+				if( !o._dead && !o.hidden ) {
+					o._redraw(ctx);
+				}
+			}
+			if(this.postDraw){
+				this.postDraw(ctx);
+			}
+		}finally{
+			// Restore previous transformation and rendering context
+			ctx.restore();
 		}
-		if(this.postDraw){
-			this.postDraw(ctx);
-		}
-		// Restore previous transformation and rendering context
-		ctx.restore();
 		// Display FpS
 		if(this.opts.debug.showFps){
 			ctx.save();
@@ -646,8 +672,13 @@ var ArcadeJS = Class.extend(
 			infoList.push("Objects: " + this.objects.length + " (dead: "+ this._deadCount+")");
 		}
 		if(this.opts.debug.showMouse && this.mousePos){
-			infoList.push("CC: " + this.mousePos);
-			infoList.push("WC: " + Point2.transform(this.mousePos, this.cc2wc));
+//			infoList.push("WC: " + this.mousePos);
+			infoList.push(this.mousePos.toString(4));
+			infoList.push("CC: " + this.mousePosCC);
+			var hits = this.getObjectsAtPosition(this.mousePos);
+			if(hits.length){
+				infoList.push("Hits: " + hits);
+			}
 		}
 		if(infoList.length){
 			ctx.save();
@@ -657,8 +688,6 @@ var ArcadeJS = Class.extend(
 			ctx.restore();
 		}
 	},
-//    _dispatchEvent: function(eventName, object, handler, e) {
-//    },
 	/**Start render loop.
 	 */
 	startLoop: function(){
@@ -768,16 +797,20 @@ var ArcadeJS = Class.extend(
 	 * @param: {string} types Restrict objects to this space separated typenames
 	 */
 	visitObjects: function(func, types) {
-		if(typeof types == "string")
+		if(typeof types == "string"){
 			types = types.replace(",", " ").split(" ");
+		}
+		var self = this;
 		var __visitList = function(list){
 			for(var i=0, l=list.length; i<l; i++){
 				var obj = list[i];
-				if(obj._dead)
+				if(obj._dead){
 					continue;
-				var res = func(obj);
-				if(res === false)
+				}
+				var res = func.call(self, obj);
+				if(res === false){
 					return false;
+				}
 			}
 		};
 		if(types && types.length){
@@ -785,8 +818,9 @@ var ArcadeJS = Class.extend(
 				var list = this.typeMap[types[i]];
 				if(list && list.length) {
 					var res = __visitList(list);
-					if(res === false)
+					if(res === false){
 						break;
+					}
 				}
 			}
 		}else{
@@ -794,7 +828,7 @@ var ArcadeJS = Class.extend(
 		}
 	},
 	/**Return an array of objects at a given point.
-	 * @param: {Point2} pt Position in canvas coordinates
+	 * @param: {Point2} pt Position in world coordinates
 	 * @param: {string} types Restrict search to this comma separated typenames
 	 */
 	getObjectsAtPosition: function(pt, types, stopOnFirst) {
@@ -803,8 +837,9 @@ var ArcadeJS = Class.extend(
 		this.visitObjects(function(obj){
 			if(obj.contains(pt)){
 				matches.push(obj);
-				if(stopOnFirst)
+				if(stopOnFirst){
 					return false;
+				}
 			}
 		}, types);
 		return matches;
@@ -838,9 +873,16 @@ var ArcadeJS = Class.extend(
 		}
 		cc[tag] = true;
 		// Check bounding circles if possible
-		if( object1.getBoundingRadius && object2.getBoundingRadius
-			&& object1.pos.distanceTo(object2.pos) > (object1.getBoundingRadius() + object2.getBoundingRadius())) {
-			return false;
+//		if( object1.getBoundingRadius && object2.getBoundingRadius
+//			&& object1.pos.distanceTo(object2.pos) > (object1.getBoundingRadius() + object2.getBoundingRadius())) {
+//			return false;
+//		}
+		if( object1.getBoundingCircle && object2.getBoundingCircle ){
+			var bs1 = object1.getBoundingCircle(),
+				bs2 = object2.getBoundingCircle();
+			if( bs1.center.distanceTo(bs2.center) > (bs1.r + bs2.r)) {
+				return false;
+			}
 		}
 		// TODO: check if velocities are pointing away from each other
 		// Narrow check required
@@ -1037,11 +1079,30 @@ ArcadeCanvas =
 			this.rect(arguments[0], arguments[1], size, size);
 		}
 	},
+	/**Apply transformation matrix.
+	 * This method takes care of transposing m, so it fits the canvas 
+	 * representation. The matrix is treated as affine (last row being [0 0 1]).
+	 * @param {Matrix3} m
+	 */
+	transformMatrix3: function(m){
+		m = m.m;
+		this.transform(m[0], m[3], m[1], m[4], m[6], m[7]);
+	},
+	/**Set transformation matrix.
+	 * This method takes care of transposing m, so it fits the canvas 
+	 * representation. The matrix is treated as affine (last row being [0 0 1]).
+	 * @param {Matrix3} m
+	 */
+	setTransformMatrix3: function(m){
+		m = m.m;
+		this.setTransform(m[0], m[3], m[1], m[4], m[6], m[7]);
+	},
 	/**Render a text field to the canvas.
 	 */
 	strokeBanner: function(text){
 
-	}
+	},
+	__lastentry: undefined
 }
 
 
@@ -1164,9 +1225,14 @@ var Movable = Class.extend(
 		this.pos = opts.pos ? new Point2(opts.pos) : new Point2(0, 0);
 		this.scale = opts.scale ? +opts.scale : 1.0;
 		this.orientation = opts.orientation ? +opts.orientation : 0;
+		this.mc2wc = null;
+		this.wc2mc = null;
+		this._updateTransformations();
+		
 		this.velocity = opts.velocity ? new Vec2(opts.velocity) : new Vec2(0, 0);
 		this.mass = opts.mass ? +opts.mass : 1;
 		this.rotationalSpeed = opts.rotationalSpeed || null; //0.0 * LinaJS.DEG_TO_RAD;  // rad / tick
+		
 		this.screenModeX = opts.screenModeX || "none";
 		this.screenModeY = opts.screenModeY || "none";
 		this._timeout = 0; //+opts.timeout;
@@ -1176,7 +1242,7 @@ var Movable = Class.extend(
 //        this.tran = new BiTran2();.translate();
 	},
 	toString: function() {
-		return "Movable<"+this.type+"> '" + this.id + "' @ " + this.pos;
+		return "Movable<"+this.type+"> '" + this.id + "' @ " + this.pos.toString(4);
 	},
 	/**Return current activity.
 	 * @returns {string}
@@ -1221,6 +1287,14 @@ var Movable = Class.extend(
 		this._timeout = frames;
 		this._timeoutCallback = callback || this.onTimeout;
 	},
+
+	/**Set transformation matrix and inverse from this.pos, .orientation and .scale.
+	 */
+	_updateTransformations: function() {
+		this.mc2wc = new Matrix3().scale(this.scale).rotate(this.orientation).translate(this.pos.x, this.pos.y);
+		this.wc2mc = this.mc2wc.copy().invert();
+	},
+
 	/**
 	 *
 	 */
@@ -1241,28 +1315,32 @@ var Movable = Class.extend(
 			}
 		}
 		// Save previous values
-		this.prevPos = this.pos;
+		this.prevPos = this.pos.copy();
 		this.prevOrientation = this.orientation;
-		this.prevVelocity = this.velocity;
+		this.prevVelocity = this.velocity.copy();
 		this.prevRotationalSpeed = this.rotationalSpeed;
-		// Update MC-to-WC transformation
+		// Update position in world coordinates
 		this.orientation += this.rotationalSpeed;
-		if(this.velocity) {
+		if(this.velocity && !this.velocity.isNull()) {
 			this.pos.translate(this.velocity);
 			// wrap around at screen borders
-			var canvas = this.game.canvas;
+//			var canvas = this.game.canvas;
+			var viewport = this.game.viewport;
 			if(this.screenModeX == "wrap"){
-				this.pos.x = (canvas.width + this.pos.x) % canvas.width;
+//				this.pos.x = (canvas.width + this.pos.x) % canvas.width;
+				this.pos.x = (viewport.width + this.pos.x) % viewport.width;
 			}
 			if(this.screenModeY == "wrap"){
-				this.pos.y = (canvas.height + this.pos.y) % canvas.height;
+//				this.pos.y = (canvas.height + this.pos.y) % canvas.height;
+				this.pos.y = (viewport.height + this.pos.y) % viewport.height;
 			}
 		}
+		// Update MC-to-WC transformation
+		this._updateTransformations();
 		// Let derived class change it
 		if(typeof this.step == "function"){
 			this.step();
 		}
-		// Update MC-to-WC transformation
 	},
 	_redraw: function(ctx) {
 		if( this.hidden ) {
@@ -1270,40 +1348,37 @@ var Movable = Class.extend(
 		}
 		// Push current transformation and rendering context
 		ctx.save();
-		// Apply object translation, rotation and scale
-		ctx.translate(this.pos.x, this.pos.y);
-		if( this.scale && this.scale != 1.0 ){
-			ctx.scale(this.scale, this.scale);
+		try{
+			// Apply object translation, rotation and scale
+//			this.game.debug("%s: %s", this, this.pos);
+			ctx.translate(this.pos.x, this.pos.y);
+			if( this.scale && this.scale != 1.0 ){
+				ctx.scale(this.scale, this.scale);
+			}
+			if(this.opts.debug.showVelocity && this.velocity){
+				ctx.strokeStyle = this.game.opts.debug.strokeStyle;
+				ctx.strokeVec2(Vec2.scale(this.velocity, this.opts.debug.velocityScale));
+			}
+			if( this.orientation ){
+				ctx.rotate(this.orientation);
+			}
+			// Let object render itself
+			this.render(ctx);
+			// Render optional debug infos
+			if(this.opts.debug.showBCircle && this.getBoundingCircle){
+				ctx.strokeStyle = this.game.opts.debug.strokeStyle;
+				ctx.strokeCircle2(this.getBoundingCircle());
+			}
+		}finally{
+			// Restore previous transformation and rendering context
+			ctx.restore();
 		}
-		if(this.opts.debug.showVelocity && this.velocity){
-			ctx.strokeStyle = this.game.opts.debug.strokeStyle;
-			ctx.strokeVec2(this.velocity.copy().scale(this.opts.debug.velocityScale));
-		}
-		if( this.orientation ){
-			ctx.rotate(this.orientation);
-		}
-		// Let object render itself
-		this.render(ctx);
-		// Render optional debug infos
-		if(this.opts.debug.showBCircle && this.getBoundingRadius){
-			ctx.strokeStyle = this.game.opts.debug.strokeStyle;
-			var circle = new Circle2({x:0, y:0}, this.getBoundingRadius());
-			var r = this.getBoundingRadius();
-			ctx.strokeCircle2({center:{x:0, y:0}, r:this.getBoundingRadius()});
-		}
-//    	if(this.opts.debug.showVelocity && this.velocity){
-//        	ctx.strokeStyle = this.opts.debug.strokeStyle;
-//    		ctx.strokeVec2(this.velocity.copy().scale(this.opts.debug.velocityScale));
-//    	}
-
-		// Restore previous transformation and rendering context
-		ctx.restore();
 	},
 	/**@function Return bounding circle for fast a-priory collision checking.
-	 * @returns {float} radius of bounding circle. Center is assumed at (0/0)
+	 * @returns {Circle2} bounding circle in world coordinates.
 	 * in modelling coordinates.
 	 */
-	getBoundingRadius: undefined,
+	getBoundingCircle: undefined,
 	/**@function Return bounding box for fast a-priory collision checking.
 	 * @returns {BBox2}
 	 * in modelling coordinates.
@@ -1334,12 +1409,13 @@ var Movable = Class.extend(
 		return !!this._dead;
 	},
 	/**Return true, if point hits this object.
-	 * @param {Point2} pt Point in canvas coordinates
+	 * @param {Point2} pt Point in world coordinates
 	 * @returns {boolean}
 	 */
 	contains: function(pt) {
-		if(this.getBoundingRadius) {
-			return this.pos.distanceTo(pt) <= this.getBoundingRadius();
+		if(this.getBoundingCircle) {
+			var boundsWC = this.getBoundingCircle();//.copy().transform(this.mc2wc);
+			return boundsWC.center.distanceTo(pt) <= boundsWC.r;
 		}
 		return undefined;
 	},
@@ -1348,9 +1424,10 @@ var Movable = Class.extend(
 	 * @returns {boolean}
 	 */
 	intersectsWith: function(otherObject) {
-		if( this.getBoundingRadius && otherObject.getBoundingRadius) {
-			return this.pos.distanceTo(otherObject.pos)
-				<= (this.getBoundingRadius() + otherObject.getBoundingRadius());
+		if( this.getBoundingCircle && otherObject.getBoundingCircle) {
+			var boundsWC = this.getBoundingCircle(),//.copy().transform(this.mc2wc),
+				boundsWC2 = otherObject.getBoundingCircle();//.copy().transform(otherObect.mc2wc);
+			return boundsWC.center.distanceTo(boundsWC2.center) <= (boundsWC.r + boundsWC2.r);
 		}
 		return undefined;
 	},

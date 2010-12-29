@@ -257,7 +257,7 @@ LinaJS = {
 		// we must compare the time to our current time of collision. We
 		// update the time if we find a collision that has occurred earlier
 		// than the previous one.
-		if(disc < 0){
+		if(disc <= 0){
 			return false;
 		}
 		// We want the smallest time
@@ -344,7 +344,10 @@ Point2 = function(x, y){
 }
 Point2.prototype = {
 	/** Return string representation '(x/y)'. */
-	toString: function() {
+	toString: function(prec) {
+		if(prec !== undefined){
+			return "(" + this.x.toPrecision(prec) + "/" + this.y.toPrecision(prec)  + ")";
+		}
 		return "(" + this.x + "/" + this.y  + ")";
 	},
 	/** Set coordinates.
@@ -532,7 +535,10 @@ Vec2 = function(dx, dy){
 }
 Vec2.prototype = {
 	/** Return string representation '(dx, dy)'. */
-	toString: function() {
+	toString: function(prec) {
+		if(prec !== undefined){
+			return "(" + this.dx.toPrecision(prec) + ", " + this.dy.toPrecision(prec)  + ")";
+		}
 		return "(" + this.dx + ", " + this.dy  + ")";
 	},
 	/** Set coordinates.
@@ -1138,7 +1144,7 @@ Matrix3.prototype = {
 	orientation: function() {
 		return new Vec2(this.transformVec(0, 1));
 	},
-	lastEntry: undefined
+	__lastEntry: undefined
 }
 
 
@@ -1503,7 +1509,7 @@ Polygon2.prototype = {
 	makeCW: function() {
 		return this.isCCW() ? this.revert() : this;
 	},
-	/** Return the smallest bounding circle as {pt: {x:_,y:_}, r:_}.*/
+	/** Return the smallest bounding circle as {center: {x:_,y:_}, r:_}.*/
 	getBoundingCircle: function() {
 		// TODO: Gems II, 1.4
 		alert("Not implemented: Polygon2.getBoundingCircle()");
@@ -1581,6 +1587,7 @@ Circle2.prototype = {
 	/** Apply transformation matrix (in-place) and return this instance.*/
 	transform: function(m) {
 		this.center.transform(m);
+		// FIXME: transform radius too
 		return this;
 	},
 	/**Check, if pt is inside this polygon.

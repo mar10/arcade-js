@@ -1233,8 +1233,8 @@ var Movable = Class.extend(
 		this.mass = opts.mass ? +opts.mass : 1;
 		this.rotationalSpeed = opts.rotationalSpeed || null; //0.0 * LinaJS.DEG_TO_RAD;  // rad / tick
 		
-		this.screenModeX = opts.screenModeX || "none";
-		this.screenModeY = opts.screenModeY || "none";
+		this.clipModeX = opts.clipModeX || "none";
+		this.clipModeY = opts.clipModeY || "none";
 		this._timeout = 0; //+opts.timeout;
 		this._timoutCallback = null;
 		this.ttl = +opts.ttl;
@@ -1324,15 +1324,12 @@ var Movable = Class.extend(
 		if(this.velocity && !this.velocity.isNull()) {
 			this.pos.translate(this.velocity);
 			// wrap around at screen borders
-//			var canvas = this.game.canvas;
 			var viewport = this.game.viewport;
-			if(this.screenModeX == "wrap"){
-//				this.pos.x = (canvas.width + this.pos.x) % canvas.width;
-				this.pos.x = (viewport.width + this.pos.x) % viewport.width;
+			if(this.clipModeX == "wrap"){
+				this.pos.x = (Math.abs(viewport.width) + this.pos.x) % viewport.width;
 			}
-			if(this.screenModeY == "wrap"){
-//				this.pos.y = (canvas.height + this.pos.y) % canvas.height;
-				this.pos.y = (viewport.height + this.pos.y) % viewport.height;
+			if(this.clipModeY == "wrap"){
+				this.pos.y = (Math.abs(viewport.height) + this.pos.y) % viewport.height;
 			}
 		}
 		// Update MC-to-WC transformation
@@ -1367,7 +1364,7 @@ var Movable = Class.extend(
 			// Render optional debug infos
 			if(this.opts.debug.showBCircle && this.getBoundingCircle){
 				ctx.strokeStyle = this.game.opts.debug.strokeStyle;
-				ctx.strokeCircle2(this.getBoundingCircle());
+				ctx.strokeCircle2(this.getBoundingCircle().copy().transform(this.wc2mc));
 			}
 		}finally{
 			// Restore previous transformation and rendering context
@@ -1511,8 +1508,8 @@ Movable.defaultOptions = {
 //	eventList: [], // list of event names that this object wants
 	pos: null,
 	/**@field {string} 'wrap', 'bounce', 'collision', or 'none'.*/
-	screenModeX: "wrap",
-	screenModeY: "wrap",
+	clipModeX: "wrap",
+	clipModeY: "wrap",
 	debug: {
 		level: 1,
 		showLabel: false,

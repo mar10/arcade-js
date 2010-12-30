@@ -66,8 +66,9 @@
 	// The dummy class constructor
 	function Class() {
 	  // All construction is actually done in the init method
-	  if ( !initializing && this.init )
+	  if ( !initializing && this.init ){
 		this.init.apply(this, arguments);
+	  }
 	}
 
 	// Populate our constructed prototype object
@@ -96,8 +97,9 @@
  * clickSound.play();
  */
 AudioJS = function(opts){
-	if(typeof opts == "string")
+	if(typeof opts == "string"){
 		opts = {url: opts};
+	}
 	this.opts = $.extend({}, AudioJS.defaultOpts, opts);
 	this.audio = AudioJS.load(opts.url);
 }
@@ -143,8 +145,9 @@ $.extend(AudioJS,
 			$(audio).bind("ended", {}, function() {
 				// TODO: we can simulate looping if it is not natively supported:
 //			  	$(this).trigger('play');
-				if(window.console)
+				if(window.console){
 					window.console.log("AudioJS("+url+") ended");
+				}
 			});
 		}
 		return audio;
@@ -181,9 +184,9 @@ AudioJS.prototype = {
 			if(window.console){
 				window.console.log("audio.play() failed: " + e);
 			}
-		};
+		}
 	},
-	lastEntry: undefined
+	__lastEntry: undefined
 }
 
 
@@ -207,6 +210,7 @@ var ArcadeJS = Class.extend(
 		// Copy selected options as object attributes
 		ArcadeJS.extendAttributes(this, this.opts, "name fps resizeMode");
 
+		this._canvasLog = [];
 		/**HTML5 canvas element*/
 		this.canvas = canvas;
 		/**Canvas 2d context*/
@@ -221,10 +225,10 @@ var ArcadeJS = Class.extend(
 		this.context.strokeStyle = this.opts.strokeStyle;
 		this.context.fillStyle = this.opts.fillStyle;
 
-		this.viewPortMapMode = null;
 		this.viewportOrg = null;
 		this.viewport = null;
-		this.resetViewport();
+		this.viewPortMapMode = "none";
+		this._realizeViewport();
 		
 		this.objects = [];
 		this.idMap = {};
@@ -271,14 +275,16 @@ var ArcadeJS = Class.extend(
 				self.keyCode = null;
 				self.key = null;
 				var idx = self.downKeyCodes.indexOf(e.keyCode);
-				if(idx >= 0)
+				if(idx >= 0){
 					self.downKeyCodes.splice(idx, 1);
+				}
 //            	self.debug("Keyup %s: %o", ArcadeJS.keyCodeToString(e), self.downKeyCodes);
 			} else if( e.type === "keydown"){
 				self.keyCode = e.keyCode;
 				self.key = ArcadeJS.keyCodeToString(e);
-				if( self.downKeyCodes.indexOf(self.keyCode) < 0)
+				if( self.downKeyCodes.indexOf(self.keyCode) < 0){
 					self.downKeyCodes.push(self.keyCode);
+				}
 //            	self.debug("Keydown %s: %o", self.key, self.downKeyCodes);
 			} else {
 //            	self.debug("Keypress %s: %o", self.key, e);
@@ -356,12 +362,10 @@ var ArcadeJS = Class.extend(
 				for(var i=0; i<self._draggedObjects.length; i++) {
 					var obj = self._draggedObjects[i];
 					if(drop && obj.onDrop) {
-//            			obj.onDrop(self.clickPos.vectorTo(self.mousePos));
 						obj.onDrop(self.dragOffset);
 					} else if(cancelDrag && obj.onDragcancel) {
 						obj.onDragcancel(self.dragOffset);
 					} else if(self._dragging && e.type == "mousemove" && obj.onDrag) {
-//            			obj.onDrag(self.clickPos.vectorTo(self.mousePos));
 						obj.onDrag(self.dragOffset);
 					}
 				}
@@ -380,21 +384,21 @@ var ArcadeJS = Class.extend(
 		});
 		// Adjust canvas height and width on resize events
 		$(window).resize(function(e){
-			var $c = $(self.canvas);
-			var width = $c.width(),
+			var $c = $(self.canvas),
+			    width = $c.width(),
 				height = $c.height();
+			self.debug("window.resize: $canvas: " + width + " x " + height + "px");
 			if(!self.onResize || self.onResize(e, width, height) !== false) {
 				switch(self.resizeMode) {
 				case "adjust":
-					self.debug("window.resize: adjusting canvas from " + self.canvas.width + "px x " + self.canvas.height + "px");
 					if(self.canvas.width != width){
-						self.debug("self.canvas.width: " + self.canvas.width + ", width:" + width);
+						self.debug("adjsting canvas.width from " + self.canvas.width + " to " + width);
 						self.canvas.width = width;
 					}
 					if(self.canvas.height != height){
+						self.debug("adjsting canvas.height from " + self.canvas.height + " to " + height);
 						self.canvas.height = height;
 					}
-					self.debug("window.resize: adjusting canvas to " + self.canvas.width + "px x " + self.canvas.height + "px");
 					// Adjust WC-to-CC transformationss
 					self._realizeViewport();
 					break;
@@ -412,13 +416,22 @@ var ArcadeJS = Class.extend(
 		$(window).resize();
 	},
 	toString: function() {
-//        return "ArcadeJS '" + this.name + "', activity: '" + this._activity + "'";
 		return "ArcadeJS<" + this.name + ">";
 	},
 	/**Output string to console.
 	 * @param: {string} msg
 	 */
 	debug: function(msg) {
+		if(this.opts.debug.canvasLog){
+			// Optionally store recent x lines in a string list
+			while( this._canvasLog.length > this.opts.debug.canvasLog ){
+				this._canvasLog.shift();
+			}
+			var dt = new Date(),
+				tag = "" + dt.getHours() + ":" + dt.getMinutes() + "." + dt.getMilliseconds(),
+				s = tag + " - " + Array.prototype.join.apply(arguments, [", "]);
+			this._canvasLog.push(s);
+		}
 		if(window.console && window.console.log) {
 //        	var args = Array.prototype.slice.apply(arguments, [1]);
 			window.console.log.apply(window.console, arguments);
@@ -509,32 +522,44 @@ var ArcadeJS = Class.extend(
 
 	/**Set viewport to be identical to the canvas size, thus making WC = CC.
 	 */
-	resetViewport: function() {
-		var $canvas = $(this.canvas);
-		this.setViewport(0,$canvas.height(), $canvas.width(), -$canvas.height(), "stretch");
-//		this.setViewport(0,0, $canvas.width(), $canvas.height(), "none");
-	},
+//	resetViewport: function() {
+//		var $canvas = $(this.canvas);
+//		this.setViewport(0,$canvas.height(), $canvas.width(), -$canvas.height(), "stretch");
+////		this.setViewport(0,0, $canvas.width(), $canvas.height(), "none");
+//	},
 
 	_realizeViewport: function() {
-		this.debug("_realizeViewport: %o", this.viewportOrg);
-		// 
-		var vp = this.viewportOrg,
-			vpa = {x: vp.x, y: vp.y, width: vp.width, height: vp.height}, 
-			mapMode = this.viewPortMapMode,
+		var mapMode = this.viewPortMapMode,
 			$canvas = $(this.canvas),
 			ccWidth = $canvas.width(),
 			ccHeight = $canvas.height(),
-			vpAspect = vp.width / vp.height,
 			ccAspect = ccWidth / ccHeight;
-		// Calculate the adjusted viewport dimensions
-		this.viewport = vpa;
-		
-		switch(mapMode){
-		case "none":
+
+		this.debug("_realizeViewport(" + mapMode + ") for  canvas " + ccWidth + " x " + ccHeight);
+		if(mapMode == "none"){
+//			this.viewport = {x: 0, y: 0, width: ccWidth, height: ccHeight};
+			this.viewport = {x: 0, y: ccHeight, width: ccWidth, height: -ccHeight};
+			this.viewportOrg = this.viewport;
 			this.wc2cc = new Matrix3();
 			this.cc2wc = new Matrix3();
-			this.onePixelWC = 1; //vp.width / ccWidth; 
+			this.onePixelWC = 1; 
 			return;
+			
+		}
+		// Calculate the adjusted viewport dimensions
+		var vp = this.viewportOrg,
+			vpa = {x: vp.x, y: vp.y, width: vp.width, height: vp.height}, 
+			vpAspect = vp.width / vp.height;
+		this.viewport = vpa;
+		
+		this.debug("    viewportOrg:  ", vp.x, vp.y, vp.width, vp.height, mapMode);
+		
+		switch(mapMode){
+//		case "none":
+//			this.wc2cc = new Matrix3();
+//			this.cc2wc = new Matrix3();
+//			this.onePixelWC = 1; //vp.width / ccWidth; 
+//			return;
 		case "fit":
 		case "extend":
 			if(vpAspect > ccAspect){
@@ -563,16 +588,16 @@ var ArcadeJS = Class.extend(
 		default:
 			throw "Invalid mapMode: '" + vp.mapMode + "'";
 		}
-		this.debug("_realizeViewport: adjusted %o", this.viewport);
+		this.debug("    viewport adjusted ", vpa.x, vpa.y, vpa.width, vpa.height);
 		// Define transformation matrices
 		this.wc2cc = new Matrix3()
 			.translate(-vpa.x, -vpa.y)
 			.scale(ccWidth/vpa.width, -ccHeight/vpa.height)
 			.translate(0, ccHeight);
-		this.debug("wc2cc: %s", this.wc2cc);
+//		this.debug("wc2cc: %s", this.wc2cc);
 		this.cc2wc = this.wc2cc.copy().invert();
 		this.onePixelWC = vpa.width / ccWidth; 
-		this.debug("cc2wc: %s", this.cc2wc);
+//		this.debug("cc2wc: %s", this.cc2wc);
 	},
 	
 	_renderLoop: function(){
@@ -663,7 +688,16 @@ var ArcadeJS = Class.extend(
 			ctx.fillText(this.realFps.toFixed(1) + " fps", this.canvas.width-50, 15);
 			ctx.restore();
 		}
-
+		if(this.opts.debug.canvasLog){
+			ctx.save();
+			ctx.font = "12px sans-serif";
+			var x = 10, y = this.canvas.height-15;
+			for(var i=this._canvasLog.length-1; i>0; i--){
+				ctx.fillText(this._canvasLog[i], x, y);
+				y -= 15;
+			}
+			ctx.restore();
+		}
 		// Draw debug infos
 		var infoList = [];
 		if(this.opts.debug.showActivity){
@@ -783,8 +817,9 @@ var ArcadeJS = Class.extend(
 		this.typeMap = {};
 		for(var i=0; i<ol.length; i++){
 			var o = ol[i];
-			if( !o._dead )
+			if( !o._dead ){
 				this.addObject(o);
+			}
 		}
 		this._deadCount = 0;
 		this._purging = false;
@@ -964,6 +999,7 @@ ArcadeJS.defaultGameOptions = {
 	fps: 30,
 	debug: {
 		level: 1,
+		canvasLog: 10,
 		strokeStyle: "#80ff00",
 		showActivity: false,
 		showKeys: false,

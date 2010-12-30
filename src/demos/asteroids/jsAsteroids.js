@@ -135,9 +135,6 @@ var Bullet = Movable.extend({
 		ctx.lineTo(0, 0);
 		ctx.stroke();
 	},
-//	getBoundingRadius: function() {
-//		return 0.1;
-//	},
 	getBoundingCircle: function() {
 		return new Circle2({x:this.pos.x, y:this.pos.y}, 0.1);
 	},

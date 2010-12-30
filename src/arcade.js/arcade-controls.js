@@ -1,5 +1,5 @@
 /**
- * arcade-mobile.js
+ * arcade-controls.js
  * Copyright (c) 2010,  Martin Wendt (http://wwWendt.de)
  *
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -18,8 +18,9 @@ function _getTouchWithId(touchList, id){
 	if(id && touchList && touchList.length){
 		for(var i=0; i<touchList.length; i++) {
 			var touch = touchList[i];
-			if(touch.identifier === id)
+			if(touch.identifier === id){
 				return touch;
+			}
 		}
 	}
 	return null;
@@ -46,15 +47,16 @@ var TouchButton = Movable.extend(
 		this.clicked = false;
 		this.down = false;
 	},
-	getBoundingRadius: function() {
-		return this.r;
+	getBoundingCircle: function() {
+		return new Circle2({x: this.pos.x, y: this.pos.y}, this.r);
 	},
 	render: function(ctx) {
 		// Draw gray sphere
 		var gradient = ctx.createRadialGradient(0, 0, 0, 5, -5, this.r);
 		gradient.addColorStop(0, "rgba(255, 255, 255, 0.7)");
-		if(!this.down)
+		if(!this.down){
 			gradient.addColorStop(0.7, "rgba(192, 192, 192, 0.7)");
+		}
 		gradient.addColorStop(1, "rgba(80, 80, 80, 0.7)");
 		ctx.fillStyle = gradient;
 		ctx.fillCircle2(0, 0, this.r);
@@ -66,8 +68,9 @@ var TouchButton = Movable.extend(
 		this.down = this.clicked && this.contains(this.game.mousePos);
 	},
 	onMouseup: function(e) {
-		if(this.clicked && this.contains(this.game.mousePos))
+		if(this.clicked && this.contains(this.game.mousePos)){
 			this.onClick.call(this);
+		}
 		this.down = this.clicked = false;
 	},
 	onTouchevent: function(e, orgEvent) {
@@ -78,8 +81,9 @@ var TouchButton = Movable.extend(
 			touch =  orgEvent.changedTouches[0];
 		}
 		// Ignore event, if touch identifier is different from start event
-		if(!touch)
+		if(!touch){
 			return;
+		}
 		// Otherwise, prevent default handling
 		orgEvent.preventDefault();
 
@@ -91,15 +95,17 @@ var TouchButton = Movable.extend(
 		// TODO: seems that we get touchend for both fingers, even if only the other
 		// finger was lifted!
 		// http://stackoverflow.com/questions/3695128/webkit-iphone-ipad-issue-with-mutl-touch
-		if(e.type!="touchmove")
+		if(e.type!="touchmove"){
 			this.game.debug("button " + e.type + " - isInside: " + isInside + ", drag: " + this.touchDragOffset + ", id=" + touch.identifier);
+		}
 
 		switch (e.type) {
 		case "touchstart":
 		case "touchmove":
 			this.down = isInside;
-			if(isInside)
+			if(isInside){
 				this.touchDownId = touch.identifier;
+			}
 			break;
 		case "touchend":
 			if(this.down && isInside){
@@ -123,7 +129,7 @@ var TouchButton = Movable.extend(
 	/**Called when button was clicked (i.e. pushed and released). */
 	onClick: undefined,
 	// --- end of class
-	lastentry: undefined
+	__lastentry: undefined
 });
 
 /*----------------------------------------------------------------------------*/
@@ -147,8 +153,8 @@ var TouchStick = Movable.extend(
 		this.touchDownId = null;
 		this.touchDragOffset = null;
 	},
-	getBoundingRadius: function() {
-		return this.r2;
+	getBoundingCircle: function() {
+		return new Circle2({x: this.pos.x, y: this.pos.y}, this.r2);
 	},
 	render: function(ctx) {
 		// Draw gray sphere
@@ -202,8 +208,9 @@ var TouchStick = Movable.extend(
 			touch =  orgEvent.changedTouches[0];
 		}
 		// Ignore event, if touch identifier is different from start event
-		if(!touch)
+		if(!touch){
 			return;
+		}
 //    	if(e.type!="touchstart") alert("3 Canvas touch event '" + e.type + "'"+touch);
 
 		// Otherwise, prevent default handling
@@ -214,9 +221,9 @@ var TouchStick = Movable.extend(
 			touch.pageY - this.game.canvas.offsetTop);
 //    	this.game.debug("Canvas touch event '" + e.type + "': id=" + touch.identifier + ", t=" + touch.target);
 //      this.game.debug("- touchDownPos: id=" + this.touchDownId + ", " + this.touchDownPos + ", drag: " + this.touchDragOffset);
-		if(e.type!="touchmove")
+		if(e.type!="touchmove"){
 			this.game.debug("stick " + e.type + " - isInside: " + this.contains(touchPos) + ", drag: " + this.touchDragOffset + ", id=" + touch.identifier);
-
+		}
 		// TODO: seems that we get touchend for both fingers, even if only the other
 		// finger was lifted!
 		// http://stackoverflow.com/questions/3695128/webkit-iphone-ipad-issue-with-mutl-touch
@@ -262,5 +269,5 @@ var TouchStick = Movable.extend(
 	/**Called when button was clicked (i.e. pushed and released). */
 	onClick: undefined,
 	// --- end of class
-	lastentry: undefined
+	__lastentry: undefined
 });

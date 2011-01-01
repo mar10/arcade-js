@@ -1,7 +1,7 @@
 /**
  * lina.js
  *
- * Copyright (c) 2010,  Martin Wendt (http://wwWendt.de)
+ * Copyright (c) 2010-2011,  Martin Wendt (http://wwWendt.de)
  *
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://code.google.com/p/arcade-js/wiki/LicenseInfo
@@ -16,7 +16,7 @@
  * @author Martin Wendt
  * @version 0.0.1
  */
-
+/*jslint laxbreak: true */
 /*******************************************************************************
  * Tools
  */
@@ -87,8 +87,9 @@ LinaJS = {
 	},
 	/** Return a new Matrix3 that represents a scaling about (0/0). */
 	scale33: function(fx, fy) {
-		if (fy === undefined)
+		if (fy === undefined){
 			fy = +fx;
+		}
 		return new Matrix3( [ fx, 0, 0, 0, fy, 0, 0, 0, 1 ]);
 	},
 
@@ -131,8 +132,9 @@ LinaJS = {
 		// public domain function by Darel Rex Finley, 2006
 		// Return null, if the segments are colinear, even if they overlap.
 		// Fail if either line segment is zero-length.
-		if (pt1x==pt2x && pt1y==pt2y || pt3x==pt4x && pt3y==pt4y)
+		if (pt1x==pt2x && pt1y==pt2y || pt3x==pt4x && pt3y==pt4y){
 			return null;
+		}
 		// Fail if the segments share an end-point.
 		if (pt1x==pt3x && pt1y==pt3y || pt2x==pt3x && pt2y==pt3y
 			||  pt1x==pt4x && pt1y==pt4y || pt2x==pt4x && pt2y==pt4y) {
@@ -154,13 +156,15 @@ LinaJS = {
 		pt4y = pt4y * theCos - pt4x * theSin;
 		pt4x = newX;
 		// Fail if segment C-D doesn't cross line A-B.
-		if (pt3y<0 && pt4y<0 || pt3y>=0 && pt4y>=0 )
+		if (pt3y<0 && pt4y<0 || pt3y>=0 && pt4y>=0 ){
 			return null;
+		}
 		// (3) Discover the position of the intersection point along line A-B.
 		var ABpos = pt4x + (pt3x - pt4x) * pt4y / (pt4y - pt3y);
 		// Fail if segment C-D crosses line A-B outside of segment A-B.
-		if (ABpos < 0 || ABpos > distAB )
+		if (ABpos < 0 || ABpos > distAB ){
 			return null;
+		}
 		// (4) Apply the discovered position to line A-B in the original coordinate system.
 		return {x: pt1x + ABpos * theCos,
 				y: pt1y + ABpos * theSin};
@@ -175,8 +179,9 @@ LinaJS = {
 		// public domain function by Darel Rex Finley, 2006
 		// Return null, if the segments are colinear, even if they overlap.
 		// Fail if either line segment is zero-length.
-		if (pt1x==pt2x && pt1y==pt2y || pt3x==pt4x && pt3y==pt4y)
+		if (pt1x==pt2x && pt1y==pt2y || pt3x==pt4x && pt3y==pt4y){
 			return null;
+		}
 		// (1) Translate the system so that point A is on the origin.
 		pt2x -= pt1x; pt2y -= pt1y;
 		pt3x -= pt1x; pt3y -= pt1y;
@@ -193,8 +198,9 @@ LinaJS = {
 		pt4y = pt4y * theCos - pt4x * theSin;
 		pt4x = newX;
 		//  Fail if the lines are parallel.
-		if (pt4y == pt3y)
+		if (pt4y == pt3y){
 			return null;
+		}
 		// (3) Discover the position of the intersection point along line A-B.
 		var ABpos = pt4x + (pt3x - pt4x) * pt4y / (pt4y - pt3y);
 		// (4) Apply the discovered position to line A-B in the original coordinate system.
@@ -267,7 +273,7 @@ LinaJS = {
 			ptColl: null,
 			vColl: null,
 			t: t
-		}
+		};
 	},
 	/** Return true, if lina.js objects a and b are the same (within eps).
 	 * This function is not optimized for speed, but handy for unit tests.
@@ -276,7 +282,7 @@ LinaJS = {
 	 * @param eps {float} Maximum accepted difference, defaults to 0.00001
 	 */
 	compare: function(a, b, eps) {
-		var eps = eps === undefined ? LinaJS.EPS : eps;
+		eps = (eps === undefined) ? LinaJS.EPS : eps;
 		if( a === undefined || b === undefined ){
 			// undefined is equal to nothing!
 			return false;
@@ -299,11 +305,14 @@ LinaJS = {
 		} else if( typeof a === "number" ){
 			return Math.abs(a-b) <= eps;
 		} else if( a && a.constructor === Array ){
-			if( a.length !== b.length)
+			if( a.length !== b.length){
 				return false;
-			for(var i=0; i<a.length; i++)
-				if(!LinaJS.compare(a[i], b[i], eps))
+			}
+			for(var i=0; i<a.length; i++){
+				if(!LinaJS.compare(a[i], b[i], eps)){
 					return false;
+				}
+			}
 		} else if( a.x !== undefined ){
 			return LinaJS.compare(a.x, b.x, eps) && LinaJS.compare(a.y, b.y, eps);
 		} else if( a.dx !== undefined ){
@@ -319,7 +328,7 @@ LinaJS = {
 		return true;
 	},
 	lastEntry : undefined
-}
+};
 
 
 /*****************************************************************************/
@@ -341,7 +350,7 @@ LinaJS = {
  */
 Point2 = function(x, y){
 	this.set(x, y);
-}
+};
 Point2.prototype = {
 	/** Return string representation '(x/y)'. */
 	toString: function(prec) {
@@ -451,15 +460,14 @@ Point2.prototype = {
 	 * @returns {Vec2}
 	 */
 	vectorTo: function(ptOrX, y) {
-		var dx, dy;
 		if(y === undefined) {
 			return new Vec2(ptOrX.x - this.x, ptOrX.y - this.y);
 		}else{
 			return new Vec2(ptOrX - this.x, y - this.y);
 		}
 	},
-	lastEntry : undefined
-}
+	__lastEntry: undefined
+};
 
 /** Return distance from this to pt2.
  * @param {Point2|JS-Object} pt1 First point.
@@ -468,7 +476,7 @@ Point2.prototype = {
  */
 Point2.distanceTo = function(pt1, ptOrX, y) {
 	return pt1.distanceTo(ptOrX, y);
-}
+};
 
 /** Check if pt2 is (aproximately) equal to pt1.
  * @param {Point2|JS-Object} pt1 First point.
@@ -478,7 +486,7 @@ Point2.distanceTo = function(pt1, ptOrX, y) {
  */
 Point2.isEqual = function(pt1, pt2, eps) {
 	return pt1.isEqual(pt2, eps);
-}
+};
 
 /** Return rotated copy of pt.
  * @param {Point2} pt point that will be rotaded.
@@ -488,7 +496,7 @@ Point2.isEqual = function(pt1, pt2, eps) {
  */
 Point2.rotate = function(pt, a, ptCenter){
 	return pt.copy().rotate(a, ptCenter);
-}
+};
 
 /** Return a copy of pt transformed by m.
  * @param {Point2} pt point that will be transformed.
@@ -497,7 +505,7 @@ Point2.rotate = function(pt, a, ptCenter){
  */
 Point2.transform = function(pt, m) {
 	return pt.copy().transform(m);
-}
+};
 
 /** Return a translated copy of pt.
  * @param {Point2} pt point that will be translated.
@@ -507,7 +515,7 @@ Point2.transform = function(pt, m) {
  */
 Point2.translate = function(pt, dx, dy) {
 	return pt.copy().translate(dx, dy);
-}
+};
 
 /** Return vector from pt1 to pt2.
  * @param {Point2|JS-Object} pt1 First point.
@@ -516,7 +524,7 @@ Point2.translate = function(pt, dx, dy) {
  */
 Point2.vectorTo = function(pt1, ptOrX, y) {
 	return pt1.vectorTo(ptOrX, y);
-}
+};
 
 /**
  * 2D vector that has an internal cartesian representation (dx, dy)
@@ -532,7 +540,7 @@ Point2.vectorTo = function(pt1, ptOrX, y) {
  */
 Vec2 = function(dx, dy){
 	this.set(dx, dy);
-}
+};
 Vec2.prototype = {
 	/** Return string representation '(dx, dy)'. */
 	toString: function(prec) {
@@ -617,15 +625,16 @@ Vec2.prototype = {
 	 * @returns {Vec2}
 	 */
 	limit: function(length) {
-		if(this.sqrLength() > length*length)
+		if(this.sqrLength() > length*length){
 			this.scale(length / this.length());
+		}
 		return this;
 	},
 	/**Check, if vector is (0, 0)
 	 * @returns {boolean}
 	 */
 	isNull: function() {
-		return this.dx == 0 && this.dy == 0;
+		return this.dx === 0 && this.dy === 0;
 	},
 	/**Set vector to (0, 0)
 	 * @returns {Vec2}
@@ -645,14 +654,6 @@ Vec2.prototype = {
 	angleTo: function(v2){
 //		return Math.acos(this.dot(v2) /  (this.length() * Math.sqrt(v2.dx * v2.dx + v2.dy * v2.dy)));
 		return Math.asin(this.cross(v2) /  (this.length() * Math.sqrt(v2.dx * v2.dx + v2.dy * v2.dy)));
-//	    var theta1 = Math.atan2(this.dy, this.dx),
-//	   	    theta2 = Math.atan2(v2.dy, v2.dx),
-//	   	    dtheta = theta2 - theta1;
-//	    while (dtheta > Math.PI)
-//	       dtheta -= 2 * Math.PI;
-//	    while (dtheta < -Math.PI)
-//	       dtheta += 2 * Math.PI;
-//	    return dtheta;
 	},
 	/** Multiply vector length by a factor (in-place) and return this instance.
 	 * @param {float} f Scaling factor.
@@ -760,8 +761,8 @@ Vec2.prototype = {
 		}
 		return this;
 	},
-	lastEntry : undefined
-}
+	__lastEntry: undefined
+};
 
 /** Calculate the dot product (inner product) of this vector and v2.
  * @param {Vec2|JS-Object} v1 First vector.
@@ -770,7 +771,7 @@ Vec2.prototype = {
  */
 Vec2.dot = function(v1, v2) {
 	return v1.dx * v2.dx + v1.dy * v2.dy;
-}
+};
 /** Calculate the cross product of this vector and v2.
  * @param {Vec2|JS-Object} v1 First vector.
  * @param {Vec2|JS-Object} v2 Other vector.
@@ -778,14 +779,14 @@ Vec2.dot = function(v1, v2) {
  */
 Vec2.cross = function(v1, v2) {
 	return v1.dx * v2.dy - v1.dy * v2.dx;
-}
+};
 /** Return a normalized copy of v1.
  * @param {Vec2|JS-Object} v1.
  * @returns {Vec2}
  */
 Vec2.normalize = function(v1) {
-	return v1.copy().normalize()
-}
+	return v1.copy().normalize();
+};
 /**Return copy of vector with limited length.
  * @param {Vec2|JS-Object} v1.
  * @param {float} length Maximum length.
@@ -793,7 +794,7 @@ Vec2.normalize = function(v1) {
  */
 Vec2.limit = function(v1, length) {
 	return v1.copy().limit(length);
-}
+};
 /** Return a copy of v1 with length multiplied by a factor.
  * @param {Vec2|JS-Object} v1 First vector.
  * @param {float} f Scaling factor.
@@ -801,14 +802,14 @@ Vec2.limit = function(v1, length) {
  */
 Vec2.scale = function(v1, f) {
 	return v1.copy().scale(f);
-}
+};
 /** Return a flipped copy of vector.
  * @param {Vec2|JS-Object} v1 First vector.
  * @returns {Vec2}
  */
 Vec2.revert = function(v1) {
 	return v1.copy().revert();
-}
+};
 /** Return a rotated copy of a vector.
  * @param {Vec2|JS-Object} v1 First vector.
  * @param {float} a Angle in radians.
@@ -816,14 +817,14 @@ Vec2.revert = function(v1) {
  */
 Vec2.rotate = function(v1, a) {
 	return v1.copy().rotate(a);
-}
+};
 /** Return a transformed copy of a vector.
  * @param {Vec2|JS-Object} v1 First vector.
  * @returns {Vec2}
  */
 Vec2.transform = function(v1, m) {
 	return v1.copy().transform(m);
-}
+};
 /** Return a copy of vector with a defined length.
  * @param {Vec2|JS-Object} v1 First vector.
  * @param {float} length New length.
@@ -831,7 +832,7 @@ Vec2.transform = function(v1, m) {
  */
 Vec2.setLength = function(v1, length) {
 	return v1.copy().setLength(length);
-}
+};
 /** Return a perpendicluar copy of a vector.
  * This is equivalent to a rotation by 90°, only faster.
  * @param {Vec2|JS-Object} v1 First vector.
@@ -839,7 +840,7 @@ Vec2.setLength = function(v1, length) {
  */
 Vec2.perp = function(v1) {
 	return v1.copy().perp();
-}
+};
 /**Return a new vector that combines two vectors.
  * @param {Vec2|JS-Object} v1 First vector.
  * @param {Vec2|JS-Object} vecOrDx Second vector.
@@ -847,7 +848,7 @@ Vec2.perp = function(v1) {
  */
 Vec2.add = function(v1, vecOrDx, dy) {
 	return v1.copy().add(vecOrDx, dy);
-}
+};
 /**Return a new vector that combines v1 minus v2.
  * @param {Vec2|JS-Object} v1 First vector.
  * @param {Vec2|JS-Object} vecOrDx Second vector.
@@ -855,67 +856,8 @@ Vec2.add = function(v1, vecOrDx, dy) {
  */
 Vec2.sub = function(v1, vecOrDx, dy) {
 	return v1.copy().sub(vecOrDx, dy);
-}
+};
 
-///**
-// * 2d vector that has an internal polar coordinate representation:
-//     * `a`: angle in radians
-//     * `r`: distance
-//     * and support for transformations.
-// * @constructor
-//     * @param {radians|Polar2|JS-object} a
-//     * @param {distance|undefined} r
-// * @example
-// *   var v = new Polar2(Math.PI, 2);
-// *   v.applyRotate(0.5*Math.PI).translate(1, 2);
-// *
-// */
-//Polar2 = function(a, r){
-//	this.set(a, r);
-//}
-//Polar2.prototype = {
-//	/** Return string representation '(a=_°, r=_)'. */
-//	toString: function() {
-//	    return "(a=" + LinaJS.DEG_TO_RAD*this.a + "°, r=" + this.r  + ")";
-//	},
-//	set: function(a, r) {
-//		if(r === undefined){
-//			if(a.a !== undefined){
-//				// Copy from Polar2
-//		        this.a = +a.a;
-//		        this.r = +a.r;
-//			}else{
-//				// Copy from Vec2
-//				this.a = Math.atan2(a.dy, a.dx);
-//		    	this.r = Math.sqrt(a.dx * a.dx + a.dy * a.dy);
-//			}
-//		} else {
-//	        this.a = +a;
-//	        this.r = +r;
-//		}
-//		if( r === 0.0 )
-//			throw "invalid argument";
-//		return this;
-//	},
-//	getCartesian: function() {
-//		// Return {x:.., y:..}
-//		return {x: this.r * Math.cos(a),
-//			    y: this.r * Math.sin(a) };
-//	},
-//	rotate: function(a) {
-//		this.a += a;
-//	},
-//	normalize: function() {
-//		this.r = 1;
-//	},
-//	scale: function(f) {
-//		this.r *= 1;
-//	},
-//	setLength: function(l) {
-//		this.r = l;
-//	},
-//	lastentry: undefined
-//}
 
 /*******************************************************************************
  * Class Matrix3
@@ -946,7 +888,7 @@ Vec2.sub = function(v1, vecOrDx, dy) {
  */
 Matrix3 = function(m){
 	this.set(m);
-}
+};
 Matrix3.prototype = {
 	/**Return string representation '[[0, 1, 2], [3, 4, 5], [6, 7, 8]]'.
 	 * @returns {string}
@@ -973,7 +915,7 @@ Matrix3.prototype = {
 		}else if( m.length === 9 ) {
 			// Set from float[9]
 			this.m = m.slice();
-			this.isAffine = (m[2] == 0) && (m[5] == 0) && (m[8] == 1);
+			this.isAffine = (m[2] === 0) && (m[5] === 0) && (m[8] === 1);
 		}else{
 			// Set from Matrix3
 			this.m = m.m.slice();
@@ -1006,8 +948,9 @@ Matrix3.prototype = {
 	},
 	/** Apply scaling (in-place) and return this instance.*/
 	scale: function(fx, fy) {
-		if(fy === undefined)
+		if(fy === undefined){
 			fy = +fx;
+		}
 		var m = this.m;
 		m[0] *= fx;    m[1] *= fy;
 		m[3] *= fx;    m[4] *= fy;
@@ -1039,15 +982,16 @@ Matrix3.prototype = {
 		 * Newman, p.62ff
 		 *
 		 */
-		var ma = this.m;
-		var mb = mb.length ? mb : mb.m;
-		var mc = [0,0,0, 0,0,0, 0,0,0];
-		for(var row=0; row<3; row++) {
-			for(var col=0; col<3; col++) {
-				var c = 3*row + col;
-				for(var i=0; i<3; i++) {
-					var a = 3*row + i;
-					var b = 3*i + col;
+		mb = mb.length ? mb : mb.m;
+		var ma = this.m,
+			mc = [0,0,0, 0,0,0, 0,0,0],
+			a, b, c, row, col, i;
+		for(row=0; row<3; row++) {
+			for(col=0; col<3; col++) {
+				c = 3*row + col;
+				for(i=0; i<3; i++) {
+					a = 3*row + i;
+					b = 3*i + col;
 					mc[c] += ma[a] * mb[b];
 				}
 			}
@@ -1123,18 +1067,20 @@ Matrix3.prototype = {
 			throw "Cannot invert " + this;
 		}
 		var m = this.m;
-		var t = new Array(9); // make a copy
 		// http://en.wikipedia.org/wiki/Invertible_matrix
 		var invdet = 1.0 / det;
-		t[0] =  (m[4]*m[8] - m[7]*m[5]) * invdet;
-		t[1] = -(m[1]*m[8] - m[2]*m[7]) * invdet;
-		t[2] =  (m[1]*m[5] - m[2]*m[4]) * invdet;
-		t[3] = -(m[3]*m[8] - m[5]*m[6]) * invdet;
-		t[4] =  (m[0]*m[8] - m[2]*m[6]) * invdet;
-		t[5] = -(m[0]*m[5] - m[3]*m[2]) * invdet;
-		t[6] =  (m[3]*m[7] - m[6]*m[4]) * invdet;
-		t[7] = -(m[0]*m[7] - m[6]*m[1]) * invdet;
-		t[8] =  (m[0]*m[4] - m[3]*m[1]) * invdet;
+//		var t = new Array(9); // make a copy
+		var t = [ // make a copy
+			 (m[4]*m[8] - m[7]*m[5]) * invdet,
+			-(m[1]*m[8] - m[2]*m[7]) * invdet,
+			 (m[1]*m[5] - m[2]*m[4]) * invdet,
+			-(m[3]*m[8] - m[5]*m[6]) * invdet,
+			 (m[0]*m[8] - m[2]*m[6]) * invdet,
+			-(m[0]*m[5] - m[3]*m[2]) * invdet,
+			 (m[3]*m[7] - m[6]*m[4]) * invdet,
+			-(m[0]*m[7] - m[6]*m[1]) * invdet,
+			 (m[0]*m[4] - m[3]*m[1]) * invdet
+		];
 		this.m = t;
 		return this;
 	},
@@ -1145,7 +1091,7 @@ Matrix3.prototype = {
 		return new Vec2(this.transformVec(0, 1));
 	},
 	__lastEntry: undefined
-}
+};
 
 
 /******************************************************************************/
@@ -1159,7 +1105,7 @@ Matrix3.prototype = {
  */
 BiTran2 = function(m){
 	this.set(m);
-}
+};
 BiTran2.prototype = {
 	/**Return string representation '[[0, 1, 2], [3, 4, 5], [6, 7, 8]]'.
 	 * @returns {string}
@@ -1228,8 +1174,8 @@ BiTran2.prototype = {
 		this.inverse = this.matrix.copy().invert();
 		return this;
 	},
-	lastEntry: undefined
-}
+	__lastEntry: undefined
+};
 
 
 /******************************************************************************/
@@ -1242,7 +1188,7 @@ BiTran2.prototype = {
  */
 Polygon2 = function(xyList){
 	this.set(xyList);
-}
+};
 Polygon2.prototype = {
 	set: function(xyList){
 		if( xyList.length) {
@@ -1291,8 +1237,9 @@ Polygon2.prototype = {
 	 */
 	getXY: function(idx) {
 		idx *= 2;
-		if(idx > this.xyList.length-2)
+		if(idx > this.xyList.length-2){
 			throw("Polygon2.getXY: Index out of bounds");
+		}
 		return {x: this.xyList[idx], y: this.xyList[idx+1]};
 	},
 	/**Return polygon edge by index.
@@ -1302,8 +1249,9 @@ Polygon2.prototype = {
 	 */
 	getSegment: function(idx0) {
 		idx0 *= 2;
-		if(idx0 >= this.xyList.length)
+		if(idx0 >= this.xyList.length){
 			throw("Polygon2.getSegment: Index out of bounds");
+		}
 		var idx1 = (idx0 + 2) % this.xyList.length;
 		return {x0: this.xyList[idx0], y0: this.xyList[idx0+1],
 				x1: this.xyList[idx1], y1: this.xyList[idx1+1]};
@@ -1387,16 +1335,16 @@ Polygon2.prototype = {
 		ptA = {x: xy[len-2], y: xy[len-1]};
 		for(var i=0; i<=len-2; i+=2){
 			ptB = {x: xy[i], y: xy[i+1]};
-			var vAB = new Vec2(ptB.x - ptA.x, ptB.y - ptA.y);
+			vAB = new Vec2(ptB.x - ptA.x, ptB.y - ptA.y);
 			if(cullingVector && cullingVector.cross(vAB) < 0){
 				//window.console.log(cullingVector.dot(vAB));
 				ptA = ptB;
 				continue;
 			}
-			var vAP = new Vec2(pt.x - ptA.x, pt.y - ptA.y);
+			vAP = new Vec2(pt.x - ptA.x, pt.y - ptA.y);
 
-			var e2 = vAB.dot(vAB);
-			var t = vAP.dot(vAB) / e2;
+			e2 = vAB.dot(vAB);
+			t = vAP.dot(vAB) / e2;
 			if(t <= 0) {//LinaJS.EPS){ // TODO: <= EPS or 0.0?
 				// Hit in ptA
 				d2 = vAP.dx * vAP.dx + vAP.dy * vAP.dy;
@@ -1413,8 +1361,8 @@ Polygon2.prototype = {
 			} else {
 				ptNearest.x = ptA.x + t * vAB.dx;
 				ptNearest.y = ptA.y + t * vAB.dy;
-				var dx = ptNearest.x - pt.x;
-				var dy = ptNearest.y - pt.y;
+				dx = ptNearest.x - pt.x;
+				dy = ptNearest.y - pt.y;
 				d2 = dx * dx + dy * dy;
 				if( d2 < dmin2 ){
 					dmin2 = d2;
@@ -1443,8 +1391,9 @@ Polygon2.prototype = {
 		// We pass the velocity vector as culling, so CCW polygons will only
 		// report collisions from the outside.
 		var nearest = this.nearestPt(circle.center, velocity);
-		if( nearest.d > circle.r )
+		if( nearest.d > circle.r ){
 			return false;
+		}
 		// penetration depth
 		var depth = circle.r - nearest.d;
 //		var speed = velocity.length();
@@ -1545,17 +1494,17 @@ Polygon2.prototype = {
 		alert("Not implemented: Polygon2.getShapePolygon()");
 		return null;
 	},
-	lastEntry: undefined
-}
+	__lastEntry: undefined
+};
 
 /** Return a transformed copy of a polygon.*/
 Polygon2.transform = function(pg, m) {
 	return pg.copy().transform(m);
-}
+};
 /** Return a reverse copy of a polygon.*/
 Polygon2.revert = function(pg) {
 	return pg.copy().revert();
-}
+};
 
 /**
  * Create a new circle.
@@ -1565,7 +1514,7 @@ Polygon2.revert = function(pg) {
  */
 Circle2 = function(center, radius){
 	this.set(center, radius);
-}
+};
 Circle2.prototype = {
 	set: function(center, r){
 		if(center.center !== undefined){
@@ -1618,8 +1567,9 @@ Circle2.prototype = {
 				   vx: velocity2 ? velocity2.dx : 0,
 				   vy: velocity2 ? velocity2.dy : 0};
 		var coll = LinaJS.intersectMovingCircles(c1, c2);
-		if(!coll || coll.t < -1 || coll.t > 0)
+		if(!coll || coll.t < -1 || coll.t > 0){
 			return false; // Intersection happens before prev. frame or in the future
+		}
 		// Calculate centers at the time when the collision occurred
 		var tBefore = - coll.t;
 		var tAfter = coll.t + 1;
@@ -1639,12 +1589,12 @@ Circle2.prototype = {
 		// Total inelastic collision: circle1 transfers it's energy to circle2
 		coll.velocityReflected1 = vPerp;
 		coll.velocityReflected2 = velocity2.copy().add(vColl);
-		var e1 = velocity.length() + velocity2.length();
-		var e2 = coll.velocityReflected1.length() + coll.velocityReflected2.length();
-		if(Math.abs(e1-e2) > LinaJS.EPS){
-			//window.console.log("e1:"+e1+", e2:"+e2);
-			//window.console.log("vColl:"+vColl);
-		}
+//		var e1 = velocity.length() + velocity2.length();
+//		var e2 = coll.velocityReflected1.length() + coll.velocityReflected2.length();
+//		if(Math.abs(e1-e2) > LinaJS.EPS){
+//			window.console.log("e1:"+e1+", e2:"+e2);
+//			window.console.log("vColl:"+vColl);
+//		}
 		// Calculate circle positions at t=1, assuming a total reflection
 		coll.centerReflected1 = coll.center1.copy()
 			.translate(tAfter * coll.velocityReflected1.dx,
@@ -1667,10 +1617,10 @@ Circle2.prototype = {
 	perimeter: function() {
 		return 2 * Math.PI * this.r;
 	},
-	lastEntry: undefined
-}
+	__lastEntry: undefined
+};
 
 /** Return a transformed copy of a cirlcle.*/
 Circle2.transform = function(circle, m) {
 	return circle.copy().transform(m);
-}
+};

@@ -208,9 +208,9 @@ var ArcadeJS = Class.extend(
 		// TODO: required?
 		this.opts.debug = $.extend({}, ArcadeJS.defaultGameOptions.debug, opts.debug);
 		// Copy selected options as object attributes
-		ArcadeJS.extendAttributes(this, this.opts, "name fps resizeMode");
+		ArcadeJS.extendAttributes(this, this.opts, "name fps resizeMode fullscreenMode fullscreenPadding");
 
-		this._canvasLog = [];
+		this._logBuffer = [];
 		/**HTML5 canvas element*/
 		this.canvas = canvas;
 		/**Canvas 2d context*/
@@ -228,6 +228,7 @@ var ArcadeJS = Class.extend(
 		this.viewportOrg = null;
 		this.viewport = null;
 		this.viewPortMapMode = "none";
+		this.debug("game.init()");
 		this._realizeViewport();
 		
 		this.objects = [];
@@ -388,19 +389,32 @@ var ArcadeJS = Class.extend(
 			    width = $c.width(),
 				height = $c.height();
 			self.debug("window.resize: $canvas: " + width + " x " + height + "px");
+			if(self.fullscreenMode){
+				var pad = self.fullscreenPadding;
+				height =  $(window).height() - (pad.top + pad.bottom);
+				width =  $(window).width() - (pad.left + pad.right);
+				$c.css("position", "absolute")
+				  .css("top", pad.top)
+				  .css("left", pad.left);
+			}
 			if(!self.onResize || self.onResize(e, width, height) !== false) {
 				switch(self.resizeMode) {
 				case "adjust":
+					var hasChanged = false;
 					if(self.canvas.width != width){
 						self.debug("adjsting canvas.width from " + self.canvas.width + " to " + width);
 						self.canvas.width = width;
+						hasChanged = true;
 					}
 					if(self.canvas.height != height){
 						self.debug("adjsting canvas.height from " + self.canvas.height + " to " + height);
 						self.canvas.height = height;
+						hasChanged = true;
 					}
 					// Adjust WC-to-CC transformationss
-					self._realizeViewport();
+					if(hasChanged){
+						self._realizeViewport();
+					}
 					break;
 				default:
 					// Keep current coordinate range and zoom/shrink output(default 300x150)
@@ -413,6 +427,7 @@ var ArcadeJS = Class.extend(
 			}
 		});
 		// Trigger first resize event on load
+		self.debug("Trigger canvas.resize on init");
 		$(window).resize();
 	},
 	toString: function() {
@@ -422,15 +437,16 @@ var ArcadeJS = Class.extend(
 	 * @param: {string} msg
 	 */
 	debug: function(msg) {
-		if(this.opts.debug.canvasLog){
+		if(this.opts.debug.logToCanvas){
 			// Optionally store recent x lines in a string list
-			while( this._canvasLog.length > this.opts.debug.canvasLog ){
-				this._canvasLog.shift();
+			var maxLines = this.opts.debug.logBufferLength;
+			while( this._logBuffer.length > maxLines ){
+				this._logBuffer.shift();
 			}
 			var dt = new Date(),
 				tag = "" + dt.getHours() + ":" + dt.getMinutes() + "." + dt.getMilliseconds(),
 				s = tag + " - " + Array.prototype.join.apply(arguments, [", "]);
-			this._canvasLog.push(s);
+			this._logBuffer.push(s);
 		}
 		if(window.console && window.console.log) {
 //        	var args = Array.prototype.slice.apply(arguments, [1]);
@@ -512,21 +528,14 @@ var ArcadeJS = Class.extend(
 	 * @param {float} y lower left corner in world coordinates
 	 * @param {float} width in world coordinate units
 	 * @param {float} height in world coordinate units
-	 * @param {string} mapMode 'stretch' | 'fit' | 'trim' | 'keep'
+	 * @param {string} mapMode 'stretch' | 'fit' | 'extend' | 'trim' | 'none'
 	 */
 	setViewport: function(x, y, width, height, mapMode) {
 		this.viewPortMapMode = mapMode || "extend";
 		this.viewportOrg = {x: x, y: y, width: width, height: height};
+		this.debug("setViewport('" + mapMode + "')");
 		this._realizeViewport();
 	},
-
-	/**Set viewport to be identical to the canvas size, thus making WC = CC.
-	 */
-//	resetViewport: function() {
-//		var $canvas = $(this.canvas);
-//		this.setViewport(0,$canvas.height(), $canvas.width(), -$canvas.height(), "stretch");
-////		this.setViewport(0,0, $canvas.width(), $canvas.height(), "none");
-//	},
 
 	_realizeViewport: function() {
 		var mapMode = this.viewPortMapMode,
@@ -535,7 +544,7 @@ var ArcadeJS = Class.extend(
 			ccHeight = $canvas.height(),
 			ccAspect = ccWidth / ccHeight;
 
-		this.debug("_realizeViewport(" + mapMode + ") for  canvas " + ccWidth + " x " + ccHeight);
+		this.debug("_realizeViewport('" + mapMode + "') for canvas " + ccWidth + "px x " + ccHeight + "px");
 		if(mapMode == "none"){
 //			this.viewport = {x: 0, y: 0, width: ccWidth, height: ccHeight};
 			this.viewport = {x: 0, y: ccHeight, width: ccWidth, height: -ccHeight};
@@ -555,11 +564,6 @@ var ArcadeJS = Class.extend(
 		this.debug("    viewportOrg:  ", vp.x, vp.y, vp.width, vp.height, mapMode);
 		
 		switch(mapMode){
-//		case "none":
-//			this.wc2cc = new Matrix3();
-//			this.cc2wc = new Matrix3();
-//			this.onePixelWC = 1; //vp.width / ccWidth; 
-//			return;
 		case "fit":
 		case "extend":
 			if(vpAspect > ccAspect){
@@ -599,7 +603,7 @@ var ArcadeJS = Class.extend(
 		this.onePixelWC = vpa.width / ccWidth; 
 //		this.debug("cc2wc: %s", this.cc2wc);
 	},
-	
+
 	_renderLoop: function(){
 //        try {
 //        	p.focused = document.hasFocus();
@@ -688,12 +692,12 @@ var ArcadeJS = Class.extend(
 			ctx.fillText(this.realFps.toFixed(1) + " fps", this.canvas.width-50, 15);
 			ctx.restore();
 		}
-		if(this.opts.debug.canvasLog){
+		if(this.opts.debug.logToCanvas){
 			ctx.save();
 			ctx.font = "12px sans-serif";
 			var x = 10, y = this.canvas.height-15;
-			for(var i=this._canvasLog.length-1; i>0; i--){
-				ctx.fillText(this._canvasLog[i], x, y);
+			for(var i=this._logBuffer.length-1; i>0; i--){
+				ctx.fillText(this._logBuffer[i], x, y);
 				y -= 15;
 			}
 			ctx.restore();
@@ -710,7 +714,6 @@ var ArcadeJS = Class.extend(
 			infoList.push("Objects: " + this.objects.length + " (dead: "+ this._deadCount+")");
 		}
 		if(this.opts.debug.showMouse && this.mousePos){
-//			infoList.push("WC: " + this.mousePos);
 			infoList.push(this.mousePos.toString(4));
 			infoList.push("CC: " + this.mousePosCC);
 			var hits = this.getObjectsAtPosition(this.mousePos);
@@ -994,12 +997,15 @@ ArcadeJS.defaultGameOptions = {
 	backgroundColor: "black", // canvas background color
 	strokeStyle: "#ffffff", // default line color
 	fillStyle: "#c0c0c0", // default solid filll color
-	resizeMode: "adjust",
+	fullscreenMode: false, // Resize canvas to window extensions 
+	fullscreenPadding: {top: 20, right: 0, bottom: 0, left: 0},
+	resizeMode: "adjust", // Adjust internal canvas width/height to match its outer dimensions
 	viewport: {x: 0, y: 0, width: 100, height: 100, mapMode: "stretch"},
 	fps: 30,
 	debug: {
 		level: 1,
-		canvasLog: 10,
+		logToCanvas: false,
+		logBufferLength: 30,
 		strokeStyle: "#80ff00",
 		showActivity: false,
 		showKeys: false,
@@ -1084,10 +1090,11 @@ ArcadeCanvas =
 	/**Render a vector to the canvas.
 	 * @param {Vec2} vec
 	 * @param {Point2} origin (optional) default: (0/0)
+	 * @param {float} tipSize (optional) default: 5
 	 */
-	strokeVec2: function(vec, origin) {
+	strokeVec2: function(vec, origin, tipSize) {
 		origin = origin || new Point2(0, 0);
-		var tip = 5;
+		tipSize = tipSize || 5;
 		this.beginPath();
 		this.moveTo(origin.x, origin.y);
 		var ptTip = origin.copy().translate(vec);
@@ -1095,10 +1102,11 @@ ArcadeCanvas =
 		this.lineTo(pt.x, pt.y);
 		this.closePath();
 		this.stroke();
-		if(vec.isNull())
+		if(vec.isNull()){
 			return;
+		}
 		this.beginPath();
-		var v = vec.copy().setLength(-tip);
+		var v = vec.copy().setLength(-tipSize);
 		var vPerp = v.copy().perp().scale(.5);
 		pt.translate(v).translate(vPerp);
 		this.lineTo(pt.x, pt.y);
@@ -1395,17 +1403,17 @@ var Movable = Class.extend(
 			if( this.scale && this.scale != 1.0 ){
 				ctx.scale(this.scale, this.scale);
 			}
-			if(this.velocity && (this.opts.debug.showVelocity || this.game.opts.debug.showVelocity)){
-				ctx.strokeStyle = this.game.opts.debug.strokeStyle;
-//				ctx.strokeVec2(Vec2.scale(this.velocity, this.game.fps * this.opts.debug.velocityScale));
-				ctx.strokeVec2(Vec2.scale(this.velocity, this.game.fps));
-			}
 			if( this.orientation ){
 				ctx.rotate(this.orientation);
 			}
 			// Let object render itself
 			this.render(ctx);
 			// Render optional debug infos
+			if(this.velocity && !this.velocity.isNull() && (this.opts.debug.showVelocity || this.game.opts.debug.showVelocity)){
+				ctx.strokeStyle = this.game.opts.debug.strokeStyle;
+				var v = Vec2.scale(this.velocity, this.game.fps * this.opts.debug.velocityScale);
+				ctx.strokeVec2(v, new Point2(0, 0), 5 * this.game.onePixelWC);
+			}
 			if(this.getBoundingCircle && (this.opts.debug.showBCircle || this.game.opts.debug.showBCircle)){
 				ctx.strokeStyle = this.game.opts.debug.strokeStyle;
 				ctx.strokeCircle2(this.getBoundingCircle().copy().transform(this.wc2mc));

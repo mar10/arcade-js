@@ -3,6 +3,8 @@
 <head>
 	<title>jsQuirks</title>
     <link href="../../depends/demos.css" rel="stylesheet">
+    <script src="../../depends/demos.js"></script>
+    
 	<script src="../../depends/jquery.js"></script>
 	<script src="../../depends/jquery.mousewheel.js"></script>
 
@@ -15,16 +17,9 @@
 	$(function(){
 		var canvas = document.getElementById("canvas1");
 		var game = new QuirksGame(canvas);
-        $("#btnStop").click(function(){
-            if( game.isRunning() )
-                game.stopLoop();
-            else game.startLoop();
-        });
-        $("#btnStep").click(function(){
-            game.stopRequest = true;
-            if( !game.isRunning() )
-                game.startLoop();
-        });
+
+		// Install handlers for the debug ccontrols on this pages
+        initArcadeGameDebugControls(game);
 	});
 	</script>
 </head>
@@ -47,9 +42,16 @@ This sample a simple render loop with two reflecting points.
 <div>
 	<span id="frames">-</span> frames
 </div>
-<div>
-	<button id="btnStop">Start/Stop</button> 
-    <button id="btnStep">Single step</button> 
+<div class="debugPane">
+    <input type="checkbox" id="cbDebug" value="1"><label for="cbDebug">Show debug info</label> 
+    <input type="checkbox" id="cbLogToCanvas" value="1"><label for="cbLogToCanvas">Log to canvas</label> 
+    <input type="checkbox" id="cbMaxFps" value="1"><label for="cbMaxFps">Maximum frame rate</label>
+    <input type="checkbox" id="cbTimeCorrection" value="1"><label for="cbTimeCorrection">Time correction</label>
+    <br>
+    <input type="radio" name="rbStepmode" id="rbStepmode1" value="loop"><label for="rbStepmode1">Render loop</label>
+    <input type="radio" name="rbStepmode" id="rbStepmode2" value="freeze"><label for="rbStepmode2">Freeze</label>
+    <input type="radio" name="rbStepmode" id="rbStepmode3" value="stop"><label for="rbStepmode3">Stop</label>
+    <button id="btnStep">Single step</button>
 </div>
 </body>
 </html>

@@ -1,6 +1,6 @@
 /**
  * arcade-controls.js
- * Copyright (c) 2010,  Martin Wendt (http://wwWendt.de)
+ * Copyright (c) 2010-2011,  Martin Wendt (http://wwWendt.de)
  *
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://code.google.com/p/arcade-js/wiki/LicenseInfo

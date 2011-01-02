@@ -9,7 +9,7 @@ var QuirksGame = ArcadeJS.extend({
 		// Init ArcadeJS
 		var opts = $.extend({
 			name: "jsQuirks",
-			fps: 200
+			fps: 30
 		}, customOpts);
 		this._super(canvas, opts);
 
@@ -33,10 +33,14 @@ var Quirk = Movable.extend({
 		this.color = "#80ff80";
 		// Initialize the first of max. 50 lines and velocity
 		this.lines = [];
+		// Velocities in WC per second
+		var vMin = 100, vMax = 300;
 		this.pos1 = new Point2(LinaJS.randomInt(100, 200), LinaJS.randomInt(100, 200));
-		this.velocity1 = new Vec2(LinaJS.randomInt(2, 10), LinaJS.randomInt(1, 10));
-		this.pos2 = new Point2(LinaJS.randomInt(100, 200), LinaJS.randomInt(100, 200));
-		this.velocity2 = new Vec2(LinaJS.randomInt(2, 10), LinaJS.randomInt(1, 10));
+		this.velocity1 = new Vec2(LinaJS.randomInt(vMin, vMax), LinaJS.randomInt(vMin, vMax));
+		this.pos2 = new Point2(LinaJS.randomInt(vMin, 200), LinaJS.randomInt(100, 200));
+		this.velocity2 = new Vec2(LinaJS.randomInt(vMin, vMax), LinaJS.randomInt(vMin, vMax));
+//		window.console.log("v1: %s", this.velocity1);
+//		window.console.log("v2: %s", this.velocity2);
 	},
 	step: function() {
 		// Add another line (discard oldest, if max. is reached)
@@ -45,8 +49,11 @@ var Quirk = Movable.extend({
 			this.lines.shift();
 		}
 		this.lines.push({pos1: this.pos1.copy(), pos2: this.pos2.copy()});
-		// Calculate new position for first point
-		this.pos1.translate(this.velocity1);
+		// Calculate new position for first point. The velocity is defined in 
+		// WC units per second, so we scale by current set duration.
+		var v1 = this.velocity1.copy().scale(this.game.frameDuration),
+		    v2 = this.velocity2.copy().scale(this.game.frameDuration);
+		this.pos1.translate(v1);
 		// Invert velocity vector, when bouncing at the canvas borders
 		if((this.pos1.x < 0 && this.velocity1.dx < 0)
 			|| (this.pos1.x >= this.game.canvas.width && this.velocity1.dx > 0)) {
@@ -57,7 +64,7 @@ var Quirk = Movable.extend({
 				this.velocity1.dy *= -1;
 		}
 		// Calculate new position and velocity for second point
-		this.pos2.translate(this.velocity2);
+		this.pos2.translate(v2);
 		if((this.pos2.x < 0 && this.velocity2.dx < 0)
 				|| (this.pos2.x >= this.game.canvas.width && this.velocity2.dx > 0)) {
 				this.velocity2.dx *= -1;

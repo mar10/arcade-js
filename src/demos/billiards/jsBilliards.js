@@ -69,9 +69,9 @@ var BilliardsGame = ArcadeJS.extend({
 		this.points = 0;
 		this.hit1 = false;
 		this.hit2 = false;
-		this.velocityScale = 2.0 / this.fps; // Ratio from drag length to initial speed
+		this.velocityScale = 2.0; // Ratio from drag length to initial speed
 		this.decellerationRate = 0.99;// * this.fps; // Decrease speed by 1% per second 
-		this.minVelocity = 0.01 / this.fps; // Stop ball when slower than 1 cm/sec
+		this.minVelocity = 0.01; // Stop ball when slower than 1 cm/sec
 
 		// --- Start the render loop -------------------------------------------
 		this.startLoop();

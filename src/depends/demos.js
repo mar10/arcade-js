@@ -78,6 +78,12 @@ function initArcadeGameDebugControls(game)
         game.opts.debug.showObjects = flag;
         game.opts.debug.showMouse = flag;
     });
+    $("#cbLogToCanvas")
+    .attr("checked", false)
+    .click(function(){
+        var flag = $(this).is(":checked");
+        game.opts.debug.logToCanvas = flag;
+    });
     $("#cbMaxFps")
     .attr("checked", false)
     .click(function(){

@@ -57,10 +57,11 @@
             r: 20,
             onClick: function(){
         	    thrustSound.play();
-                if(this.game.quirk.color == "red")
+                if(this.game.quirk.color == "red"){
                 	this.game.quirk.color = "green";
-                else
+                }else{
                 	this.game.quirk.color = "red";
+                }
             }
         }));
         game.preStep = function(){

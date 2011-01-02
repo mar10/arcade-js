@@ -97,6 +97,11 @@ function initArcadeGameDebugControls(game)
         game.freezeMode = false;
         $("#rbStepmode1").attr("checked", true);
     });
+    $("#cbTimeCorrection")
+    .attr("checked", true)
+    .click(function(){
+        game.timeCorrection = $(this).is(":checked");
+    });
     $("#rbStepmode1")
     .attr("checked", true)
     .click(function(){

@@ -1,6 +1,6 @@
 /**
  * arcade.js
- * Copyright (c) 2010,  Martin Wendt (http://wwWendt.de)
+ * Copyright (c) 2010-2011,  Martin Wendt (http://wwWendt.de)
  *
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://code.google.com/p/arcade-js/wiki/LicenseInfo
@@ -208,7 +208,7 @@ var ArcadeJS = Class.extend(
 		// TODO: required?
 		this.opts.debug = $.extend({}, ArcadeJS.defaultGameOptions.debug, opts.debug);
 		// Copy selected options as object attributes
-		ArcadeJS.extendAttributes(this, this.opts, "name fps resizeMode fullscreenMode fullscreenPadding");
+		ArcadeJS.extendAttributes(this, this.opts, "name fps resizeMode fullscreenMode fullscreenPadding timeCorrection");
 
 		this._logBuffer = [];
 		/**HTML5 canvas element*/
@@ -243,16 +243,21 @@ var ArcadeJS = Class.extend(
 		this.downKeyCodes = [];
 		this._activity = "idle";
 
-		/**Frames per second rate that was achieved recently*/
-		this.realFps = 0;
+		/**Current time in ticks*/
 		this.time = new Date().getTime();
+		/**Total number of frames rendered so far.*/
+		this.frameCount = 0;
+		/**Time elapsed since previous frame in seconds.*/
+		this.frameDuration = 0;
+		/**Frames per second rate that was achieved recently.*/
+		this.realFps = 0;
+		this._sampleTime = this.time;
+		this._sampleFrameCount = 0;
 		/**Correction factor that will assure constant screen speed when FpS drops.*/
 		this.fpsCorrection = 1.0;
 		this._lastSecondTicks = 0;
 		this._lastFrameTicks = 0;
-		/**Number of frames rendered so far.*/
-		this.frameCount = 0;
-		/**Temporary dictionary to store data during one render loop.*/
+		/**Temporary dictionary to store data during one render loop step.*/
 		this.frameCache = {};
 		this._deadCount = 0;
 
@@ -632,15 +637,22 @@ var ArcadeJS = Class.extend(
 	},
 	_stepAll: function() {
 		// Some bookkeeping and timings
-		this.frameCount++;
-		var ticks = new Date().getTime();
+		var ticks = new Date().getTime(),
+			sampleDuration = .001 * (ticks - this._sampleTime);
+		
+		if(this.timeCorrection){
+			this.frameDuration = .001 * (ticks - this.time);
+		}else{
+			this.frameDuration = 1.0 / this.fps;
+		}
 		this.time = ticks;
-		this.fpsCorrection = .001 * this.fps * (ticks - this._lastFrameTicks);
-//    	this.debug("fpsCorr=%s", this.fpsCorrection);
-		this._lastFrameTicks = ticks;
-		if( (this.frameCount % this.fps) == 0 ){
-			this.realFps = (ticks > this._lastSecondTicks) ? 1000.0 * this.fps / (ticks - this._lastSecondTicks) : 0;
-			this._lastSecondTicks = ticks;
+		this.frameCount++;
+//		this.debug("Frame #%s, frameDuration=%s, realFps=%s", this.frameCount, this.frameDuration, this.realFps);
+		// Update number of actually achieved FPS ever second
+		if(sampleDuration >= 1.0){
+			this.realFps = (this.frameCount - this._sampleFrameCount) / sampleDuration;
+			this._sampleTime = ticks;
+			this._sampleFrameCount = this.frameCount;
 		}
 		if(this.freezeMode){
 			return;
@@ -733,10 +745,13 @@ var ArcadeJS = Class.extend(
 	 */
 	startLoop: function(){
 		if( !this._runLoopId) {
+			this.realFps = 0;
+			this._sampleTime = new Date().getTime();
+			this._sampleFrameCount = this.frameCount;
 			var self = this;
 			this._runLoopId = window.setInterval(
 				function(){
-					self._renderLoop()
+					self._renderLoop.call(self);
 				}, 1000/this.fps);
 		}
 	},
@@ -1002,6 +1017,7 @@ ArcadeJS.defaultGameOptions = {
 	resizeMode: "adjust", // Adjust internal canvas width/height to match its outer dimensions
 	viewport: {x: 0, y: 0, width: 100, height: 100, mapMode: "stretch"},
 	fps: 30,
+	timeCorrection: true, // Adjust velocites for constant speed when frame rate drops
 	debug: {
 		level: 1,
 		logToCanvas: false,
@@ -1371,9 +1387,10 @@ var Movable = Class.extend(
 		this.prevVelocity = this.velocity.copy();
 		this.prevRotationalSpeed = this.rotationalSpeed;
 		// Update position in world coordinates
-		this.orientation += this.rotationalSpeed;
+		var factor = this.game.frameDuration;
+		this.orientation += factor * this.rotationalSpeed;
 		if(this.velocity && !this.velocity.isNull()) {
-			this.pos.translate(this.velocity);
+			this.pos.translate(this.velocity.copy().scale(factor));
 			// wrap around at screen borders
 			var viewport = this.game.viewport;
 			if(this.clipModeX == "wrap"){

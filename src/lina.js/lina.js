@@ -269,6 +269,9 @@ LinaJS = {
 		// We want the smallest time
 		var t = Math.min(0.5 * (2 * B - Math.sqrt(disc)) / A,
 				0.5 * (2 * B + Math.sqrt(disc)) / A);
+//		if(maxT && (t > maxT)){
+//			return false;
+//		}
 		return {
 			ptColl: null,
 			vColl: null,
@@ -1305,7 +1308,7 @@ Polygon2.prototype = {
 	},
 	/** Check, if this polygon intersects with another polygon.
 	 */
-	intersects: function(pg2, velocity) {
+	intersects: function(pg2, velocity, time) {
 		// TODO:
 		// See http://gpwiki.org
 		// 'Simple non-convex polygons'
@@ -1383,35 +1386,38 @@ Polygon2.prototype = {
 	/**Check, if this polygon intersects with a (moving) circle.
 	 * In case of a collision some additional information is calculated.
 	 * @param {Circle2} circle
-	 * @param {Vec2} velocity Relative speed (assuming this polygon is static)
+	 * @param {Vec2} velocity Relative speed in units per second (assuming this polygon is static)
+	 * @param {float} time seconds to look ahead (e.g. 1/30s for one frame step). Default: 1
 	 * @returns false, if no intersection, otherwise {...}
 	 */
-	intersectsCircle: function(circle, velocity) {
+	intersectsCircle: function(circle, velocity, time) {
+		// TODO: handle velocity (0,0)
+		time = time || 1.0;
+		var vStep = velocity.copy().scale(time); 
 		// Find point on polygon that is closest to circle.center.
 		// We pass the velocity vector as culling, so CCW polygons will only
 		// report collisions from the outside.
-		var nearest = this.nearestPt(circle.center, velocity);
+		var nearest = this.nearestPt(circle.center, vStep);
 		if( nearest.d > circle.r ){
 			return false;
 		}
-//		velocityFactor = velocityFactor || 1.0;
 		// penetration depth
 		var depth = circle.r - nearest.d;
-//		var speed = velocity.length();
 		// Collision normal
 		var vNormal = nearest.pt.vectorTo(circle.center).normalize();
-//		var vMTD = vNormal.copy().scale(depth);
 		// Reflected velocity
 		var vEdge = vNormal.copy().perp();
-		var a = vEdge.dot(velocity);
-		var b = vNormal.dot(velocity);
+		var a = vEdge.dot(vStep);
+		var b = vNormal.dot(vStep);
 		var velocityReflected = vNormal.copy().scale(-b).add(vEdge.scale(a));
 		// [0..1]: fraction of velocity after collision
-		var tAfter = depth / velocity.length();
+		var tAfter = depth / vStep.length();
 		var centerReflected = circle.center.copy()
-			.translate((tAfter-1) * velocity.dx + tAfter * velocityReflected.dx,
-					(tAfter-1) * velocity.dy + tAfter * velocityReflected.dy);
-		// TODO: nearestPt should ignore edges if velocity is outbund
+			.translate((tAfter-1) * vStep.dx + tAfter * velocityReflected.dx,
+					(tAfter-1) * vStep.dy + tAfter * velocityReflected.dy);
+		// Rescale velocity to units per second
+		velocityReflected.scale(1.0 / time);
+		// TODO: nearestPt should ignore edges if velocity is outbound
 		return {
 			pt: nearest.pt, // collsion point
 			ptIdx: nearest.i, // index of first point of collision edge (ptA)
@@ -1555,18 +1561,26 @@ Circle2.prototype = {
 	/**Check, if this circle intersects with another (moving) circle.
 	 * Return false, if ther is no intersection within the current time frame.
 	 * Otherwise return a dictionary with additional infos.
+	 * @param {Circle2} circle2 
+	 * @param {Vec2} velocity Speed of this circle in units per second.
+	 * @param {Vec2} velocity2 Speed of circle2 in units per second.
+	 * @param {float} time seconds to look ahead (e.g. 1/30s for one frame step). Default: 1
 	 */
-	intersectsCircle: function(circle2, velocity, velocity2) {
+	intersectsCircle: function(circle2, velocity, velocity2, time) {
+		// TODO: handle velocity (0,0)
+		time = time || 1.0;
+		var vStep = velocity.copy().scale(time),
+			vStep2 = velocity2.copy().scale(time); 
 		var c1 = { x: this.center.x,
 				   y: this.center.y,
 				   r: this.r,
-				   vx: velocity ? velocity.dx : 0,
-				   vy: velocity ? velocity.dy : 0};
+				   vx: velocity ? vStep.dx : 0,
+				   vy: velocity ? vStep.dy : 0};
 		var c2 = { x: circle2.center.x,
 				   y: circle2.center.y,
 				   r: circle2.r,
-				   vx: velocity2 ? velocity2.dx : 0,
-				   vy: velocity2 ? velocity2.dy : 0};
+				   vx: velocity2 ? vStep2.dx : 0,
+				   vy: velocity2 ? vStep2.dy : 0};
 		var coll = LinaJS.intersectMovingCircles(c1, c2);
 		if(!coll || coll.t < -1 || coll.t > 0){
 			return false; // Intersection happens before prev. frame or in the future
@@ -1575,21 +1589,21 @@ Circle2.prototype = {
 		var tBefore = - coll.t;
 		var tAfter = coll.t + 1;
 		coll.t = tBefore;
-		var vMTD1 = velocity.copy().scale(-tBefore);
+		var vMTD1 = vStep.copy().scale(-tBefore);
 		coll.center1 = this.center.copy().translate(vMTD1);
-		var vMTD2 = velocity2.copy().scale(-tBefore);
+		var vMTD2 = vStep2.copy().scale(-tBefore);
 		coll.center2 = circle2.center.copy().translate(vMTD2);
 		// Collision normal is always along the two circle centers
 		coll.vNormal = coll.center2.vectorTo(coll.center1).normalize();
 		// Relative speed from circle towards circle2
-		var vRel = velocity.copy().sub(velocity2);
+		var vRel = vStep.copy().sub(vStep2);
 		// split relative speed into a part along collision normal and the rest
 		var c = coll.vNormal.dot(vRel);
 		var vColl = coll.vNormal.copy().scale(c);
 		var vPerp = vRel.copy().sub(vColl);
 		// Total inelastic collision: circle1 transfers it's energy to circle2
 		coll.velocityReflected1 = vPerp;
-		coll.velocityReflected2 = velocity2.copy().add(vColl);
+		coll.velocityReflected2 = vStep2.copy().add(vColl);
 //		var e1 = velocity.length() + velocity2.length();
 //		var e2 = coll.velocityReflected1.length() + coll.velocityReflected2.length();
 //		if(Math.abs(e1-e2) > LinaJS.EPS){
@@ -1604,6 +1618,9 @@ Circle2.prototype = {
 			.translate(tAfter * coll.velocityReflected2.dx,
 					   tAfter * coll.velocityReflected2.dy);
 
+		// Rescale velocities to units per second
+		coll.velocityReflected1.scale(1.0 / time);
+		coll.velocityReflected2.scale(1.0 / time);
 		return coll;
 	},
 	/** Return circle area (Pi*r^2).

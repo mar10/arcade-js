@@ -43,10 +43,10 @@ var AsteroidsGame = ArcadeJS.extend({
 	_restartGame: function(){
 		this.setActivity("prepare");
 		// Asteroids
-		var speed = 0.5 * (1.0 + (this.level - 1) * 0.3);
+		var speed = 15 * (1.0 + (this.level - 1) * 0.3);
 		var pt0 = new Point2(0, 0);
 		for(var i=0; i<this.level; i++){
-			this._makeAsteroid(3, pt0, new Vec2(LinaJS.random(-3, 3), LinaJS.random(-3, 3)).setLength(speed));
+			this._makeAsteroid(3, pt0, new Vec2(LinaJS.random(-1, 1), LinaJS.random(-1, 1)).setLength(speed));
 		}
 		this.later(200, function(){
 			this.setActivity("running");
@@ -56,8 +56,8 @@ var AsteroidsGame = ArcadeJS.extend({
 		this.addObject(new Asteroid({
 			size: size,
 			pos: new Point2(pos.x + LinaJS.random(-10, 10), pos.y + LinaJS.random(-10, 10)),
-			velocity: new Vec2(velocity.dx + LinaJS.random(-0.2, +0.2), velocity.dx + LinaJS.random(-0.2, +0.2)),
-			rotationalSpeed: LinaJS.random(-2*LinaJS.DEG_TO_RAD, 2*LinaJS.DEG_TO_RAD),
+			velocity: new Vec2(velocity.dx + LinaJS.random(-6, +6), velocity.dx + LinaJS.random(-6, +6)),
+			rotationalSpeed: LinaJS.random(-60*LinaJS.DEG_TO_RAD, 60*LinaJS.DEG_TO_RAD),
 			debug: {
 //				showBCircle: true,
 //				showVelocity: true,
@@ -77,16 +77,15 @@ var AsteroidsGame = ArcadeJS.extend({
 		ctx.save();
 		// Display score
 		ctx.font = "12px sans-serif";
-		ctx.fillText("Score: " + this.score, 10, 15);
-//    	ctx.fillText(this.realFps.toFixed(1) + " fps", this.canvas.width-50, 15);
+		ctx.fillMessage("Score: " + this.score, 10, 15);
 		if(this.isActivity("over")){
 			ctx.font = "30px sans-serif";
-			ctx.strokeText("Game over (hit [F5])", 200, 200);
+			ctx.strokeMessage("Game over (hit [F5])", 0, 0);
 		}else if(this.isActivity("prepare")){
 			// Doesn't work in chrome
 			// http://code.google.com/p/chromium/issues/detail?id=44017
 			ctx.font = "30px sans-serif";
-			ctx.strokeText("Level " + this.level, 200, 200);
+			ctx.strokeMessage("Level " + this.level, 0, 0);
 		}
 		// Draw lives
 		var live = new Polygon2([0, 5,
@@ -131,7 +130,7 @@ var Bullet = Movable.extend({
 	render: function(ctx) {
 		ctx.strokeStyle = "white";
 		ctx.beginPath();
-		ctx.moveTo(-this.velocity.dx, -this.velocity.dy);
+		ctx.moveTo(-this.translationStep.dx, -this.translationStep.dy);
 		ctx.lineTo(0, 0);
 		ctx.stroke();
 	},
@@ -139,7 +138,7 @@ var Bullet = Movable.extend({
 		return new Circle2({x:this.pos.x, y:this.pos.y}, 0.1);
 	},
 	// --- end of class
-	lastentry: undefined
+	__lastentry: undefined
 });
 
 
@@ -172,14 +171,10 @@ var Rocket = Movable.extend({
 									   4, -5
 									  ]);
 		this.pgThrust.transform(LinaJS.scale33(2, -2));
-
+		this.isThrust = false;
 		this.lastShotTime = 0;
 	},
-//	getBoundingRadius: function() {
-//		return 13;
-//	},
 	getBoundingCircle: function() {
-//		return new Circle2({x:0, y:0}, 13);
 		return new Circle2({x:this.pos.x, y:this.pos.y}, 13);
 	},
 	step: function() {
@@ -198,14 +193,12 @@ var Rocket = Movable.extend({
 			this.game.liveCount -= 1;
 			if(this.game.liveCount > 0){
 				this.setActivity("grace");
-//				this.timeout = this.game.time + this.game.gracePeriod;
 				this.later(this.game.gracePeriod, function(){
 					this.setActivity("idle");
 				});
 			} else {
 				this.game.setActivity("over");
 			}
-//    		this.game.stopLoop();
 		}
 	},
 	render: function(ctx) {
@@ -213,27 +206,20 @@ var Rocket = Movable.extend({
 		ctx.strokePolygon2(this.pg);
 		// Draw reflector shield in grace mode
 		if(this.isActivity("grace")){
-//			var circle = new Circle2(new Point2(0,0), this.getBoundingRadius() + LinaJS.random(-1, +1));
 			var circle = new Circle2({x:0, y:0}, 13); //this.getBoundingCircle();
 			circle.r += LinaJS.random(-2, +2);
 			ctx.strokeStyle = "#88f";
 			ctx.strokeCircle2(circle);
 		}
 		// Draw thrust fire
-		if(this.game.isKeyDown(38)){ // Up
+//		if(this.game.isKeyDown(38)){ // Up
+		if(this.isThrust){ // Up
 			ctx.strokeStyle = "#f80";
 			ctx.translate(LinaJS.random(-1, +1), LinaJS.random(-1, +1));
 			ctx.strokePolygon2(this.pgThrust);
+			this.isThrust = false;
 		}
 	},
-/*	
-	onTimeout: function() {
-		if(this.isActivity("grace") && this.game.liveCount > 0){
-			this.setActivity("idle");
-		}
-	},
-*/	
-//    onKeypress: function(e) {
 	onKeydown: function(e, key) {
 //    	this.game.debug("%s: '%s', %o", e.type, this.game.downKeyCodes);
 		if(this.game.isKeyDown(32)){ // Space
@@ -245,8 +231,9 @@ var Rocket = Movable.extend({
 			this.orientation += 5 * LinaJS.DEG_TO_RAD;
 		}
 		if(this.game.isKeyDown(38)){ // Up
-			var vAccel = LinaJS.polarToVec(this.orientation - 90*LinaJS.DEG_TO_RAD, 0.1);
-			this.velocity.add(vAccel);
+			this.isThrust = true;
+			var vAccel = LinaJS.polarToVec(this.orientation - 90*LinaJS.DEG_TO_RAD, 3);
+			this.velocity.add(vAccel).limit(300);
 			e.stopImmediatePropagation();
 			e.preventDefault();
 			return false;
@@ -265,8 +252,8 @@ var Rocket = Movable.extend({
 			return;
 		}
 		this.lastShotTime = this.game.time;
-		var aim = LinaJS.polarToVec(this.orientation - 0.5 * Math.PI, 10);
-		var bullet = new Bullet(new Point2(this.pos), aim, 50);
+		var aim = LinaJS.polarToVec(this.orientation - 0.5 * Math.PI, 300);
+//		var bullet = new Bullet(new Point2(this.pos), aim, 50);
 		this.game.addObject(new Bullet({
 			pos: this.pos,
 			ttl: this.game.shotTtl,
@@ -275,7 +262,7 @@ var Rocket = Movable.extend({
 		this.game.gunSound.play();
 	},
 	// --- end of class
-	lastentry: undefined
+	__lastentry: undefined
 });
 
 /*******************************************************************************
@@ -325,5 +312,5 @@ var Asteroid = Movable.extend({
 		this.die();
 	},
 	// --- end of class
-	lastentry: undefined
+	__lastentry: undefined
 });

@@ -68,11 +68,12 @@ var BilliardsGame = ArcadeJS.extend({
 			}));
 		// --- Status data -----------------------------------------------------
 		this.points = 0;
+		this.takes = 0;
 		this.hit1 = false;
 		this.hit2 = false;
-		this.velocityScale = 2.0; // Ratio from drag length to initial speed
-		this.decellerationRate = 0.99;// * this.fps; // Decrease speed by 1% per second 
-		this.minVelocity = 0.01; // Stop ball when slower than 1 cm/sec
+		this.velocityScale = 2.5; // Ratio from drag length to initial speed
+		this.decellerationRate = 0.985;// * this.fps; // Decrease speed by 1% per second 
+		this.minVelocity = 0.02; // Stop ball when slower than 1 cm/sec
 
 		// --- Start the render loop -------------------------------------------
 		this.startLoop();
@@ -89,21 +90,18 @@ var BilliardsGame = ArcadeJS.extend({
 			}, "ball");
 			if(!isMoving) {
 				this.hit1 = this.hit2 = false;
+				this.takes += 1;
 				this.setActivity("idle");
 			}
 		}
 	},
 	postDraw: function(ctx){
-		// Draw drag-vector while aiming
-//		if(this.isActivity("aiming")) {
-//			ctx.strokeStyle = "blue";
-//			ctx.moveTo(this.pos.x, this.pos.y);
-//			ctx.lineTo(this.dragOffset.dx, this.dragOffset.dy);
-//			ctx.stroke();
-//			ctx.closePath();
-//		}
-		$("#frames").html("Frame #" + this.frameCount + ", FpS: " + this.realFps + " (want: " + this.fps + ")");
-		$("#points").html("Points: " + this.points);
+		ctx.save();
+		ctx.resetTransform();
+		ctx.font = "14px sans-serif";
+//		ctx.fillStyle = this.opts.debug.strokeStyle;
+		ctx.fillText("Points: " + this.points + ", Takes: " + this.takes, 10, 20);
+		ctx.restore();
 	},
 	onSetActivity: function(target, activity, prevActivity) {
 		this.debug("%s.setActivity '%s' -> '%s'", this, prevActivity, activity);
@@ -172,9 +170,9 @@ var Ball = Movable.extend({
 			}
 			// Note: we pass a translation step as velocity and rescale the new
 			// velocity afterwards.
-			var coll = other.pg.intersectsCircle(circle, this.translationStep);
+			var coll = other.pg.intersectsCircle(circle, this.velocity, this.game.frameDuration);
 			if( coll && Math.abs(coll.t) <= 1  ){
-				this.velocity = coll.velocityReflected.scale(1 / this.game.frameDuration);
+				this.velocity = coll.velocityReflected;
 				this.pos = coll.centerReflected;
 			}
 		}
@@ -185,9 +183,8 @@ var Ball = Movable.extend({
 			if(!game.preCheckCollision(this, other)){
 				continue;
 			}
-//			var circle2 = new Circle2(other.pos, other.r).transform(other.mc2wc);
 			var circle2 = other.getBoundingCircle();
-			var coll = circle.intersectsCircle(circle2, this.velocity, other.velocity);
+			var coll = circle.intersectsCircle(circle2, this.velocity, other.velocity, this.game.frameDuration);
 			if(!coll){
 				continue;
 			}

@@ -30,19 +30,19 @@ var DemoGame = ArcadeJS.extend({
 		this.addObject(new Ball(
 				{pos: new Point2(150, 100),
 				 r:10,
-				 velocity: {dx:10, dy:0},
+				 velocity: {dx:300, dy:0},
 				 color: "red"
 				 }));
 		this.addObject(new Ball(
 				{pos: new Point2(500, 10),
 				 r:10,
-				 velocity: {dx:0, dy:5},
+				 velocity: {dx:0, dy:150},
 				 color: "green"
 				 }));
 		this.addObject(new Ball(
 				{pos: new Point2(150, 150),
 				 r:10,
-				 velocity: {dx:3, dy:3},
+				 velocity: {dx:90, dy:90},
 				 color: "blue"
 				 }));
 		// Start render loop
@@ -120,7 +120,7 @@ var Ball = Movable.extend({
 			var other = walls[i];
 			if(!game.preCheckCollision(this, other))
 				continue;
-			var coll = other.pg.intersectsCircle(circle, this.velocity);
+			var coll = other.pg.intersectsCircle(circle, this.velocity, this.game.frameDuration);
 			if( coll && Math.abs(coll.t) <= 1  ){
 //        		game.debug("ball %o vs. %o: %o", circle, pg, coll);
 				this.velocity = coll.velocityReflected;
@@ -135,7 +135,7 @@ var Ball = Movable.extend({
 			if(!game.preCheckCollision(this, other))
 				continue;
 			var circle2 = new Circle2(other.pos, other.r);
-			var coll = circle.intersectsCircle(circle2, this.velocity, other.velocity);
+			var coll = circle.intersectsCircle(circle2, this.velocity, other.velocity, this.game.frameDuration);
 			if(!coll)
 				continue;
 			game.debug("ball %o vs. %o: %o", this, other, coll);

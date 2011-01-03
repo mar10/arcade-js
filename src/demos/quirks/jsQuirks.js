@@ -78,7 +78,7 @@ var Quirk = Movable.extend({
 		// Draw the list of lines to the canvas
 		ctx.strokeStyle = this.color;
 //    	this.game.debug("render: " + this.color);
-		for(var i=0; i<this.lines.length; i++){
+		for(var i=0, l=this.lines.length; i<l; i++){
 			var l = this.lines[i];
 			ctx.beginPath();
 			ctx.moveTo(l.pos1.x, l.pos1.y);

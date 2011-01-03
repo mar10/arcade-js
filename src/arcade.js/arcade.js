@@ -1057,6 +1057,27 @@ ArcadeCanvas =
 			this.arc(arg1.center.x, arg1.center.y, arg1.r, 0, 2 * Math.PI, true);
 		}
 	},
+	__drawMessage: function(strokeMode, text, x, y){
+		var textWidth = this.measureText(text).width,
+			textHeight = this.measureText("M").width;
+		if(!x && !y){
+			//Center
+			x = 0.5 * (this.canvas.width - textWidth);
+			y = 0.5 * (this.canvas.height - textHeight);
+		}else{
+			if(x<0){
+				x = this.canvas.width - textWidth + x;
+			}
+			if(y<0){
+				y = this.canvas.height - textHeight + y;
+			}
+		}
+		if(strokeMode){
+			this.strokeText(text, x, y);
+		}else{
+			this.fillText(text, x, y);
+		}
+	},
 	/**Render a circle outline to a canvas.
 	 *
 	 * @example
@@ -1146,6 +1167,11 @@ ArcadeCanvas =
 			this.rect(arguments[0], arguments[1], size, size);
 		}
 	},
+	/**Set context transformation to identity (so we can use pixel coordinates).
+	 */
+	resetTransform: function(){
+		this.setTransform(1, 0, 0, 1, 0, 0);
+	},
 	/**Apply transformation matrix.
 	 * This method takes care of transposing m, so it fits the canvas 
 	 * representation. The matrix is treated as affine (last row being [0 0 1]).
@@ -1165,9 +1191,17 @@ ArcadeCanvas =
 		this.setTransform(m[0], m[3], m[1], m[4], m[6], m[7]);
 	},
 	/**Render a text field to the canvas.
+	 * Negative coordinates will align to opposite borders.
+	 * Pass x = y = 0 for centered output.
+	 * @param {String} text
+	 * @param {float} x Horizontal position (use negative value to align at right border)
+	 * @param {float} y Vertical position (use negative value to align at bottom)
 	 */
-	strokeBanner: function(text){
-
+	strokeMessage: function(text, x, y){
+		this.__drawMessage(true, text, x, y);
+	},
+	fillMessage: function(text, x, y){
+		this.__drawMessage(false, text, x, y);
 	},
 	__lastentry: undefined
 }
@@ -1418,8 +1452,19 @@ var Movable = Class.extend(
 		// Push current transformation and rendering context
 		ctx.save();
 		try{
+			// Render optional debug infos
+			if(this.getBoundingCircle && (this.opts.debug.showBCircle || this.game.opts.debug.showBCircle)){
+				ctx.strokeStyle = this.game.opts.debug.strokeStyle;
+//				ctx.strokeCircle2(this.getBoundingCircle().copy().transform(this.wc2mc));
+				ctx.strokeCircle2(this.getBoundingCircle());
+			}
+			if(this.velocity && !this.velocity.isNull() && (this.opts.debug.showVelocity || this.game.opts.debug.showVelocity)){
+				ctx.strokeStyle = this.game.opts.debug.strokeStyle;
+				var v = Vec2.scale(this.velocity, this.opts.debug.velocityScale);
+//				ctx.strokeVec2(v, new Point2(0, 0), 5 * this.game.onePixelWC);
+				ctx.strokeVec2(v, this.pos, 5 * this.game.onePixelWC);
+			}
 			// Apply object translation, rotation and scale
-//			this.game.debug("%s: %s", this, this.pos);
 			ctx.translate(this.pos.x, this.pos.y);
 			if( this.scale && this.scale != 1.0 ){
 				ctx.scale(this.scale, this.scale);
@@ -1427,18 +1472,8 @@ var Movable = Class.extend(
 			if( this.orientation ){
 				ctx.rotate(this.orientation);
 			}
-			// Let object render itself
+			// Let object render itself in its own modelling coordinates
 			this.render(ctx);
-			// Render optional debug infos
-			if(this.velocity && !this.velocity.isNull() && (this.opts.debug.showVelocity || this.game.opts.debug.showVelocity)){
-				ctx.strokeStyle = this.game.opts.debug.strokeStyle;
-				var v = Vec2.scale(this.velocity, this.game.fps * this.opts.debug.velocityScale);
-				ctx.strokeVec2(v, new Point2(0, 0), 5 * this.game.onePixelWC);
-			}
-			if(this.getBoundingCircle && (this.opts.debug.showBCircle || this.game.opts.debug.showBCircle)){
-				ctx.strokeStyle = this.game.opts.debug.strokeStyle;
-				ctx.strokeCircle2(this.getBoundingCircle().copy().transform(this.wc2mc));
-			}
 		}finally{
 			// Restore previous transformation and rendering context
 			ctx.restore();

@@ -9,6 +9,7 @@
  * Class BilliardsGame
  */
 
+
 var BilliardsGame = ArcadeJS.extend({
 	init: function(canvas, customOpts) {
 		// --- Init ArcadeJS ---------------------------------------------------
@@ -159,6 +160,7 @@ var Ball = Movable.extend({
 		this.velocity.scale(this.game.decellerationRate);
 		if(this.velocity.length() < this.game.minVelocity) {
 			this.velocity.setNull();
+			return;
 		}
 		var circle = this.getBoundingCircle();
 		// Check for wall collisions
@@ -168,9 +170,11 @@ var Ball = Movable.extend({
 			if(!game.preCheckCollision(this, other)){
 				continue;
 			}
-			var coll = other.pg.intersectsCircle(circle, this.velocity);
+			// Note: we pass a translation step as velocity and rescale the new
+			// velocity afterwards.
+			var coll = other.pg.intersectsCircle(circle, this.translationStep);
 			if( coll && Math.abs(coll.t) <= 1  ){
-				this.velocity = coll.velocityReflected;
+				this.velocity = coll.velocityReflected.scale(1 / this.game.frameDuration);
 				this.pos = coll.centerReflected;
 			}
 		}
@@ -205,10 +209,7 @@ var Ball = Movable.extend({
 					this.game.points += 1;
 				}
 			}
-			// stop on next frame
-//	    	this.game.stopRequest = true;
 		}
-//		this.game.debug(" 4> pos=%s, velocity = %s", this.pos, this.velocity);
 	},
 	render: function(ctx) {
 		// Draw this ball
@@ -239,11 +240,58 @@ var Ball = Movable.extend({
 	},
 	onDrop: function(dragOffset) {
 		//
-		this.game.debug("dragOffset:"+dragOffset);
+		this.game.debug("dragOffset:" + dragOffset);
 		this.velocity = dragOffset.copy().revert().scale(this.game.velocityScale);
-		this.game.debug("velocity:"+this.velocity);
+		this.game.debug("velocity:" + this.velocity);
 		this.game.setActivity("rolling");
 	},
+	/**
+	 * Simulate red ball drag'n'drop from touch events.
+	 */
+	onTouchevent: function(e, orgEvent) {
+		if(this.id != "player" || this.game.isActivity("rolling")){
+			return;
+		}
+		var touch = null;
+		if(this.touchDownId){
+			touch = _getTouchWithId(orgEvent.changedTouches, this.touchDownId);
+		}else if(e.type == "touchstart" && orgEvent.changedTouches.length == 1) {
+			touch =  orgEvent.changedTouches[0];
+		}
+		// Ignore event, if touch identifier is different from start event
+		if(!touch){
+			return;
+		}
+		// Otherwise, prevent default handling
+		orgEvent.preventDefault();
+
+		var touchPos = new Point2(
+			touch.pageX - this.game.canvas.offsetLeft,
+			touch.pageY - this.game.canvas.offsetTop).transform(this.game.cc2wc);;
+
+		switch (e.type) {
+		case "touchstart":
+			this.game.dragOffset = new Vec2(0, 0);
+			this.touchDownId = touch.identifier;
+			this.game.setActivity("aiming");
+			break;
+		case "touchmove":
+			// Drag vector is always relative to controls center
+			this.game.dragOffset = new Vec2(
+					touchPos.x - this.pos.x,
+					touchPos.y - this.pos.y);
+//           	this.game.debug("- drag: " + this.game.dragOffset);
+			break;
+		case "touchend":
+			this.velocity = this.game.dragOffset.copy().revert().scale(this.game.velocityScale);
+			this.game.setActivity("rolling");
+			// fall through
+		case "touchcancel":
+			this.touchDownId = null;
+			break;
+		}
+	},
+
 	// --- end of class
 	__lastentry: undefined
 });

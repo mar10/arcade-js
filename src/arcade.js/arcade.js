@@ -208,7 +208,7 @@ var ArcadeJS = Class.extend(
 		// TODO: required?
 		this.opts.debug = $.extend({}, ArcadeJS.defaultGameOptions.debug, opts.debug);
 		// Copy selected options as object attributes
-		ArcadeJS.extendAttributes(this, this.opts, "name fps resizeMode fullscreenMode fullscreenPadding timeCorrection");
+		ArcadeJS.extendAttributes(this, this.opts, "name fps resizeMode fullscreenMode fullscreenMargin timeCorrection");
 
 		this._logBuffer = [];
 		/**HTML5 canvas element*/
@@ -395,7 +395,7 @@ var ArcadeJS = Class.extend(
 				height = $c.height();
 			self.debug("window.resize: $canvas: " + width + " x " + height + "px");
 			if(self.fullscreenMode){
-				var pad = self.fullscreenPadding;
+				var pad = self.fullscreenMargin;
 				height =  $(window).height() - (pad.top + pad.bottom);
 				width =  $(window).width() - (pad.left + pad.right);
 				$c.css("position", "absolute")
@@ -1013,7 +1013,7 @@ ArcadeJS.defaultGameOptions = {
 	strokeStyle: "#ffffff", // default line color
 	fillStyle: "#c0c0c0", // default solid filll color
 	fullscreenMode: false, // Resize canvas to window extensions 
-	fullscreenPadding: {top: 20, right: 0, bottom: 0, left: 0},
+	fullscreenMargin: {top: 0, right: 0, bottom: 0, left: 0},
 	resizeMode: "adjust", // Adjust internal canvas width/height to match its outer dimensions
 	viewport: {x: 0, y: 0, width: 100, height: 100, mapMode: "stretch"},
 	fps: 30,
@@ -1296,9 +1296,11 @@ var Movable = Class.extend(
 		this.wc2mc = null;
 		this._updateTransformations();
 		
-		this.velocity = opts.velocity ? new Vec2(opts.velocity) : new Vec2(0, 0);
 		this.mass = opts.mass ? +opts.mass : 1;
+		this.velocity = opts.velocity ? new Vec2(opts.velocity) : new Vec2(0, 0);
+		this.translationStep = new Vec2(0, 0);
 		this.rotationalSpeed = opts.rotationalSpeed || null; //0.0 * LinaJS.DEG_TO_RAD;  // rad / tick
+		this.rotationStep = 0;
 		
 		this.clipModeX = opts.clipModeX || "none";
 		this.clipModeY = opts.clipModeY || "none";
@@ -1388,9 +1390,11 @@ var Movable = Class.extend(
 		this.prevRotationalSpeed = this.rotationalSpeed;
 		// Update position in world coordinates
 		var factor = this.game.frameDuration;
-		this.orientation += factor * this.rotationalSpeed;
+		this.translationStep = this.velocity.copy().scale(factor);
+		this.rotationStep = factor * this.rotationalSpeed;
+		this.orientation += this.rotationStep;
 		if(this.velocity && !this.velocity.isNull()) {
-			this.pos.translate(this.velocity.copy().scale(factor));
+			this.pos.translate(this.translationStep);
 			// wrap around at screen borders
 			var viewport = this.game.viewport;
 			if(this.clipModeX == "wrap"){

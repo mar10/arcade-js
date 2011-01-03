@@ -1394,6 +1394,7 @@ Polygon2.prototype = {
 		if( nearest.d > circle.r ){
 			return false;
 		}
+//		velocityFactor = velocityFactor || 1.0;
 		// penetration depth
 		var depth = circle.r - nearest.d;
 //		var speed = velocity.length();

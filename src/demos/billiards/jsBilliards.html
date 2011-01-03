@@ -18,9 +18,9 @@
 	<script type="text/javascript">
 	$(function(){
         // Initialize the game
-		var canvas = document.getElementById("canvas1");
+		var canvas = document.getElementById("gameCanvas");
 		var game = new BilliardsGame(canvas);
-        // Install handlers for the debug ccontrols on this pages
+        // Install handlers for the debug ccontrols on this page
         initArcadeGameDebugControls(game);
 	});
 	</script>
@@ -38,7 +38,7 @@
 </p>
 </div>
 <p align="center">
-<canvas id="canvas1" style="width:90%; height: 480px;">This game requires HTML 5 support.</canvas>
+<canvas id="gameCanvas" style="width:90%; height: 480px;">This game requires HTML 5 support.</canvas>
 </p>
 
 <div class="info">

@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <title>test audio</title>
-  </head>
-  <body>
-    <audio id="msg" controls="true" preload="auto">
-           <source src="test.mp3" type="audio/mpeg" />
-           <source src="test.ogg" type="audio/ogg" />
-           <source src="test.wav" type="audio/x-wav" />
-        </audio>
-  </body>
+</head>
+<body>
+    <audio id="msg" controls="controls" preload="auto">
+        <source src="test.mp3" type="audio/mpeg">
+        <source src="test.oga" type="audio/ogg">
+        <source src="test.wav" type="audio/x-wav">
+        <p>Audio not supported</p>
+    </audio>
+    <audio id="msg" src="test.mp3" controls="controls" preload="auto">
+        <p>Audio not supported</p>
+    </audio>
+</body>
 </html>

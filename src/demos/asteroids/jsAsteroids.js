@@ -28,8 +28,9 @@ var AsteroidsGame = ArcadeJS.extend({
 
 		// --- Cache sounds ----------------------------------------------------
 //        this.gunSound = new AudioJS("shot.wav");
-		this.gunSound = new AudioJS(["fire2.ogg", "fire.mp3", "fire.wav"]);
-		this.explosionSound = new AudioJS("damage.wav");
+//		this.explosionSound = new AudioJS("damage.wav");
+		this.gunSound = new AudioJS(["fire.oga", "fire.mp3", "fire.wav"]);
+		this.explosionSound = new AudioJS(["damage.mp3", "damage.oga"]);
 
 		// Set the scene
 		var obj;

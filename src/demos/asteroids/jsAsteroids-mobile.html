@@ -32,18 +32,23 @@
                 logToCanvas: false
             }
             });
-        var rocket = game.getObjectsByType("rocket")[0];
+//        var rocket = game.rocket;
         // Add iPod extensions
-        var stick = game.addObject(new TouchStick({
+        game.stick = game.addObject(new TouchStick({
+            id: "stick",
             pos: new Point2(60, canvas.height - 60),
             r1: 10,
-            r2: 30
+            r2: 30,
+            r3: 60
         }));
-        var button = game.addObject(new TouchButton({
+        game.button = game.addObject(new TouchButton({
+            id: "button",
             pos: new Point2(canvas.width - 40, canvas.height - 40),
             r: 20,
+            r3: 40,
             onClick: function(){ }
         }));
+        /*
         game.preStep = function(){
             var dx = stick.getX(); 
             if(dx < -0.5) { // left
@@ -61,24 +66,20 @@
                 rocket.fire();
             }
         };
+        */
         game.onResize = function(e, width, height){
             // Adjust controls that are relative to right or bottom border 
-            stick.pos = new Point2(60, height - 60);
-            button.pos = new Point2(width - 40, height - 40);
+            game.stick.pos = new Point2(60, height - 60);
+            game.button.pos = new Point2(width - 40, height - 40);
             // Let ArcadeGame adjust canvas size to new dimensions
             return true; 
         };
         if(window.navigator){
-            if(Math.abs(window.orientation) === 90){
-                $("body").addClass("landscape");
-            }else{
-                $("body").addClass("portrait");
-            }
             if(window.navigator.standalone === false){
                 // Scroll one pixel down, so Safari URL toolbar disappears
-                setTimeout(scrollTo, 10, 0, 1);
                 alert("This web page is optimized to run in fullscreen mode.\n"
                       + "Use the 'Add to Home Screen' function at the bottom of this page and restart this game from the new link icon.");
+                setTimeout(scrollTo, 10, 0, 1);
             }else if(window.navigator.standalone !== true){
                 alert("This web page is optimized to run on iPhones/iPods.");
             }

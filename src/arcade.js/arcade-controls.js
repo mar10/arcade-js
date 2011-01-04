@@ -39,16 +39,17 @@ var TouchButton = Movable.extend(
 	init: function(opts) {
 		this._super("button", $.extend({
 			r: 20,
+			r3: 40,
 			onClick: function() { alert("onClick is mandatory"); }
 		}, opts));
 		// Copy selected options as object attributes
-		ArcadeJS.extendAttributes(this, this.opts, "r onClick");
+		ArcadeJS.extendAttributes(this, this.opts, "r r3 onClick");
 		this.touchDownId = null;
 		this.clicked = false;
 		this.down = false;
 	},
 	getBoundingCircle: function() {
-		return new Circle2({x: this.pos.x, y: this.pos.y}, this.r);
+		return new Circle2({x: this.pos.x, y: this.pos.y}, this.r3);
 	},
 	render: function(ctx) {
 		// Draw gray sphere
@@ -95,9 +96,9 @@ var TouchButton = Movable.extend(
 		// TODO: seems that we get touchend for both fingers, even if only the other
 		// finger was lifted!
 		// http://stackoverflow.com/questions/3695128/webkit-iphone-ipad-issue-with-mutl-touch
-		if(e.type!="touchmove"){
-			this.game.debug("button " + e.type + " - isInside: " + isInside + ", drag: " + this.touchDragOffset + ", id=" + touch.identifier);
-		}
+//		if(e.type!="touchmove"){
+//			this.game.debug("button " + e.type + " - isInside: " + isInside + ", drag: " + this.touchDragOffset + ", id=" + touch.identifier);
+//		}
 
 		switch (e.type) {
 		case "touchstart":
@@ -144,17 +145,19 @@ var TouchStick = Movable.extend(
 	init: function(opts) {
 		this._super("joystick", $.extend({
 			r1: 10,
-			r2: 30
+			r2: 30,
+			r3: 50
 		}, opts));
 		// Copy selected options as object attributes
-		ArcadeJS.extendAttributes(this, this.opts, "r1 r2");
+		ArcadeJS.extendAttributes(this, this.opts, "r1 r2 r3");
 		this.active = false;
 		this.touchDownPos = null;
 		this.touchDownId = null;
 		this.touchDragOffset = null;
 	},
 	getBoundingCircle: function() {
-		return new Circle2({x: this.pos.x, y: this.pos.y}, this.r2);
+//		var r = 
+		return new Circle2({x: this.pos.x, y: this.pos.y}, this.r3);
 	},
 	render: function(ctx) {
 		// Draw gray sphere
@@ -199,11 +202,9 @@ var TouchStick = Movable.extend(
 	onTouchevent: function(e, orgEvent) {
 		// http://developer.apple.com/safari/library/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW1
 		// http://www.sitepen.com/blog/2008/07/10/touching-and-gesturing-on-the-iphone/
-//    	this.game.debug("Canvas touch event '" + e.type + "',  id=" + this.touchDownId + ", pos=" + this.touchDownPos + ", drag=" + this.touchDragOffset);
 		var touch = null;
 		if(this.touchDownId){
 			touch = _getTouchWithId(orgEvent.changedTouches, this.touchDownId);
-//        	alert("1 Canvas touch event '" + e.type + "'"+touch);
 		}else if(e.type == "touchstart" && orgEvent.changedTouches.length == 1) {
 			touch =  orgEvent.changedTouches[0];
 		}
@@ -211,7 +212,6 @@ var TouchStick = Movable.extend(
 		if(!touch){
 			return;
 		}
-//    	if(e.type!="touchstart") alert("3 Canvas touch event '" + e.type + "'"+touch);
 
 		// Otherwise, prevent default handling
 		orgEvent.preventDefault();
@@ -219,11 +219,9 @@ var TouchStick = Movable.extend(
 		var touchPos = new Point2(
 			touch.pageX - this.game.canvas.offsetLeft,
 			touch.pageY - this.game.canvas.offsetTop);
-//    	this.game.debug("Canvas touch event '" + e.type + "': id=" + touch.identifier + ", t=" + touch.target);
-//      this.game.debug("- touchDownPos: id=" + this.touchDownId + ", " + this.touchDownPos + ", drag: " + this.touchDragOffset);
-		if(e.type!="touchmove"){
-			this.game.debug("stick " + e.type + " - isInside: " + this.contains(touchPos) + ", drag: " + this.touchDragOffset + ", id=" + touch.identifier);
-		}
+//		if(e.type!="touchmove"){
+//			this.game.debug("stick " + e.type + " - isInside: " + this.contains(touchPos) + ", drag: " + this.touchDragOffset + ", id=" + touch.identifier);
+//		}
 		// TODO: seems that we get touchend for both fingers, even if only the other
 		// finger was lifted!
 		// http://stackoverflow.com/questions/3695128/webkit-iphone-ipad-issue-with-mutl-touch
@@ -240,11 +238,9 @@ var TouchStick = Movable.extend(
 			this.touchDragOffset = new Vec2(
 				touchPos.x - this.pos.x,
 				touchPos.y - this.pos.y);
-//            	this.game.debug("- touchDownPos: " + this.touchDownPos + ", drag: " + this.touchDragOffset);
 			break;
 		case "touchend":
 		case "touchcancel":
-//        	this.game.debug("*** stick " + e.type + " - touchDownPos: " + this.touchDownPos + ", drag: " + this.touchDragOffset);
 			this.touchDownPos = this.touchDownId = this.touchDragOffset = null;
 			break;
 		}
@@ -255,7 +251,6 @@ var TouchStick = Movable.extend(
 	},
 	/**Return x deflection [-1.0 .. +1.0]. */
 	getX: function() {
-//		return this.isActive() ? (this.game.mousePos.x - this.touchDownPos.x) / this.r2 : 0;
 		return this.isActive() ? this.touchDragOffset.dx / this.r2 : 0;
 	},
 	/**Return y deflection [-1.0 .. +1.0]. */

@@ -13,7 +13,7 @@ var AsteroidsGame = ArcadeJS.extend({
 			name: "jsAsteroids",
 			fps: 30,
 			debug: {
-				showFps: true,
+				showFps: true
 			}
 		}, customOpts);
 		this._super(canvas, opts);
@@ -24,7 +24,7 @@ var AsteroidsGame = ArcadeJS.extend({
 		this.score = 0;
 		this.shotTtl = 40;
 		this.shotDelay = 250; // ms
-		this.gracePeriod = 200; // frames
+		this.gracePeriod = 3; // seconds
 
 		// --- Cache sounds ----------------------------------------------------
 //        this.gunSound = new AudioJS("shot.wav");
@@ -35,7 +35,7 @@ var AsteroidsGame = ArcadeJS.extend({
 		// Set the scene
 		var obj;
 		// Player rocket
-		obj = this.addObject(new Rocket())
+		this.rocket = this.addObject(new Rocket())
 		this._restartGame();
 
 		// --- Start render loop -----------------------------------------------
@@ -43,13 +43,14 @@ var AsteroidsGame = ArcadeJS.extend({
 	},
 	_restartGame: function(){
 		this.setActivity("prepare");
-		// Asteroids
+		this.rocket.velocity.setNull();
+		this.rocket.pos = new Point2(0.5 * this.canvas.width, 0.5 * this.canvas.height);
 		var speed = 15 * (1.0 + (this.level - 1) * 0.3);
 		var pt0 = new Point2(0, 0);
 		for(var i=0; i<this.level; i++){
 			this._makeAsteroid(3, pt0, new Vec2(LinaJS.random(-1, 1), LinaJS.random(-1, 1)).setLength(speed));
 		}
-		this.later(200, function(){
+		this.later(3, function(){
 			this.setActivity("running");
 		});
 	},
@@ -72,6 +73,28 @@ var AsteroidsGame = ArcadeJS.extend({
 			this.level += 1;
 			this.score += 1000;
 			this._restartGame();
+			return;
+		}
+		// 
+		var stick = this.stick,
+			button = this.button,
+			rocket = this.rocket;
+		if(stick && button){
+	        var dx = stick.getX(); 
+	        if(dx < -0.5) { // left
+	            rocket.orientation -= 5 * LinaJS.DEG_TO_RAD;
+	        }else if(dx > 0.5) {
+	            rocket.orientation += 5 * LinaJS.DEG_TO_RAD;
+	        }
+	        var dy = stick.getX(); 
+	        if(stick.getY() < -0.8){ // Up
+	            var vAccel = LinaJS.polarToVec(this.rocket.orientation - 90*LinaJS.DEG_TO_RAD, 3);
+	            this.rocket.velocity.add(vAccel).limit(300);
+	            this.rocket.isThrust = true;
+	        }
+	        if(button.isDown()){
+	            rocket.fire();
+	        }
 		}
 	},
 	preDraw: function(ctx){
@@ -111,10 +134,15 @@ var AsteroidsGame = ArcadeJS.extend({
 var Bullet = Movable.extend({
 	init: function(opts) {
 		opts = $.extend({
+			
 //			scale: 2,
-			ttl: 20,
+//			ttl: 20,
 		}, opts);
 		this._super("bullet", opts);
+		// die after 0.5 seconds
+		this.later(0.8, function(){
+			this.die();
+		});
 	},
 	step: function() {
 		var list = this.game.getObjectsByType("asteroid");
@@ -213,7 +241,6 @@ var Rocket = Movable.extend({
 			ctx.strokeCircle2(circle);
 		}
 		// Draw thrust fire
-//		if(this.game.isKeyDown(38)){ // Up
 		if(this.isThrust){ // Up
 			ctx.strokeStyle = "#f80";
 			ctx.translate(LinaJS.random(-1, +1), LinaJS.random(-1, +1));
@@ -246,7 +273,7 @@ var Rocket = Movable.extend({
 //		e.stopImmediatePropagation();
 //    },
 	fire: function() {
-		if(this.isActivity("grace") || this.game.isActivity("prepare over")){
+		if(this.isActivity("grace") || this.game.isActivity("over")){
 			return;
 		}
 		if((this.game.time - this.lastShotTime) < this.game.shotDelay ){
@@ -254,10 +281,8 @@ var Rocket = Movable.extend({
 		}
 		this.lastShotTime = this.game.time;
 		var aim = LinaJS.polarToVec(this.orientation - 0.5 * Math.PI, 300);
-//		var bullet = new Bullet(new Point2(this.pos), aim, 50);
 		this.game.addObject(new Bullet({
 			pos: this.pos,
-			ttl: this.game.shotTtl,
 			velocity: aim
 			}));
 		this.game.gunSound.play();

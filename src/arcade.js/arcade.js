@@ -274,8 +274,8 @@ var ArcadeJS = Class.extend(
 		this._runLoopId = null;
 		this.stopRequest = false;
 		this.freezeMode = false;
-		this._timeout = 0;
-		this._timoutCallback = null;
+		this._timeout = null;
+//		this._timoutCallback = null;
 
 		this.clickPos = undefined;
 		this.mousePos = undefined;
@@ -284,6 +284,9 @@ var ArcadeJS = Class.extend(
 		this.key = undefined;
 		this.downKeyCodes = [];
 
+		if(!ArcadeJS._firstGame) {
+			ArcadeJS._firstGame = this;
+		}
 		// Bind keyboard events
 		var self = this;
 		$(document).bind("keyup keydown keypress", function(e){
@@ -529,14 +532,32 @@ var ArcadeJS = Class.extend(
 		}
 	},
 */
-	/**Run callback siom e frames later.
-	 * @param {Int} frames number of frames until callback is triggered
+//	/**Run callback e frames later.
+//	 * @param {Int} frames number of frames until callback is triggered
+//	 * @param {function} callback (optional), if ommited, this.onTimout is called.
+//	 */
+//	later: function(frames, callback) {
+//		this._timeout = frames;
+//		this._timeoutCallback = callback || this.onTimeout;
+//	},
+	/**Schedule a callback to be triggered after a number of seconds.
+	 * @param {float} seconds delay until callback is triggered
 	 * @param {function} callback (optional), if ommited, this.onTimout is called.
+	 * @param data (optional) additional data passed to callback
 	 */
-	later: function(frames, callback) {
-		this._timeout = frames;
-		this._timeoutCallback = callback || this.onTimeout;
+	later: function(seconds, callback, data) {
+		var timeout = {
+			id: ArcadeJS._nextTimeoutId++,
+			time: new Date().getTime() + 1000 * seconds,
+			frame: this.fps * seconds,
+			callback: callback || this.onTimeout,
+			data: (data === undefined ? null : data)
+		};
+		// TODO: append to a sorted list instead
+		this._timeout = timeout;
+		return timeout.id; 
 	},
+
 	
 	/**Define the visible part of the world.
 	 * @param {float} x lower left corner in world coordinates
@@ -624,13 +645,22 @@ var ArcadeJS = Class.extend(
 //        	p.focused = document.hasFocus();
 //		} catch(e) {}
 		// Fire timeout event, if one was scheduled
-		if( this._timeout > 0) {
-			this._timeout--;
-			if( this._timeout === 0) {
-		    	var callback = this._timeoutCallback || self.onTimeout;
-				callback.call(this);
-			}
+		var timeout = this._timeout; 
+		if(timeout && 
+			((this.timeCorrection && this.time >= timeout.time)
+			 || (!this.timeCorrection && this.frameCount >= timeout.frame))
+			 ){
+			this._timeout = null;
+			this.debug(this.toString() + " timeout " + timeout);
+			timeout.callback.call(this, timeout.data);
 		}
+//		if( this._timeout > 0) {
+//			this._timeout--;
+//			if( this._timeout === 0) {
+//		    	var callback = this._timeoutCallback || self.onTimeout;
+//				callback.call(this);
+//			}
+//		}
 		try {
 			this.frameCache = {collisionCache: {}};
 			this._stepAll();
@@ -668,7 +698,7 @@ var ArcadeJS = Class.extend(
 			return;
 		}
 		if(this.preStep){
-			this.preStep();
+			this.preStep.call(this);
 		}
 		var ol = this.objects;
 		for(var i=0, l=ol.length; i<l; i++){
@@ -678,7 +708,7 @@ var ArcadeJS = Class.extend(
 			}
 		}
 		if(this.postStep){
-			this.postStep();
+			this.postStep.call(this);
 		}
 	},
 	_redrawAll: function() {
@@ -956,6 +986,7 @@ var ArcadeJS = Class.extend(
 		return true;
 	},
 	/**@function Callback, triggered when timeout expires (and no callback was given).
+	 * @param data data object passed to later()
 	 */
 	onTimeout: undefined,
 	/**@function Called when window is resized (and on start).
@@ -1012,8 +1043,14 @@ ArcadeJS.extendAttributes = function(object, dict, attrNames){
 	}
 };
 
+/**Global pointer to first created game object.*/
+ArcadeJS._firstGame = null;
+
 /**Used to generate unique object IDs.*/
-ArcadeJS.nextId = 1;
+ArcadeJS._nextObjectId = 1;
+
+/**Used to generate unique object IDs.*/
+ArcadeJS._nextTimeoutId = 1;
 
 /**Default options dictionary.*/
 ArcadeJS.defaultGameOptions = {
@@ -1322,7 +1359,7 @@ var Movable = Class.extend(
 	 */
 	init: function(type, opts) {
 		this.type = type;
-		this.id = (opts && opts.id) ? opts.id : "#" + ArcadeJS.nextId++;
+		this.id = (opts && opts.id) ? opts.id : "#" + ArcadeJS._nextObjectId++;
 		this.hidden = false;
 		this._dead = false;
 		this._activity = null;
@@ -1348,9 +1385,9 @@ var Movable = Class.extend(
 		
 		this.clipModeX = opts.clipModeX || "none";
 		this.clipModeY = opts.clipModeY || "none";
-		this._timeout = 0; //+opts.timeout;
-		this._timoutCallback = null;
-		this.ttl = +opts.ttl;
+		this._timeout = null; //+opts.timeout;
+//		this._timoutCallback = null;
+//		this.ttl = +opts.ttl;
 
 //        this.tran = new BiTran2();.translate();
 	},
@@ -1392,13 +1429,23 @@ var Movable = Class.extend(
 		}
 		return false;
 	},
-	/**Schedule a callback to be triggered n frames later.
-	 * @param {Int} frames number of frames until callback is triggered
+	/**Schedule a callback to be triggered after a number of seconds.
+	 * @param {float} seconds delay until callback is triggered
 	 * @param {function} callback (optional), if ommited, this.onTimout is called.
+	 * @param data (optional) additional data passed to callback
 	 */
-	later: function(frames, callback) {
-		this._timeout = frames;
-		this._timeoutCallback = callback || this.onTimeout;
+	later: function(seconds, callback, data) {
+		var timeout = {
+			id: ArcadeJS._nextTimeoutId++,
+			time: new Date().getTime() + 1000 * seconds,
+			// if later() is called in the constructor, 'game' may not be set
+			frame: (this.game ? this.game.fps : ArcadeJS._firstGame.fps) * seconds,
+			callback: callback || this.onTimeout,
+			data: (data === undefined ? null : data)
+		};
+		// TODO: append to a sorted list instead
+		this._timeout = timeout;
+		return timeout.id; 
 	},
 
 	/**Set transformation matrix and inverse from this.pos, .orientation and .scale.
@@ -1413,20 +1460,22 @@ var Movable = Class.extend(
 	 */
 	_step: function() {
 		// Fire timeout event, if one was scheduled
-		if( this._timeout > 0) {
-			this._timeout--;
-			if( this._timeout === 0) {
-		    	var callback = this._timeoutCallback || self.onTimeout;
-				callback.call(this);
-			}
+		var timeout = this._timeout; 
+		if(timeout && 
+			((this.game.timeCorrection && this.game.time >= timeout.time)
+			 || (!this.game.timeCorrection && this.game.frameCount >= timeout.frame))
+			 ){
+			this._timeout = null;
+			this.game.debug(this.toString() + " timeout " + timeout);
+			timeout.callback.call(this, timeout.data);
 		}
 		// Kill this instance and fire 'die' event, if time-to-live has expired
-		if( this.ttl > 0) {
-			this.ttl--;
-			if( this.ttl === 0) {
-				this.die();
-			}
-		}
+//		if( this.ttl > 0) {
+//			this.ttl--;
+//			if( this.ttl === 0) {
+//				this.die();
+//			}
+//		}
 		// Save previous values
 		this.prevPos = this.pos.copy();
 		this.prevOrientation = this.orientation;
@@ -1608,6 +1657,7 @@ var Movable = Class.extend(
 	 */
 	onSetActivity: undefined,
 	/**@function Callback, triggered when timeout expires (and no callback was given).
+	 * @param data data object passed to later()
 	 */
 	onTimeout: undefined,
 	/**@function Callback, triggered when this object dies.

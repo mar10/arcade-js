@@ -93,15 +93,19 @@
  * @class
  * @example
  * var clickSound = new AudioJS('click.wav')
+ * var sound2 = new AudioJS(['click.ogg', 'click.mp3'])
+ * var sound3 = new AudioJS({src: ['click.ogg', 'click.mp3'], loop: true)
  * [...]
  * clickSound.play();
  */
 AudioJS = function(opts){
 	if(typeof opts == "string"){
-		opts = {url: opts};
+		opts = {src: [opts]};
+	}else if($.isArray(opts)){
+		opts = {src: opts};
 	}
 	this.opts = $.extend({}, AudioJS.defaultOpts, opts);
-	this.audio = AudioJS.load(opts.url);
+	this.audio = AudioJS.load(opts.src);
 }
 // Static members
 $.extend(AudioJS,
@@ -122,7 +126,8 @@ $.extend(AudioJS,
 	/**Load and cache audio element for this URL.
 	 *  @param {string} url
 	 */
-	load: function(url) {
+	load: function(src) {
+		var url = src[0];
 		var audio = this._audioList[url];
 		if( !audio ) {
 			if( !this._soundElement ) {
@@ -138,10 +143,15 @@ $.extend(AudioJS,
 //			audio.setAttribute("autoplay", true);
 			audio.setAttribute("preload", true);
 			audio.setAttribute("autobuffer", true);
-			audio.setAttribute("src", url);
+//			audio.setAttribute("src", url);
+			for(var i=0; i<src.length; i++){
+				var srcElement = document.createElement("source");
+				srcElement.setAttribute("src", src[i]);
+				audio.appendChild(srcElement);
+			}
 			this._soundElement.appendChild(audio);
-			var audio2 = document.getElementsByTagName("audio");
-			var audio3 = document.createElement("audio");
+//			var audio2 = document.getElementsByTagName("audio");
+//			var audio3 = document.createElement("audio");
 			$(audio).bind("ended", {}, function() {
 				// TODO: we can simulate looping if it is not natively supported:
 //			  	$(this).trigger('play');
@@ -167,7 +177,7 @@ AudioJS.prototype = {
 	 * @returns {string}
 	 */
 	toString: function() {
-		return "AudioJS("+this.opts.url+")";
+		return "AudioJS("+this.opts.src+")";
 	},
 	/**Play this sound.
 	 *  @param {boolean} loop Optional, default: false

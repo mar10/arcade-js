@@ -127,8 +127,13 @@ $.extend(AudioJS,
 	 *  @param {string} url
 	 */
 	load: function(src) {
-		var url = src[0];
-		var audio = this._audioList[url];
+		var tag;
+		if(typeof src == "string"){
+			tag = src;
+		}else{
+			tag = src.join("~");
+		}
+		var audio = this._audioList[tag];
 		if( !audio ) {
 			if( !this._soundElement ) {
 				this._soundElement = document.createElement("div");
@@ -139,7 +144,7 @@ $.extend(AudioJS,
 //					window.console.log("AudioJS("+this+") loaded");
 //				});
 			}
-			audio = this._audioList[url] = document.createElement("audio");
+			audio = this._audioList[tag] = document.createElement("audio");
 //			audio.setAttribute("autoplay", true);
 //			audio.setAttribute("preload", true);
 			audio.setAttribute("preload", "auto");
@@ -157,7 +162,7 @@ $.extend(AudioJS,
 				// TODO: we can simulate looping if it is not natively supported:
 //			  	$(this).trigger('play');
 				if(window.console){
-					window.console.log("AudioJS("+url+") ended");
+					window.console.log("AudioJS("+tag+") ended");
 				}
 			});
 		}
@@ -771,7 +776,10 @@ var ArcadeJS = Class.extend(
 			infoList.push("CC: " + this.mousePosCC);
 			var hits = this.getObjectsAtPosition(this.mousePos);
 			if(hits.length){
-				infoList.push("Hits: " + hits);
+//				infoList.push("Hits: " + hits);
+				ctx.font = "12px sans-serif";
+				ctx.fillStyle = this.opts.debug.strokeStyle;
+				ctx.fillText(hits, 10, this.canvas.height - 20);
 			}
 		}
 		if(infoList.length){
@@ -891,7 +899,7 @@ var ArcadeJS = Class.extend(
 		return this.typeMap[type] ? this.typeMap[type] : [];
 	},
 	/**Call func(obj) for all objects.
-	 * @param: {function} func
+	 * @param: {function} func callback(game, object)
 	 * @param: {string} types Restrict objects to this space separated typenames
 	 */
 	visitObjects: function(func, types) {
@@ -1398,7 +1406,9 @@ var Movable = Class.extend(
 //        this.tran = new BiTran2();.translate();
 	},
 	toString: function() {
-		return "Movable<"+this.type+"> '" + this.id + "' @ " + this.pos.toString(4);
+		return "Movable<"+this.type+"> '" + this.id + "' @ " 
+			+ this.pos.toString(4) + " " + (this.orientation * LinaJS.R2D).toFixed(0) + "°"
+			+ " acivity: '" + this._activity + "'";
 	},
 	/**Return current activity.
 	 * @returns {string}

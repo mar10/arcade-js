@@ -22,14 +22,11 @@ var AsteroidsGame = ArcadeJS.extend({
 		this.liveCount = 3;
 		this.level = 1;
 		this.score = 0;
-		this.shotTtl = 40;
 		this.shotDelay = 250; // ms
 		this.gracePeriod = 3; // seconds
 
 		// --- Cache sounds ----------------------------------------------------
-//        this.gunSound = new AudioJS("shot.wav");
-//		this.explosionSound = new AudioJS("damage.wav");
-		this.gunSound = new AudioJS(["fire.oga", "fire.mp3", "fire.wav"]);
+		this.gunSound = new AudioJS(["fire.mp3", "fire.oga", "fire.wav"]);
 		this.explosionSound = new AudioJS(["damage.mp3", "damage.oga"]);
 
 		// Set the scene
@@ -80,11 +77,9 @@ var AsteroidsGame = ArcadeJS.extend({
 			button = this.button,
 			rocket = this.rocket;
 		if(stick && button){
-	        var dx = stick.getX(); 
-	        if(dx < -0.5) { // left
-	            rocket.orientation -= 5 * LinaJS.DEG_TO_RAD;
-	        }else if(dx > 0.5) {
-	            rocket.orientation += 5 * LinaJS.DEG_TO_RAD;
+	        var dx = stick.getX();
+	        if(Math.abs(dx) > 0.2){
+	        	rocket.orientation += 3 * dx * LinaJS.DEG_TO_RAD;
 	        }
 	        var dy = stick.getX(); 
 	        if(stick.getY() < -0.8){ // Up
@@ -101,16 +96,18 @@ var AsteroidsGame = ArcadeJS.extend({
 		ctx.save();
 		// Display score
 		ctx.font = "12px sans-serif";
-		ctx.fillMessage("Score: " + this.score, 10, 15);
+		ctx.fillScreenText("Score: " + this.score, 10, 15);
 		if(this.isActivity("over")){
 			ctx.font = "30px sans-serif";
-			ctx.strokeMessage("Game over (hit [F5])", 0, 0);
+			ctx.strokeScreenText("Game over (hit [F5])", 0, 0);
 		}else if(this.isActivity("prepare")){
 			// Doesn't work in chrome
 			// http://code.google.com/p/chromium/issues/detail?id=44017
 			ctx.font = "30px sans-serif";
-			ctx.strokeMessage("Level " + this.level, 0, 0);
+			ctx.strokeScreenText("Level " + this.level, 0, 0);
 		}
+		ctx.font = "10px sans-serif";
+		ctx.fillScreenText("Copyright (c) 2011 Martin Wendt - Made with ArcadeJS", 0, -1);
 		// Draw lives
 		var live = new Polygon2([0, 5,
 								 -3, -5,

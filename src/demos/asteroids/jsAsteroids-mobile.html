@@ -32,7 +32,6 @@
                 logToCanvas: false
             }
             });
-//        var rocket = game.rocket;
         // Add iPod extensions
         game.stick = game.addObject(new TouchStick({
             id: "stick",
@@ -48,25 +47,6 @@
             r3: 40,
             onClick: function(){ }
         }));
-        /*
-        game.preStep = function(){
-            var dx = stick.getX(); 
-            if(dx < -0.5) { // left
-                rocket.orientation -= 5 * LinaJS.DEG_TO_RAD;
-            }else if(dx > 0.5) {
-                rocket.orientation += 5 * LinaJS.DEG_TO_RAD;
-            }
-            var dy = stick.getX(); 
-            if(stick.getY() < -0.8){ // Up
-                var vAccel = LinaJS.polarToVec(rocket.orientation - 90*LinaJS.DEG_TO_RAD, 3);
-                rocket.velocity.add(vAccel).limit(300);
-                rocket.isThrust = true;
-            }
-            if(button.isDown()){
-                rocket.fire();
-            }
-        };
-        */
         game.onResize = function(e, width, height){
             // Adjust controls that are relative to right or bottom border 
             game.stick.pos = new Point2(60, height - 60);

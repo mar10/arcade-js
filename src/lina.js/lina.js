@@ -27,16 +27,18 @@
 LinaJS = {
 	// var identity33 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 	/**
-	 * Factor that converts radians to degree.
+	 * Factor that converts radians to degree (alias: R2D).
 	 *
 	 * @constant
 	 */
 	RAD_TO_DEG: 180.0 / Math.PI,
+	R2D: 180.0 / Math.PI,
 	/**
-	 * Factor that converts degree to radians.
+	 * Factor that converts degree to radians (alias: D2R).
 	 * @constant
 	 */
 	DEG_TO_RAD: Math.PI / 180.0,
+	D2R: Math.PI / 180.0,
 	/** Default epsilon value use in some comparisons.
 	 * @constant
 	 */
@@ -101,14 +103,16 @@ LinaJS = {
 
 	/** Return a point {x:_, y:_} for the given polar coordinates. */
 	polarToPt: function(a, r) {
-		return { x: r * Math.cos(a),
-				 y: r * Math.sin(a) };
+//		return { x: r * Math.cos(a),
+//				 y: r * Math.sin(a) };
+		return new Point2(r * Math.cos(a), r * Math.sin(a));
 	},
 
 	/** Return a vector {dx:_, dy:_} for the given polar coordinates. */
 	polarToVec: function(a, r) {
-		return { dx: r * Math.cos(a),
-				 dy: r * Math.sin(a) };
+//		return { dx: r * Math.cos(a),
+//				 dy: r * Math.sin(a) };
+		return new Vec2(r * Math.cos(a), r * Math.sin(a));
 	},
 
 	/**Reflect this vector (in-place) and return this instance.
@@ -330,7 +334,7 @@ LinaJS = {
 		}
 		return true;
 	},
-	lastEntry : undefined
+	__lastEntry: undefined
 };
 
 
@@ -623,13 +627,46 @@ Vec2.prototype = {
 			return 0;
 		}
 	},
-	/**Clamp vector length.
+	/**Clamp vector length (in-place).
 	 * @param {float} length Maximum length.
 	 * @returns {Vec2}
 	 */
 	limit: function(length) {
 		if(this.sqrLength() > length*length){
 			this.scale(length / this.length());
+		}
+		return this;
+	},
+	/**Apply a 'force' vector or offset (in-place) within given limits.
+	 * @param {float | Vec2} force vector. If a float is passed, then it is 
+	 * assumed to be the length of a vector along current direction.
+	 * @param {float} maxLength (optional) maximum length of resulting vector.
+	 * @param {float} minLength (optional) minimum length. If omitted, a Null-Vector is returned when EPS is reached.
+	 * @returns {Vec2}
+	 */
+	accelerate: function(force, maxLength, minLength) {
+		if(force.dx){
+			// force is a vector
+			this.add(force);
+		}else{
+			if(this.isNull()){
+				return this;
+			}
+			// force is the length of a vector along current heading 
+			this.add(this.copy().setLength(force));
+		}
+		var l2 = this.sqrLength();
+		if(minLength){
+			if(l2 < minLength * minLength){
+				this.scale(minLength / this.length());
+				return this;
+			}
+		} else if(l2 < LinaJS.EPS_SQUARED){
+			this.setNull();
+			return this;
+		}
+		if(maxLength && this.sqrLength() > maxLength * maxLength){
+			this.scale(maxLength / this.length());
 		}
 		return this;
 	},
@@ -657,6 +694,16 @@ Vec2.prototype = {
 	angleTo: function(v2){
 //		return Math.acos(this.dot(v2) /  (this.length() * Math.sqrt(v2.dx * v2.dx + v2.dy * v2.dy)));
 		return Math.asin(this.cross(v2) /  (this.length() * Math.sqrt(v2.dx * v2.dx + v2.dy * v2.dy)));
+	},
+	/**Set the angle (in-place, relative to positive x axis).
+	   @returns {Vec2}
+	*/
+	setAngle: function(a){
+		var cura = this.angle();
+		if(!this.isNull() && Math.abs(a-cura) > LinaJS.EPS){
+			this.rotate(a-cura);
+		}
+		return this;
 	},
 	/** Multiply vector length by a factor (in-place) and return this instance.
 	 * @param {float} f Scaling factor.
@@ -1087,7 +1134,7 @@ Matrix3.prototype = {
 		this.m = t;
 		return this;
 	},
-	/**Calculate the vector (dx:0, dy:1) tranfromed by this.
+	/**Calculate the vector (dx:0, dy:1) tranformed by this.
 	 * @returns {Vec2}
 	 */
 	orientation: function() {

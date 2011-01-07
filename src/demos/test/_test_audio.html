@@ -3,24 +3,119 @@
 <head>
     <meta charset="utf-8">
     <title>test audio</title>
+    <script src="../../depends/jquery.js"></script>
+    <script src="../../lina.js/lina.js"></script>
+    <script src="../../arcade.js/arcade.js"></script>
+    
+<script type="text/javascript">
+$(function(){
+    var myAudio = document.createElement('audio'); 
+    var audioTagSupport = !!myAudio.canPlayType;
+    if (myAudio.canPlayType) {
+       // Currently canPlayType(type) returns: "", "maybe" or "probably" 
+       var canPlayMp3 = !!myAudio.canPlayType && "" != myAudio.canPlayType('audio/mpeg');
+       var canPlayOgg = !!myAudio.canPlayType && "" != myAudio.canPlayType('audio/ogg; codecs="vorbis"');
+       var canPlayWav = !!myAudio.canPlayType && "" != myAudio.canPlayType('audio/x-wav');
+    }
+    alert("audioTagSupport: " + audioTagSupport + ", mp3: " + canPlayMp3 + ", ogg: " + canPlayOgg + ", wav: " + canPlayWav);
+
+    var mp3Sound = new AudioJS("test.mp3");
+    var oggSound = new AudioJS("test.oga");
+    var wavSound = new AudioJS("test.wav");
+    var allSound = new AudioJS(["test.mp3", "test.oga", "test.wav"]);
+    
+	$("#btnPlayObjectWav").click(function(){
+		var audio = new Audio();
+	});
+	
+    $("#btnPlayArcadeMp3").click(function(){
+        mp3Sound.play();
+    });
+    $("#btnPlayArcadeOgg").click(function(){
+        oggSound.play();
+    });
+    $("#btnPlayArcadeWav").click(function(){
+        wavSound.play();
+    });
+    $("#btnPlayArcadeAll").click(function(){
+        allSound.play();
+    });
+
+    $("#btnPlayElementMp3").click(function(){
+        var audio = document.getElementById("audioMp3");
+        audio.load();
+        audio.play();
+    });
+    $("#btnPlayElementOgg").click(function(){
+        var audio = document.getElementById("audioOgg");
+        audio.load();
+        audio.play();
+    });
+    $("#btnPlayElementWav").click(function(){
+        var audio = document.getElementById("audioWav");
+        audio.load();
+        audio.play();
+    });
+});
+</script>
 </head>
 <body>
+    <p>Audio with source elements (mp3, oga, wav) and 'type' attribute:</p>
     <audio controls="controls" preload="auto">
         <source src="test.mp3" type="audio/mpeg">
         <source src="test.oga" type="audio/ogg">
         <source src="test.wav" type="audio/x-wav">
         <p>Audio not supported</p>
     </audio>
-    <br>
+    <p>Audio with source elements (mp3, oga, wav):</p>
     <audio controls="controls" preload="auto">
         <source src="test.mp3">
         <source src="test.oga">
         <source src="test.wav">
         <p>Audio not supported</p>
     </audio>
-    <br>
-    <audio src="test.mp3" controls="controls" preload="auto">
+    <p>Audio with src attribute (mp3):</p>
+    <audio id="audioMp3" src="test.mp3" controls="controls" preload="auto">
         <p>Audio not supported</p>
     </audio>
+    <p>Audio with src attribute (oga):</p>
+    <audio id="audioOgg" src="test.oga" controls="controls" preload="auto">
+        <p>Audio not supported</p>
+    </audio>
+    <p>Audio with src attribute (wav):</p>
+    <audio id="audioWav" src="test.wav" controls="controls" preload="auto">
+        <p>Audio not supported</p>
+    </audio>
+    <hr>
+    <br>
+    
+    <button id="btnPlayArcadeMp3">AudioJS(mp3).play()</button>
+    <button id="btnPlayArcadeOgg">AudioJS(ogg).play()</button>
+    <button id="btnPlayArcadeWav">AudioJS(wav).play()</button>
+    <button id="btnPlayArcadeAll">AudioJS(mp3,ogg,wav).play()</button>
+    <br>
+    <button id="btnPlayElementMp3">&lt;Audio src=mp3>.play()</button>
+    <button id="btnPlayElementOgg">&lt;Audio src=ogg>.play()</button>
+    <button id="btnPlayElementWav">&lt;Audio src=wav>.play()</button>
+    <hr>
+    Results 6.1.2011:
+    <dl>
+    <dt>Firefox 3.6 / Windows7 using WsgiDAV server
+    <dd>ogg + wav OK, (mp3 NOT working)
+        
+    <dt>Chrome 8 / Windows7 using file access
+    <dd>OK (all formats)
+    
+    <dt>Chrome 8 / Windows7 using WsgiDAV server
+    <dd>NOTHING works!
+    
+    <dt>Safari / Windows7 / local or WsgiDAV server
+    <dd>NOTHING works! &lt;audio> tag not supported! (Quicktime is not installed!?) 
+    
+    <dt>Safari Mobile / iPhone 4 / iOS 4.2 / WsgiDAV server
+    <dd>Only mp3 works, but with a delay. 
+        NOTE: multi-source did not work, when test.oga was first!
+    
+    </dl>
 </body>
 </html>

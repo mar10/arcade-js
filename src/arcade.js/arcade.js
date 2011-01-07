@@ -141,7 +141,8 @@ $.extend(AudioJS,
 			}
 			audio = this._audioList[url] = document.createElement("audio");
 //			audio.setAttribute("autoplay", true);
-			audio.setAttribute("preload", true);
+//			audio.setAttribute("preload", true);
+			audio.setAttribute("preload", "auto");
 			audio.setAttribute("autobuffer", true);
 //			audio.setAttribute("src", url);
 			for(var i=0; i<src.length; i++){
@@ -1104,26 +1105,30 @@ ArcadeCanvas =
 			this.arc(arg1.center.x, arg1.center.y, arg1.r, 0, 2 * Math.PI, true);
 		}
 	},
-	__drawMessage: function(strokeMode, text, x, y){
-		var textWidth = this.measureText(text).width,
-			textHeight = this.measureText("M").width;
-		if(!x && !y){
-			//Center
+	__drawScreenText: function(strokeMode, text, x, y){
+		var textWidth, textHeight;
+		this.save();
+		this.resetTransform();
+		if(x === 0){
+			textWidth = this.measureText(text).width;
 			x = 0.5 * (this.canvas.width - textWidth);
+		}else if( x < 0){
+			textWidth = this.measureText(text).width;
+			x = this.canvas.width - textWidth + x;
+		}
+		if(y === 0){
+			textHeight = this.measureText("M").width;
 			y = 0.5 * (this.canvas.height - textHeight);
-		}else{
-			if(x<0){
-				x = this.canvas.width - textWidth + x;
-			}
-			if(y<0){
-				y = this.canvas.height - textHeight + y;
-			}
+		}else if(y < 0){
+			textHeight = this.measureText("M").width;
+			y = this.canvas.height - 1 + y;
 		}
 		if(strokeMode){
 			this.strokeText(text, x, y);
 		}else{
 			this.fillText(text, x, y);
 		}
+		this.restore();
 	},
 	/**Render a circle outline to a canvas.
 	 *
@@ -1237,18 +1242,18 @@ ArcadeCanvas =
 		m = m.m;
 		this.setTransform(m[0], m[3], m[1], m[4], m[6], m[7]);
 	},
-	/**Render a text field to the canvas.
+	/**Render a text field to the canvas using canvas coordinates.
 	 * Negative coordinates will align to opposite borders.
-	 * Pass x = y = 0 for centered output.
+	 * Pass x = 0 or y = 0 for centered output.
 	 * @param {String} text
-	 * @param {float} x Horizontal position (use negative value to align at right border)
-	 * @param {float} y Vertical position (use negative value to align at bottom)
+	 * @param {float} x Horizontal position in CC (use negative value to align at right border)
+	 * @param {float} y Vertical position in CC (use negative value to align at bottom)
 	 */
-	strokeMessage: function(text, x, y){
-		this.__drawMessage(true, text, x, y);
+	strokeScreenText: function(text, x, y){
+		this.__drawScreenText(true, text, x, y);
 	},
-	fillMessage: function(text, x, y){
-		this.__drawMessage(false, text, x, y);
+	fillScreenText: function(text, x, y){
+		this.__drawScreenText(false, text, x, y);
 	},
 	__lastentry: undefined
 }
@@ -1335,15 +1340,18 @@ ArcadeJS.keyCodeToString = function(e) {
 		key = String.fromCharCode(code);
 	}
 	var prefix = "";
-	if(shift && code != 16)
+	if(shift && code != 16){
 		prefix = "shift+" + prefix;
-	if(e.metaKey)
+	}
+	if(e.metaKey){
 		prefix = "meta+" + prefix;
-	if(e.ctrlKey && code != 17)
+	}
+	if(e.ctrlKey && code != 17){
 		prefix = "ctrl+" + prefix;
-	if(e.altKey && code != 18)
+	}
+	if(e.altKey && code != 18){
 		prefix = "alt+" + prefix;
-
+	}
 	//window.console.log("keyCode:%s -> using %s, '%s'", e.keyCode,  code, prefix + key);
 
 	return prefix + key;
@@ -1386,8 +1394,6 @@ var Movable = Class.extend(
 		this.clipModeX = opts.clipModeX || "none";
 		this.clipModeY = opts.clipModeY || "none";
 		this._timeout = null; //+opts.timeout;
-//		this._timoutCallback = null;
-//		this.ttl = +opts.ttl;
 
 //        this.tran = new BiTran2();.translate();
 	},
@@ -1512,17 +1518,17 @@ var Movable = Class.extend(
 		ctx.save();
 		try{
 			// Render optional debug infos
+			ctx.save();
 			if(this.getBoundingCircle && (this.opts.debug.showBCircle || this.game.opts.debug.showBCircle)){
 				ctx.strokeStyle = this.game.opts.debug.strokeStyle;
-//				ctx.strokeCircle2(this.getBoundingCircle().copy().transform(this.wc2mc));
 				ctx.strokeCircle2(this.getBoundingCircle());
 			}
 			if(this.velocity && !this.velocity.isNull() && (this.opts.debug.showVelocity || this.game.opts.debug.showVelocity)){
 				ctx.strokeStyle = this.game.opts.debug.strokeStyle;
 				var v = Vec2.scale(this.velocity, this.opts.debug.velocityScale);
-//				ctx.strokeVec2(v, new Point2(0, 0), 5 * this.game.onePixelWC);
 				ctx.strokeVec2(v, this.pos, 5 * this.game.onePixelWC);
 			}
+			ctx.restore();
 			// Apply object translation, rotation and scale
 			ctx.translate(this.pos.x, this.pos.y);
 			if( this.scale && this.scale != 1.0 ){
@@ -1544,7 +1550,6 @@ var Movable = Class.extend(
 	 */
 	getBoundingCircle: undefined,
 	/**@function Return bounding box for fast a-priory collision checking.
-	 * @returns {BBox2}
 	 * in modelling coordinates.
 	 */
 	getBoundingBox: undefined,

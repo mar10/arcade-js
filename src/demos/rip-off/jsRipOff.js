@@ -195,8 +195,7 @@ var RipOffGame = ArcadeJS.extend({
 		// --- Status data -----------------------------------------------------
 		this.wave = 0;
 		this.score = 0;
-		this.shotDelay = 250; // ms
-		this.gracePeriod = 3; // seconds
+		this.gracePeriod = 2; // seconds
 
 		// --- Cache sounds ----------------------------------------------------
 		this.gunSound = new AudioJS(["fire.mp3", "fire.oga"]);
@@ -370,6 +369,8 @@ var Tank = Movable.extend({
 //		ArcadeJS.extendAttributes(this, opts, "homePos");
 		this.pg = pgTank1.copy();
 		this.homePos = this.pos.copy();
+		this.fireRate = 330; // ms
+		this.fireRange = 1.3; // sec
 	},
 	getBoundingCircle: function() {
 		return new Circle2(this.pos, 18);
@@ -435,13 +436,15 @@ var Tank = Movable.extend({
 	},
 	hitBy: function(obj) {
 		this.game.explosionSound.play();
-		this.pos.set(1000, 1000);
-		this.later(2, function(){
+		this.hidden = true;
+//		this.pos.set(1000, 1000);
+		this.later(this.game.gracePeriod, function(){
 			this.pos.set(this.homePos);
+			this.hidden = false;
 		});
 	},
 	fire: function() {
-		if(this.game.time - this.lastFire < this.game.shotDelay){
+		if(this.game.time - this.lastFire < this.fireRate){
 			return;
 		}
 		this.lastFire = this.game.time;
@@ -449,9 +452,10 @@ var Tank = Movable.extend({
 			source: this,
 			pos: this.pos.copy(),
 			velocity: LinaJS.polarToVec(this.orientation + 0.5 * Math.PI, 300),
-			ttl: 1.8
+			ttl: this.fireRange
 			});
 		this.game.addObject(bullet);
+		this.game.gunSound.play();
 	},
 	// --- end of class
 	__lastentry: undefined
@@ -573,6 +577,7 @@ var Bandit = Movable.extend({
 			ttl: 1.0
 			});
 		this.game.addObject(bullet);
+//		this.game.gunSound.play();
 	},
 	// --- end of class
 	__lastentry: undefined

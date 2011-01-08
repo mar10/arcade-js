@@ -206,6 +206,7 @@ AudioJS.prototype = {
 }
 
 
+
 /*----------------------------------------------------------------------------*/
 
 
@@ -326,6 +327,10 @@ var ArcadeJS = Class.extend(
 				}
 			}
 		});
+		// Prevent context menu on right clicks
+		$(document).bind("contextmenu",function(e){
+	        return false;
+	    });
 		// Bind mouse events
 		// Note: jquery.mousehweel.js plugin is required for Mousewheel events
 		$(document).bind("mousemove mousedown mouseup mousewheel", function(e){
@@ -342,11 +347,21 @@ var ArcadeJS = Class.extend(
 			case "mousedown":
 				self.clickPosCC = self.mousePosCC.copy();
 				self.clickPos = self.mousePos.copy();
+				switch(e.which){
+				case 1: self.leftButtonDown = true; break;
+				case 2: self.middleButtonDown = true; break;
+				case 3: self.rightButtonDown = true; break;
+				}
 				cancelDrag = !!self._dragging;
 				self._dragging = false;
 				break;
 			case "mouseup":
 				self.clickPosCC = self.clickPos = null;
+				switch(e.which){
+				case 1: self.leftButtonDown = false; break;
+				case 2: self.middleButtonDown = false; break;
+				case 3: self.rightButtonDown = false; break;
+				}
 				drop = !!self._dragging;
 				self._dragging = false;
 				break;
@@ -503,9 +518,10 @@ var ArcadeJS = Class.extend(
 	 * @returns {boolean}
 	 */
 	isActivity: function(activities) {
-		if(typeof activities == "string"){
-			activities = activities.replace(",", " ").split(" ");
-		}
+//		if(typeof activities == "string"){
+//			activities = activities.replace(",", " ").split(" ");
+//		}
+		activities = ArcadeJS.explode(activities);
 		for(var i=0, l=activities.length; i<l; i++) {
 			if(activities[i] == this._activity){
 				return true;
@@ -513,39 +529,6 @@ var ArcadeJS = Class.extend(
 		}
 		return false;
 	},
-/*	
-	/**Set current activity and trigger onSetActivity events.
-	 * @param {Int} ms milliseconds
-	 * @param {function} callback (optional), if ommited, this.onTimout is called.
-	 * @returns {string} timer ID
-
-	setTimeout: function(ms, callback) {
-		// TODO: the param order differs from window.setTimeout
-		// TODO: required?
-		// we have window.settimeout(), but that is not synchronized with the render loop
-		var self = this;
-//    	callback = callback || function(){
-//    		self.onTimeout.call(self);
-//    	};
-		if(callback){
-			return window.setTimeout(function(){
-				callback.call(self);
-			}, ms);
-		}else{
-			return window.setTimeout(function(){
-				self.onTimeout.call(self);
-			}, ms);
-		}
-	},
-*/
-//	/**Run callback e frames later.
-//	 * @param {Int} frames number of frames until callback is triggered
-//	 * @param {function} callback (optional), if ommited, this.onTimout is called.
-//	 */
-//	later: function(frames, callback) {
-//		this._timeout = frames;
-//		this._timeoutCallback = callback || this.onTimeout;
-//	},
 	/**Schedule a callback to be triggered after a number of seconds.
 	 * @param {float} seconds delay until callback is triggered
 	 * @param {function} callback (optional), if ommited, this.onTimout is called.
@@ -563,8 +546,6 @@ var ArcadeJS = Class.extend(
 		this._timeout = timeout;
 		return timeout.id; 
 	},
-
-	
 	/**Define the visible part of the world.
 	 * @param {float} x lower left corner in world coordinates
 	 * @param {float} y lower left corner in world coordinates
@@ -767,6 +748,7 @@ var ArcadeJS = Class.extend(
 		}
 		if(this.opts.debug.showKeys){
 			infoList.push("Keys: [" + this.downKeyCodes + "]");
+			infoList.push("Mouse: [" + (this.leftButtonDown ? "L" : ".")  + (this.middleButtonDown ? "M" : ".") + (this.rightButtonDown ? "R" : ".") + "]");
 		}
 		if(this.opts.debug.showObjects){
 			infoList.push("Objects: " + this.objects.length + " (dead: "+ this._deadCount+")");
@@ -893,22 +875,32 @@ var ArcadeJS = Class.extend(
 		return true;
 	},
 	/**Return an array of objects with a given type (array may be empty).
-	 * @param: {string} type
+	 * @param: {string} type (separate multiple types with a space)
 	 */
-	getObjectsByType: function(type) {
-		return this.typeMap[type] ? this.typeMap[type] : [];
+	getObjectsByType: function(types) {
+//		return this.typeMap[type] ? this.typeMap[type] : [];
+		types = ArcadeJS.explode(types);
+		var res = [];
+		for(var i=0; i<types.length; i++){
+			var list = this.typeMap[types[i]];
+			if(list && list.length) {
+				res = res.concat(list);
+			}
+		}
+		return res;
 	},
 	/**Call func(obj) for all objects.
 	 * @param: {function} func callback(game, object)
 	 * @param: {string} types Restrict objects to this space separated typenames
 	 */
 	visitObjects: function(func, types) {
-		if(typeof types == "string"){
-			types = types.replace(",", " ").split(" ");
+		if(types){
+			types = ArcadeJS.explode(types);
 		}
 		var self = this;
 		var __visitList = function(list){
-			for(var i=0, l=list.length; i<l; i++){
+			// don't cache list.length here!! may be recalced in callback
+			for(var i=0; i<list.length; i++){
 				var obj = list[i];
 				if(obj._dead){
 					continue;
@@ -1034,6 +1026,15 @@ var ArcadeJS = Class.extend(
 	__lastentry: undefined
 });
 
+/**Return a string array from a space or comma separated string.
+ */
+ArcadeJS.explode = function(s){
+	if($.isArray(s)){
+		return s;
+	}
+	return s.replace(",", " ").split(" ");
+};
+
 /**Copy selected dictionary members as object attributes.
  * @param {Class} object
  * @param dict
@@ -1042,8 +1043,9 @@ var ArcadeJS = Class.extend(
  * @throws "Attribute 'x' not found."
  */
 ArcadeJS.extendAttributes = function(object, dict, attrNames){
-	if(typeof attrNames === "string")
-		attrNames = attrNames.replace(",", " ").split(" ");
+//	if(typeof attrNames === "string")
+//		attrNames = attrNames.replace(",", " ").split(" ");
+	attrNames = ArcadeJS.explode(attrNames);
 	for(var i=0; i<attrNames.length; i++){
 		var name = $.trim(attrNames[i]);
 		if(dict[name] === undefined)
@@ -1051,7 +1053,6 @@ ArcadeJS.extendAttributes = function(object, dict, attrNames){
 		object[name] = dict[name];
 	}
 };
-
 /**Global pointer to first created game object.*/
 ArcadeJS._firstGame = null;
 
@@ -1437,9 +1438,10 @@ var Movable = Class.extend(
 	 * @returns {boolean}
 	 */
 	isActivity: function(activities) {
-		if(typeof activities == "string"){
-			activities = activities.replace(",", " ").split(" ");
-		}
+//		if(typeof activities == "string"){
+//			activities = activities.replace(",", " ").split(" ");
+//		}
+		activities = ArcadeJS.explode(activities);
 		for(var i=0, l=activities.length; i<l; i++) {
 			if(activities[i] == this._activity){
 				return true;
@@ -1515,6 +1517,11 @@ var Movable = Class.extend(
 			case "stop":
 				this.pos.x = LinaJS.clamp(this.pos.x, viewport.x, viewport.x + viewport.width);
 				break;
+			case "die":
+				if(this.pos.x < viewport.x || this.pos.x > viewport.x + viewport.width){
+					this.die();
+				}
+				break;
 			}
 			switch(this.clipModeY){
 			case "wrap":
@@ -1522,6 +1529,11 @@ var Movable = Class.extend(
 				break;
 			case "stop":
 				this.pos.y = LinaJS.clamp(this.pos.y, viewport.y, viewport.y + viewport.height);
+				break;
+			case "die":
+				if(this.pos.y < viewport.y || this.pos.y > viewport.y + viewport.height){
+					this.die();
+				}
 				break;
 			}
 		}

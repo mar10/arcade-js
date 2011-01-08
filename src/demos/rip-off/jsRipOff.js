@@ -10,11 +10,11 @@
  * @param {Point2} targetPos
  * @param {float} eps
  * @param {float} maxSpeed
- * @param {float} maxTurn
+ * @param {float} turnRate
  * @param {float} maxAccel
  * @param {float} maxDecel
  */
-function driveToPosition(movable, stepTime, targetPos, eps, maxSpeed, maxTurn, maxAccel, maxDecel){
+function driveToPosition(movable, stepTime, targetPos, eps, maxSpeed, turnRate, maxAccel, maxDecel){
 	var vTarget = movable.pos.vectorTo(targetPos),
 		dTarget = vTarget.length(),
 		aTarget = LinaJS.angleDiff(movable.orientation + 90*LinaJS.D2R, vTarget.angle()),
@@ -32,9 +32,9 @@ function driveToPosition(movable, stepTime, targetPos, eps, maxSpeed, maxTurn, m
 	// Turn to target (within 0.1° accuracy)
 	if(Math.abs(aTarget) > 0.1 * LinaJS.D2R){
 		if(aTarget > 0){
-			movable.orientation += Math.min(aTarget, stepTime * maxTurn);
+			movable.orientation += Math.min(aTarget, stepTime * turnRate);
 		}else{
-			movable.orientation -= Math.min(-aTarget, stepTime * maxTurn);
+			movable.orientation -= Math.min(-aTarget, stepTime * turnRate);
 		}
 		movable.velocity.setAngle(movable.orientation + 90*LinaJS.D2R);
 //		movable.game.debug("driveToPosition: turning to " + movable.orientation * LinaJS.R2D + "°");
@@ -50,22 +50,128 @@ function driveToPosition(movable, stepTime, targetPos, eps, maxSpeed, maxTurn, m
 	}
 	return false;
 } 
+
 /**
- * Adjust velocity (by applying acceleration force) to move an object towards
- * a target position.
+ * Turn game object to direction or target point.
+ * @param {Movable} movable
+ * @param {float} stepTime
+ * @param {float | Vec2 | Point2} target angle, vector or position
+ * @param {float} turnRate
  */
-function floatToPosition(movable, targetPos, maxAccel, maxSpeed, maxDecel){
-	//TODO
-	var vDest = movable.pos.vectorTo(targetPos);
-	movable.velocity.accelerate(vDest.setLength(maxAccel), maxSpeed);
-	// make sure we are heading to the moving direction
-	movable.orientation = movable.velocity.angle() - 90*LinaJS.D2R;
-//	movable.game.debug("v: " + movable.velocity);
-//	if( this.attackMode && vTarget.length() < minFireDist 
-//			&& Math.abs(vTarget.angle() - this.orientation - 90*LinaJS.D2R) < 25*LinaJS.D2R){
-//		this.fire();
-//	}
-}
+function turnToDirection(movable, stepTime, target, turnRate){
+	var angle = target;
+	if(target.x !== undefined){
+		// target is a point: calc angle from current pos top this point
+		angle = movable.pos.vectorTo(target).angle();
+	}else if(target.dx !== undefined){
+		// target is a vector
+		angle = target.angle();
+	}
+	// now calc the delta-angle
+	angle = LinaJS.angleDiff(movable.orientation + 90*LinaJS.D2R, angle);
+	// Turn to target (within 0.1° accuracy)
+	if(Math.abs(angle) <= 0.1 * LinaJS.D2R){
+		return true;
+	}
+	if(angle > 0){
+		movable.orientation += Math.min(angle, stepTime * turnRate);
+	}else{
+		movable.orientation -= Math.min(-angle, stepTime * turnRate);
+	}
+	movable.velocity.setAngle(movable.orientation + 90*LinaJS.D2R);
+	// return true, if destination orientation was reached
+	return Math.abs(angle) <= stepTime * turnRate;
+} 
+
+var pgTank1 = new Polygon2([
+	-4,  3,
+	-4,  6,
+	-6,  3,
+	-6, -5,
+	-3, -3,
+	-1,  8,
+	-4,  3,
+	-4,  0,
+	 0,  2,
+	 4,  0,
+	 4,  3,
+	 1,  8,
+	 3, -3,
+	 6, -5,
+	 6,  3,
+	 4,  6,
+	 4,  3
+]).transform(LinaJS.scale33(2.0));
+
+var pgBandit30 = new Polygon2([
+	 0,  5,
+	 2, -2,
+	 2,  3,
+	 0, -3,
+	-2,  3,
+	-2, -2,
+	 0,  5
+]).transform(LinaJS.scale33(3.0));
+
+var pgBandit50 = new Polygon2([
+  	 3,  3,
+  	 3, -2,
+  	 1, -2,
+  	 0, -4,
+  	-1, -2,
+  	-3,  2,
+  	 1, -2,
+  	 3,  2,
+  	-1, -2,
+  	-3, -2,
+  	-3,  2
+  ]).transform(LinaJS.scale33(-3.0));
+
+var pgBandit60 = new Polygon2([
+	 0, -3,
+	-1, -1,
+	 6,  6,
+	 6,  4,
+	 0,  3,
+	-6,  4,
+	-6,  6,
+	 1, -1,
+	 0, -3
+]).transform(LinaJS.scale33(-2.0));
+
+var banditsDefs = [
+	{score: 10, maxSpeed: 50, accel: 50, decel: 50, turnRate: 90*LinaJS.D2R, attackRange: 50, fireRate: 2500, 
+	 pg: pgBandit30},
+	{score: 20, maxSpeed: 70, accel: 70, decel: 70, turnRate: 110*LinaJS.D2R, attackRange: 50, fireRate: 1500, 
+	 pg: pgBandit50},
+	{score: 30, maxSpeed: 90, accel: 90, decel: 90, turnRate: 130*LinaJS.D2R, attackRange: 150, fireRate: 1000, 
+	 pg: pgBandit60},
+	{score: 40, maxSpeed: 110, accel: 100, decel: 100, turnRate: 150*LinaJS.D2R, attackRange: 150, fireRate: 1000, 
+	 pg: pgBandit30},
+	{score: 50, maxSpeed: 140, accel: 120, decel: 120, turnRate: 170*LinaJS.D2R, attackRange: 150, fireRate: 800, 
+	 pg: pgBandit50},
+	{score: 60, maxSpeed: 180, accel: 150, decel: 150, turnRate: 180*LinaJS.D2R, attackRange: 150, fireRate: 500, 
+	 pg: pgTank1.copy().transform(LinaJS.scale33(.9))}
+];
+
+
+
+///**
+// * Adjust velocity (by applying acceleration force) to move an object towards
+// * a target position.
+// */
+//function floatToPosition(movable, targetPos, maxAccel, maxSpeed, maxDecel){
+//	//TODO
+//	var vDest = movable.pos.vectorTo(targetPos);
+//	movable.velocity.accelerate(vDest.setLength(maxAccel), maxSpeed);
+//	// make sure we are heading to the moving direction
+//	movable.orientation = movable.velocity.angle() - 90*LinaJS.D2R;
+////	movable.game.debug("v: " + movable.velocity);
+////	if( this.attackMode && vTarget.length() < minFireDist 
+////			&& Math.abs(vTarget.angle() - this.orientation - 90*LinaJS.D2R) < 25*LinaJS.D2R){
+////		this.fire();
+////	}
+//}
 
 /**
  * Rip-off game object
@@ -75,9 +181,13 @@ var RipOffGame = ArcadeJS.extend({
 		// Init ArcadeJS
 		var opts = $.extend({
 			name: "jsRipOff",
-			fps: 30
+			fps: 30,
+			twoPlayer: false
 		}, customOpts);
 		this._super(canvas, opts);
+
+		// Copy selected options as object attributes
+		ArcadeJS.extendAttributes(this, opts, "twoPlayer");
 
 		// Set the scene
 		this.setViewport(0, 0, 640, 480, "extend");
@@ -93,7 +203,7 @@ var RipOffGame = ArcadeJS.extend({
 		this.explosionSound = new AudioJS(["damage.mp3", "damage.oga"]);
 
 		this.player1 =  this.addObject(new Tank({id: "player1", pos: new Point2(540, 100)})); 
-		this.player2 =  null; //this.addObject(new Tank({id: "player2", pos: new Point2(100, 100)}));
+		this.player2 =  this.twoPlayer ? this.addObject(new Tank({id: "player2", pos: new Point2(100, 100)})) : null;
 		// Seed 8 canisters in the center
 		for(var i=0; i<8; i++){
 			var pos = new Point2(LinaJS.random(250, 390), LinaJS.random(190, 290));
@@ -111,18 +221,33 @@ var RipOffGame = ArcadeJS.extend({
 			maxBandits = 3,
 			canisters = this.getObjectsByType("canister"),
 			forceAttack = false;
-		this.banditHome = new Point2(320, 450);
+			banditHome = new Point2(LinaJS.random(0, 640), 500);
+		
 		this.wave += 1;
-		// Set player tanks to start position
-		this.player1.pos.set(550, 100);
 
 		// Remove old bandits and bullets
 		this.visitObjects(function(obj){
 			obj.die();
 		}, "bandit bullet")
+
 		// Create bandits and assign targets
-		for(i=0; i<maxBandits; i++){
-			var bandit = this.addObject(new Bandit({pos: this.banditHome}));
+		var idx = (this.wave - 1) % 6,
+			lap = Math.floor((this.wave - 1) / 6),
+			banditDef = banditsDefs[idx];
+		
+		for(i=0; i<maxBandits + lap; i++){
+			var bandit = this.addObject(new Bandit({
+				pos: banditHome,
+				score: banditDef.score,
+				maxSpeed: banditDef.maxSpeed,
+				turnRate: banditDef.turnRate,
+				accel: banditDef.accel,
+				decel: banditDef.decel,
+				attackRange: banditDef.attackRange,
+				fireRate: banditDef.fireRate,
+				pg: banditDef.pg.copy()
+				}));
+
 			if(forceAttack && i === 0){
 				bandit.target = this.player1;
 			}else if(i < canisters.length){
@@ -162,17 +287,8 @@ var RipOffGame = ArcadeJS.extend({
 			ctx.strokeScreenText("Game over (hit [F5])", 0, 0);
 		}
 		ctx.font = "10px sans-serif";
-//		ctx.fillScreenText("Copyright (c) 2011 Martin Wendt - Made with ArcadeJS", 0, -1);
+		ctx.fillScreenText("Copyright (c) 2011 Martin Wendt - Made with ArcadeJS", 0, -1);
 
-		// Draw lives
-		var live = new Polygon2([0, 5,
-								 -3, -5,
-								 3, -5]);
-		ctx.translate(10, 40);
-		for(var i=0; i<this.liveCount; i++){
-			ctx.strokePolygon2(live);
-			ctx.translate(10, 0);
-		}
 		// done
 		ctx.restore();
 	},
@@ -185,18 +301,35 @@ var RipOffGame = ArcadeJS.extend({
 var Bullet = Movable.extend({
 	init: function(opts) {
 		this._super("bullet", $.extend({
+			source: null,
 			ttl: 1, // live max. 1 second
-			clipModeX: "none",
-			clipModeY: "none"
+			clipModeX: "die",
+			clipModeY: "die"
 		}, opts));
-		if(this.opts.ttl > 0){
-			this.later(this.opts.ttl, function(){
+		// Copy selected options as object attributes
+		ArcadeJS.extendAttributes(this, opts, "source ttl");
+		if(this.ttl > 0){
+			this.later(this.ttl, function(){
 				this.die();
 			});
 		}
 	},
 	getBoundingCircle: function() {
 		return new Circle2(this.pos, 0.1);
+	},
+	step: function() {
+		// Check if this bullet hit a player or bandit
+		var list = this.game.getObjectsByType("tank bandit");
+		for(var i=0, l=list.length; i<l; i++) {
+			var obj = list[i];
+			if(this.source === obj || !this.game.preCheckCollision(this, obj)){
+				continue;
+			}
+			// Pre-check is exact enough for our purpose...
+			this.die();
+			obj.hitBy(this);
+			break;
+		}
 	},
 	render: function(ctx) {
 		ctx.fillRect(0, 0, 3, 3);
@@ -227,68 +360,85 @@ var Canister = Movable.extend({
 
 /*----------------------------------------------------------------------------*/
 
-var pgTank1 = new Polygon2([
-	-4,  3,
-	-4,  6,
-	-6,  3,
-	-6, -5,
-	-3, -3,
-	-1,  8,
-	-4,  3,
-	-4,  0,
-	 0,  2,
-	 4,  0,
-	 4,  3,
-	 1,  8,
-	 3, -3,
-	 6, -5,
-	 6,  3,
-	 4,  6,
-	 4,  3
-]).transform(LinaJS.scale33(2.0));
-
-var pgBandit30 = new Polygon2([
-	 0,  5,
-	 2, -2,
-	 2,  3,
-	 0, -3,
-	-2,  3,
-	-2, -2,
-	 0,  5
-]).transform(LinaJS.scale33(2.0));
-
 var Tank = Movable.extend({
 	init: function(opts) {
 		this._super("tank", $.extend({
 			clipModeX: "stop",
 			clipModeY: "stop"
 		}, opts));
+		// Copy selected options as object attributes
+//		ArcadeJS.extendAttributes(this, opts, "homePos");
 		this.pg = pgTank1.copy();
+		this.homePos = this.pos.copy();
 	},
 	getBoundingCircle: function() {
 		return new Circle2(this.pos, 18);
 	},
 	step: function(p) {
+		var maxSpeed = 150,
+			accel = 150,
+			decel = 100,
+			turnRate = 90 * LinaJS.D2R;
+
 		// --- Handle key controls ---
-		if(this.game.isKeyDown(32)){ // [space]
-			this.fire();
+		if(this.id == "player1"){
+			// Player 1 is keyboard controlled
+			if(this.game.isKeyDown(32)){ // [space]
+				this.fire();
+			}
+			if(this.game.isKeyDown(38)){ // [up]
+				var force = LinaJS.polarToVec(this.orientation + 90*LinaJS.D2R, accel * this.game.frameDuration);
+				this.velocity.accelerate(force, maxSpeed);
+			}else{
+				this.velocity.accelerate(-decel * this.game.frameDuration);
+			}
+			if(this.game.isKeyDown(37)){ // [left] 
+				this.orientation += turnRate * this.game.frameDuration;
+				this.velocity.setAngle(this.orientation + 90*LinaJS.D2R);
+			}else if(this.game.isKeyDown(39)){ // [right]
+				this.orientation -= turnRate * this.game.frameDuration;
+				this.velocity.setAngle(this.orientation + 90*LinaJS.D2R);
+			}
+		}else if(this.id == "player2"){
+			// Player 2 is mouse controlled
+			if(this.game.leftButtonDown){ // left mouse button is pressed
+				driveToPosition(this, this.game.frameDuration, this.game.mousePos, 
+						10, maxSpeed, turnRate, accel, decel);
+			}else{
+				this.velocity.accelerate(-decel * this.game.frameDuration);
+			}
+			if(this.game.rightButtonDown){ // right mouse is pressed
+				// Turn to mouse pois and fire
+				if(turnToDirection(this, this.game.frameDuration, this.game.mousePos, turnRate)){
+					this.fire();
+				}
+			}
 		}
-		if(this.game.isKeyDown(38)){ // [up]
-			var force = LinaJS.polarToVec(this.orientation + 90*LinaJS.D2R, 5);
-			this.velocity.accelerate(force, 100);
-		}else{
-			this.velocity.accelerate(-3);
-		}
-		if(this.game.isKeyDown(37)){ // [left] 
-			this.orientation += 3 * LinaJS.D2R;
-			this.velocity.setAngle(this.orientation + 90*LinaJS.D2R);
-		}else if(this.game.isKeyDown(39)){ // [right]
-			this.orientation -= 3 * LinaJS.D2R;
-			this.velocity.setAngle(this.orientation + 90*LinaJS.D2R);
+		// --- Check for collisions
+		var list = this.game.getObjectsByType("tank bandit");
+		for(var i=0, l=list.length; i<l; i++) {
+			var obj = list[i];
+			if(!this.game.preCheckCollision(this, obj)){
+				continue;
+			}
+			// Pre-check is exact enough for our purpose...
+			obj.hitBy(this);
+			this.hitBy(obj);
+			if(obj.score){
+				this.game.score += obj.score;
+			}
+			break;
 		}
 	},
 	render: function(ctx) {
 		ctx.strokePolygon2(this.pg, false);
+	},
+	hitBy: function(obj) {
+		this.game.explosionSound.play();
+		this.pos.set(1000, 1000);
+		this.later(2, function(){
+			this.pos.set(this.homePos);
+		});
 	},
 	fire: function() {
 		if(this.game.time - this.lastFire < this.game.shotDelay){
@@ -296,9 +446,10 @@ var Tank = Movable.extend({
 		}
 		this.lastFire = this.game.time;
 		var bullet = new Bullet({
+			source: this,
 			pos: this.pos.copy(),
-			velocity: LinaJS.polarToVec(this.orientation + 0.5 * Math.PI, 200),
-			ttl: 1.0
+			velocity: LinaJS.polarToVec(this.orientation + 0.5 * Math.PI, 300),
+			ttl: 1.8
 			});
 		this.game.addObject(bullet);
 	},
@@ -312,9 +463,10 @@ var Bandit = Movable.extend({
 	init: function(opts) {
 		this._super("bandit", $.extend({
 			clipModeX: "none",
-			clipModeY: "none"
+			clipModeY: "none",
 		}, opts));
-		this.pg = pgBandit30.copy().transform(LinaJS.scale33(1.5));
+		// Copy selected options as object attributes
+		ArcadeJS.extendAttributes(this, opts, "score maxSpeed accel decel turnRate attackRange fireRate pg");
 		this.target = null;
 	},
 	getBoundingCircle: function() {
@@ -326,18 +478,13 @@ var Bandit = Movable.extend({
 			vTarget = this.pos.vectorTo(target.pos),
 			minBuddyDist = 50,
 			minCanisterDist = 50,
-			minAttackDist = 150,
-			minFireDist = 100,
-			maxSpeed = 80, // WC units per second
-			maxTurn = 90*LinaJS.D2R, // rad per second
-			maxAccel = 50, // WC units per second
-			maxDecel = 50, // WC units per second
 			epsTarget = 5, // WC units
+			decel = this.opts.decel,
 			self = this;
 
 		// Drag attached canister
 		if(this.canister){
-			this.canister.pos = this.pos;
+			this.canister.pos = this.pos.copy();
 		}
 		
 		// If a player is in reach, switch to attack mode
@@ -345,13 +492,13 @@ var Bandit = Movable.extend({
 		if( !this.isActivity("escape")){
 			this.game.visitObjects(function(obj){
 				vDest = self.pos.vectorTo(obj.pos);
-				if(vDest.length() < minAttackDist){
+				if(vDest.length() < self.attackRange){
 					// temporarily override target 
 					target = obj;
 					vTarget = vDest;
 					self.attackMode = true;
 					self.canister = null; // drop canister
-					maxDecel = 0; // I don't break for players
+					decel = 0; // I don't break for players
 					return false;
 				}
 			}, "tank");
@@ -366,12 +513,17 @@ var Bandit = Movable.extend({
 //		}, "canister");
 
 		// --- move to target
-		var reached = driveToPosition(this, this.game.frameDuration, target.pos, epsTarget, maxSpeed, maxTurn, maxAccel, maxDecel);
+		var reached = driveToPosition(this, this.game.frameDuration, target.pos, 
+				epsTarget, this.maxSpeed, this.turnRate, this.accel, this.decel);
 		if(reached){
 			if(target.type == "canister"){
 				// Reached a canister: attach and run home
 				this.canister = target;
-				this.target = {type: "home", pos: new Point2(-50, -50)};
+				var targetPos = new Point2(this.pos.x + LinaJS.random(-100, 100), -50);
+				if(this.pos.y > 240){
+					targetPos.y = 530;
+				}
+				this.target = {type: "home", pos: targetPos};
 				this.setActivity("escape");
 			}else if(target.type == "home"){
 				// Reached home: vanish
@@ -387,12 +539,12 @@ var Bandit = Movable.extend({
 			if(obj !== self ){
 				vDest = obj.pos.vectorTo(self.pos);
 				if(vDest.length() < minBuddyDist){
-					self.velocity.accelerate(vDest.limit(3), 100);
+					self.velocity.accelerate(vDest.limit(3), this.maxSpeed);
 				}
 			}
 		}, "bandit");
 		// --- fire, if a player is in front of us
-		if( this.attackMode && vTarget.length() < minFireDist 
+		if( this.attackMode //&& vTarget.length() < minFireDist 
 				&& LinaJS.angleDiff(vTarget.angle(), this.orientation - 90*LinaJS.D2R) < 25*LinaJS.D2R){
 			this.fire();
 		}
@@ -400,18 +552,24 @@ var Bandit = Movable.extend({
 	},
 	render: function(ctx) {
 		if(this.attackMode){
-			ctx.strokeStyle = "red";
+			ctx.strokeStyle = "lightblue";
 		}
 		ctx.strokePolygon2(this.pg, false);
 	},
+	hitBy: function(obj) {
+		this.game.explosionSound.play();
+		this.game.score += this.score;
+		this.die();
+	},
 	fire: function() {
-		if(this.game.time - this.lastFire < 1000){
+		if(this.game.time - this.lastFire < this.fireRate){
 			return;
 		}
 		this.lastFire = this.game.time;
 		var bullet = new Bullet({
+			source: this,
 			pos: this.pos.copy(),
-			velocity: LinaJS.polarToVec(this.orientation + 0.5 * Math.PI, 200),
+			velocity: LinaJS.polarToVec(this.orientation + 0.5 * Math.PI, 180),
 			ttl: 1.0
 			});
 		this.game.addObject(bullet);

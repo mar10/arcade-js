@@ -73,6 +73,43 @@ LinaJS = {
 		}
 		return min + Math.floor((max-min+1) * Math.random());
 	},
+	/**
+	 * Return angle from a1 to a2 normalized to [-Pi < a <= +Pi]
+	 */
+	angleDiff: function(a1, a2) {
+		var twoPi = 2 * Math.PI,
+			a = (a2 - a1) % twoPi;
+	    if(Math.abs(a) < LinaJS.EPS){
+	    	return 0;
+	    }else if(a > Math.PI){
+	        return a - twoPi;
+	    }else if(a < -Math.PI){
+	        return a + twoPi; 
+	    }
+	    return a;
+	},
+	/**
+	 * Return angle normalized to [0 <= a < 2*Pi]
+	 */
+	normAngle: function(a) {
+		var twoPi = 2 * Math.PI; 
+	    a = a % twoPi;
+	    if(Math.abs(a) < LinaJS.EPS){
+	    	return 0;
+	    }else if(a < 0){
+	        return a + twoPi; 
+	    }
+	    return a;
+	},
+	/**
+	 * Return value clamped [min <= f <= max]
+	 */
+	clamp: function(f, min, max) {
+		if(max < min){
+		    var t = max, max = min, min = t;
+		}
+	    return (f < min) ? min : (f > max) ? max : f;
+	},
 	/** Return a new Matrix3 (same as 'new Matrix3()'). */
 	identity33: function() {
 		return new Matrix3();
@@ -645,7 +682,7 @@ Vec2.prototype = {
 	 * @returns {Vec2}
 	 */
 	accelerate: function(force, maxLength, minLength) {
-		if(force.dx){
+		if(force.dx !== undefined){
 			// force is a vector
 			this.add(force);
 		}else{
@@ -746,7 +783,9 @@ Vec2.prototype = {
 	 * @returns {Vec2}
 	 */
 	setLength: function(length) {
-		this.scale(length / this.length());
+		if(!this.isNull()){
+			this.scale(length / this.length());
+		}
 		return this;
 	},
 	/** Return polar coordinates for this vector.

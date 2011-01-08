@@ -1398,8 +1398,10 @@ var Movable = Class.extend(
 		this.translationStep = new Vec2(0, 0);
 		this.rotationalSpeed = opts.rotationalSpeed || null; //0.0 * LinaJS.DEG_TO_RAD;  // rad / tick
 		this.rotationStep = 0;
-		
+		/**Defines, what happens when object leaves the viewport to the left or right.
+		 * Values: ('none', 'wrap', 'stop', 'bounce')*/
 		this.clipModeX = opts.clipModeX || "none";
+		/**@See clipModeX*/
 		this.clipModeY = opts.clipModeY || "none";
 		this._timeout = null; //+opts.timeout;
 
@@ -1506,11 +1508,21 @@ var Movable = Class.extend(
 			this.pos.translate(this.translationStep);
 			// wrap around at screen borders
 			var viewport = this.game.viewport;
-			if(this.clipModeX == "wrap"){
+			switch(this.clipModeX){
+			case "wrap":
 				this.pos.x = (Math.abs(viewport.width) + this.pos.x) % viewport.width;
+				break;
+			case "stop":
+				this.pos.x = LinaJS.clamp(this.pos.x, viewport.x, viewport.x + viewport.width);
+				break;
 			}
-			if(this.clipModeY == "wrap"){
+			switch(this.clipModeY){
+			case "wrap":
 				this.pos.y = (Math.abs(viewport.height) + this.pos.y) % viewport.height;
+				break;
+			case "stop":
+				this.pos.y = LinaJS.clamp(this.pos.y, viewport.y, viewport.y + viewport.height);
+				break;
 			}
 		}
 		// Update MC-to-WC transformation

@@ -79,36 +79,36 @@ LinaJS = {
 	angleDiff: function(a1, a2) {
 		var twoPi = 2 * Math.PI,
 			a = (a2 - a1) % twoPi;
-	    if(Math.abs(a) < LinaJS.EPS){
-	    	return 0;
-	    }else if(a > Math.PI){
-	        return a - twoPi;
-	    }else if(a < -Math.PI){
-	        return a + twoPi; 
-	    }
-	    return a;
+		if(Math.abs(a) < LinaJS.EPS){
+			return 0;
+		}else if(a > Math.PI){
+			return a - twoPi;
+		}else if(a < -Math.PI){
+			return a + twoPi;
+		}
+		return a;
 	},
 	/**
 	 * Return angle normalized to [0 <= a < 2*Pi]
 	 */
 	normAngle: function(a) {
-		var twoPi = 2 * Math.PI; 
-	    a = a % twoPi;
-	    if(Math.abs(a) < LinaJS.EPS){
-	    	return 0;
-	    }else if(a < 0){
-	        return a + twoPi; 
-	    }
-	    return a;
+		var twoPi = 2 * Math.PI;
+		a = a % twoPi;
+		if(Math.abs(a) < LinaJS.EPS){
+			return 0;
+		}else if(a < 0){
+			return a + twoPi;
+		}
+		return a;
 	},
 	/**
 	 * Return value clamped [min <= f <= max]
 	 */
 	clamp: function(f, min, max) {
 		if(max < min){
-		    var t = max, max = min, min = t;
+			var t = max, max = min, min = t;
 		}
-	    return (f < min) ? min : (f > max) ? max : f;
+		return (f < min) ? min : (f > max) ? max : f;
 	},
 	/** Return a new Matrix3 (same as 'new Matrix3()'). */
 	identity33: function() {
@@ -675,7 +675,7 @@ Vec2.prototype = {
 		return this;
 	},
 	/**Apply a 'force' vector or offset (in-place) within given limits.
-	 * @param {float | Vec2} force vector. If a float is passed, then it is 
+	 * @param {float | Vec2} force vector. If a float is passed, then it is
 	 * assumed to be the length of a vector along current direction.
 	 * @param {float} maxLength (optional) maximum length of resulting vector.
 	 * @param {float} minLength (optional) minimum length. If omitted, a Null-Vector is returned when EPS is reached.
@@ -689,7 +689,7 @@ Vec2.prototype = {
 			if(this.isNull()){
 				return this;
 			}
-			// force is the length of a vector along current heading 
+			// force is the length of a vector along current heading
 			this.add(this.copy().setLength(force));
 		}
 		var l2 = this.sqrLength();
@@ -1479,7 +1479,7 @@ Polygon2.prototype = {
 	intersectsCircle: function(circle, velocity, time) {
 		// TODO: handle velocity (0,0)
 		time = time || 1.0;
-		var vStep = velocity.copy().scale(time); 
+		var vStep = velocity.copy().scale(time);
 		// Find point on polygon that is closest to circle.center.
 		// We pass the velocity vector as culling, so CCW polygons will only
 		// report collisions from the outside.
@@ -1647,7 +1647,7 @@ Circle2.prototype = {
 	/**Check, if this circle intersects with another (moving) circle.
 	 * Return false, if ther is no intersection within the current time frame.
 	 * Otherwise return a dictionary with additional infos.
-	 * @param {Circle2} circle2 
+	 * @param {Circle2} circle2
 	 * @param {Vec2} velocity Speed of this circle in units per second.
 	 * @param {Vec2} velocity2 Speed of circle2 in units per second.
 	 * @param {float} time seconds to look ahead (e.g. 1/30s for one frame step). Default: 1
@@ -1656,7 +1656,7 @@ Circle2.prototype = {
 		// TODO: handle velocity (0,0)
 		time = time || 1.0;
 		var vStep = velocity.copy().scale(time),
-			vStep2 = velocity2.copy().scale(time); 
+			vStep2 = velocity2.copy().scale(time);
 		var c1 = { x: this.center.x,
 				   y: this.center.y,
 				   r: this.r,

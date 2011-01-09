@@ -72,24 +72,24 @@ var AsteroidsGame = ArcadeJS.extend({
 			this._restartGame();
 			return;
 		}
-		// 
+		//
 		var stick = this.stick,
 			button = this.button,
 			rocket = this.rocket;
 		if(stick && button){
-	        var dx = stick.getX();
-	        if(Math.abs(dx) > 0.2){
-	        	rocket.orientation += 3 * dx * LinaJS.DEG_TO_RAD;
-	        }
-	        var dy = stick.getX(); 
-	        if(stick.getY() < -0.8){ // Up
-	            var vAccel = LinaJS.polarToVec(this.rocket.orientation - 90*LinaJS.DEG_TO_RAD, 3);
-	            this.rocket.velocity.add(vAccel).limit(300);
-	            this.rocket.isThrust = true;
-	        }
-	        if(button.isDown()){
-	            rocket.fire();
-	        }
+			var dx = stick.getX();
+			if(Math.abs(dx) > 0.2){
+				rocket.orientation += 3 * dx * LinaJS.DEG_TO_RAD;
+			}
+			var dy = stick.getX();
+			if(stick.getY() < -0.8){ // Up
+				var vAccel = LinaJS.polarToVec(this.rocket.orientation - 90*LinaJS.DEG_TO_RAD, 3);
+				this.rocket.velocity.add(vAccel).limit(300);
+				this.rocket.isThrust = true;
+			}
+			if(button.isDown()){
+				rocket.fire();
+			}
 		}
 	},
 	preDraw: function(ctx){
@@ -131,7 +131,7 @@ var AsteroidsGame = ArcadeJS.extend({
 var Bullet = Movable.extend({
 	init: function(opts) {
 		opts = $.extend({
-			
+
 //			scale: 2,
 //			ttl: 20,
 		}, opts);

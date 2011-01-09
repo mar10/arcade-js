@@ -156,7 +156,7 @@ var TouchStick = Movable.extend(
 		this.touchDragOffset = null;
 	},
 	getBoundingCircle: function() {
-//		var r = 
+//		var r =
 		return new Circle2({x: this.pos.x, y: this.pos.y}, this.r3);
 	},
 	render: function(ctx) {

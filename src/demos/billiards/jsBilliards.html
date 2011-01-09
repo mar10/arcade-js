@@ -3,8 +3,8 @@
 <head>
 	<title>jsBilliards</title>
 
-    <link href="../../depends/demos.css" rel="stylesheet">
-    <script src="../../depends/demos.js"></script>
+	<link href="../../depends/demos.css" rel="stylesheet">
+	<script src="../../depends/demos.js"></script>
 
 	<link href="../../depends/demos.css" rel="stylesheet">
 	<script src="../../depends/jquery.js"></script>
@@ -17,11 +17,11 @@
 
 	<script type="text/javascript">
 	$(function(){
-        // Initialize the game
+		// Initialize the game
 		var canvas = document.getElementById("gameCanvas");
 		var game = new BilliardsGame(canvas);
-        // Install handlers for the debug ccontrols on this page
-        initArcadeGameDebugControls(game);
+		// Install handlers for the debug ccontrols on this page
+		initArcadeGameDebugControls(game);
 	});
 	</script>
 </head>
@@ -46,15 +46,15 @@
 	<span id="points">-</span> points
 </div>
 <div class="debugPane">
-    <input type="checkbox" id="cbDebug" value="1"><label for="cbDebug">Show debug info</label> 
-    <input type="checkbox" id="cbLogToCanvas" value="1"><label for="cbLogToCanvas">Log to canvas</label> 
-    <input type="checkbox" id="cbMaxFps" value="1"><label for="cbMaxFps">Maximum frame rate</label>
-    <input type="checkbox" id="cbTimeCorrection" value="1"><label for="cbTimeCorrection">Time correction</label>
-    <br>
-    <input type="radio" name="rbStepmode" id="rbStepmode1" value="loop"><label for="rbStepmode1">Render loop</label>
-    <input type="radio" name="rbStepmode" id="rbStepmode2" value="freeze"><label for="rbStepmode2">Freeze</label>
-    <input type="radio" name="rbStepmode" id="rbStepmode3" value="stop"><label for="rbStepmode3">Stop</label>
-    <button id="btnStep">Single step</button>
+	<input type="checkbox" id="cbDebug" value="1"><label for="cbDebug">Show debug info</label>
+	<input type="checkbox" id="cbLogToCanvas" value="1"><label for="cbLogToCanvas">Log to canvas</label>
+	<input type="checkbox" id="cbMaxFps" value="1"><label for="cbMaxFps">Maximum frame rate</label>
+	<input type="checkbox" id="cbTimeCorrection" value="1"><label for="cbTimeCorrection">Time correction</label>
+	<br>
+	<input type="radio" name="rbStepmode" id="rbStepmode1" value="loop"><label for="rbStepmode1">Render loop</label>
+	<input type="radio" name="rbStepmode" id="rbStepmode2" value="freeze"><label for="rbStepmode2">Freeze</label>
+	<input type="radio" name="rbStepmode" id="rbStepmode3" value="stop"><label for="rbStepmode3">Stop</label>
+	<button id="btnStep">Single step</button>
 </div>
 </body>
 </html>

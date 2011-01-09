@@ -29,17 +29,17 @@ var BilliardsGame = ArcadeJS.extend({
 			tableHeight = 0.5 * tableWidth, //1.420,
 			vpPadding = 0.2, // add 20 cm around the table
 			ballRadius = 0.5 * 0.0615, // diameter 61.5 mm
-			quart = tableWidth / 4; 
-		this.setViewport(-vpPadding, -vpPadding, 
+			quart = tableWidth / 4;
+		this.setViewport(-vpPadding, -vpPadding,
 				tableWidth + 2 * vpPadding, tableHeight + 2 * vpPadding)
 
 		// --- Create objects and add them to the game -------------------------
 		// Bounding polygon that defines the playing area of the table.
-		// It is counter clock wise oriented, so the balls are reflected when 
+		// It is counter clock wise oriented, so the balls are reflected when
 		// they approach from the inside.
 		var pg = new Polygon2([0,    0,
-		                       tableWidth, 0,
-		                       tableWidth, tableHeight,
+							   tableWidth, 0,
+							   tableWidth, tableHeight,
 							   0,    tableHeight]).makeCCW();
 		var obj;
 		obj = this.addObject(new WallObject({
@@ -72,7 +72,7 @@ var BilliardsGame = ArcadeJS.extend({
 		this.hit1 = false;
 		this.hit2 = false;
 		this.velocityScale = 2.5; // Ratio from drag length to initial speed
-		this.decellerationRate = 0.985;// * this.fps; // Decrease speed by 1% per second 
+		this.decellerationRate = 0.985;// * this.fps; // Decrease speed by 1% per second
 		this.minVelocity = 0.02; // Stop ball when slower than 1 cm/sec
 
 		// --- Start the render loop -------------------------------------------

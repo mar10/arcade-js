@@ -247,7 +247,7 @@ var ArcadeJS = Class.extend(
 		this.viewPortMapMode = "none";
 		this.debug("game.init()");
 		this._realizeViewport();
-		
+
 		this.objects = [];
 		this.idMap = {};
 		this.keyListeners = [ this ];
@@ -329,8 +329,8 @@ var ArcadeJS = Class.extend(
 		});
 		// Prevent context menu on right clicks
 		$(document).bind("contextmenu",function(e){
-	        return false;
-	    });
+			return false;
+		});
 		// Bind mouse events
 		// Note: jquery.mousehweel.js plugin is required for Mousewheel events
 		$(document).bind("mousemove mousedown mouseup mousewheel", function(e){
@@ -340,8 +340,8 @@ var ArcadeJS = Class.extend(
 					e.pageY - self.canvas.offsetTop);
 			self.mousePos = Point2.transform(self.mousePosCC, self.cc2wc);
 //    		self.debug("%s: %s (%s)", e.type, self.mousePos, self.mousePosCC);
-			var startDrag = false, 
-				drop = false, 
+			var startDrag = false,
+				drop = false,
 				cancelDrag = false;
 			switch (e.type) {
 			case "mousedown":
@@ -367,7 +367,7 @@ var ArcadeJS = Class.extend(
 				break;
 			case "mousemove":
 //	    		self.debug("%s: %s (%s) - %s", e.type, self.clickPosCC, self.mousePosCC, self.clickPosCC.distanceTo(self.mousePosCC));
-	    		if(self._dragging || self.clickPosCC && self.clickPosCC.distanceTo(self.mousePosCC) > 4 ){
+				if(self._dragging || self.clickPosCC && self.clickPosCC.distanceTo(self.mousePosCC) > 4 ){
 					startDrag = !self._dragging;
 					self._dragging = true;
 					self.dragOffsetCC = self.clickPosCC.vectorTo(self.mousePosCC);
@@ -425,7 +425,7 @@ var ArcadeJS = Class.extend(
 		// Adjust canvas height and width on resize events
 		$(window).resize(function(e){
 			var $c = $(self.canvas),
-			    width = $c.width(),
+				width = $c.width(),
 				height = $c.height();
 			self.debug("window.resize: $canvas: " + width + " x " + height + "px");
 			if(self.fullscreenMode){
@@ -544,7 +544,7 @@ var ArcadeJS = Class.extend(
 		};
 		// TODO: append to a sorted list instead
 		this._timeout = timeout;
-		return timeout.id; 
+		return timeout.id;
 	},
 	/**Define the visible part of the world.
 	 * @param {float} x lower left corner in world coordinates
@@ -574,18 +574,18 @@ var ArcadeJS = Class.extend(
 			this.viewportOrg = this.viewport;
 			this.wc2cc = new Matrix3();
 			this.cc2wc = new Matrix3();
-			this.onePixelWC = 1; 
+			this.onePixelWC = 1;
 			return;
-			
+
 		}
 		// Calculate the adjusted viewport dimensions
 		var vp = this.viewportOrg,
-			vpa = {x: vp.x, y: vp.y, width: vp.width, height: vp.height}, 
+			vpa = {x: vp.x, y: vp.y, width: vp.width, height: vp.height},
 			vpAspect = vp.width / vp.height;
 		this.viewport = vpa;
-		
+
 		this.debug("    viewportOrg:  ", vp.x, vp.y, vp.width, vp.height, mapMode);
-		
+
 		switch(mapMode){
 		case "fit":
 		case "extend":
@@ -623,7 +623,7 @@ var ArcadeJS = Class.extend(
 			.translate(0, ccHeight);
 //		this.debug("wc2cc: %s", this.wc2cc);
 		this.cc2wc = this.wc2cc.copy().invert();
-		this.onePixelWC = vpa.width / ccWidth; 
+		this.onePixelWC = vpa.width / ccWidth;
 //		this.debug("cc2wc: %s", this.cc2wc);
 	},
 
@@ -632,8 +632,8 @@ var ArcadeJS = Class.extend(
 //        	p.focused = document.hasFocus();
 //		} catch(e) {}
 		// Fire timeout event, if one was scheduled
-		var timeout = this._timeout; 
-		if(timeout && 
+		var timeout = this._timeout;
+		if(timeout &&
 			((this.timeCorrection && this.time >= timeout.time)
 			 || (!this.timeCorrection && this.frameCount >= timeout.frame))
 			 ){
@@ -666,7 +666,7 @@ var ArcadeJS = Class.extend(
 		// Some bookkeeping and timings
 		var ticks = new Date().getTime(),
 			sampleDuration = .001 * (ticks - this._sampleTime);
-		
+
 		if(this.timeCorrection){
 			this.frameDuration = .001 * (ticks - this.time);
 		}else{
@@ -700,13 +700,13 @@ var ArcadeJS = Class.extend(
 	},
 	_redrawAll: function() {
 		var ctx = this.context;
-		
+
 		ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 		// Push current transformation and rendering context
 		ctx.save();
 		try{
 			ctx.transformMatrix3(this.wc2cc);
-			ctx.lineWidth = this.onePixelWC; 
+			ctx.lineWidth = this.onePixelWC;
 			if(this.preDraw){
 				this.preDraw(ctx);
 			}
@@ -1069,7 +1069,7 @@ ArcadeJS.defaultGameOptions = {
 	backgroundColor: "black", // canvas background color
 	strokeStyle: "#ffffff", // default line color
 	fillStyle: "#c0c0c0", // default solid filll color
-	fullscreenMode: false, // Resize canvas to window extensions 
+	fullscreenMode: false, // Resize canvas to window extensions
 	fullscreenMargin: {top: 0, right: 0, bottom: 0, left: 0},
 	resizeMode: "adjust", // Adjust internal canvas width/height to match its outer dimensions
 	viewport: {x: 0, y: 0, width: 100, height: 100, mapMode: "stretch"},
@@ -1234,7 +1234,7 @@ ArcadeCanvas =
 		this.setTransform(1, 0, 0, 1, 0, 0);
 	},
 	/**Apply transformation matrix.
-	 * This method takes care of transposing m, so it fits the canvas 
+	 * This method takes care of transposing m, so it fits the canvas
 	 * representation. The matrix is treated as affine (last row being [0 0 1]).
 	 * @param {Matrix3} m
 	 */
@@ -1243,7 +1243,7 @@ ArcadeCanvas =
 		this.transform(m[0], m[3], m[1], m[4], m[6], m[7]);
 	},
 	/**Set transformation matrix.
-	 * This method takes care of transposing m, so it fits the canvas 
+	 * This method takes care of transposing m, so it fits the canvas
 	 * representation. The matrix is treated as affine (last row being [0 0 1]).
 	 * @param {Matrix3} m
 	 */
@@ -1393,7 +1393,7 @@ var Movable = Class.extend(
 		this.mc2wc = null;
 		this.wc2mc = null;
 		this._updateTransformations();
-		
+
 		this.mass = opts.mass ? +opts.mass : 1;
 		this.velocity = opts.velocity ? new Vec2(opts.velocity) : new Vec2(0, 0);
 		this.translationStep = new Vec2(0, 0);
@@ -1409,7 +1409,7 @@ var Movable = Class.extend(
 //        this.tran = new BiTran2();.translate();
 	},
 	toString: function() {
-		return "Movable<"+this.type+"> '" + this.id + "' @ " 
+		return "Movable<"+this.type+"> '" + this.id + "' @ "
 			+ this.pos.toString(4) + " " + (this.orientation * LinaJS.R2D).toFixed(0) + "°"
 			+ " acivity: '" + this._activity + "'";
 	},
@@ -1465,7 +1465,7 @@ var Movable = Class.extend(
 		};
 		// TODO: append to a sorted list instead
 		this._timeout = timeout;
-		return timeout.id; 
+		return timeout.id;
 	},
 
 	/**Set transformation matrix and inverse from this.pos, .orientation and .scale.
@@ -1480,8 +1480,8 @@ var Movable = Class.extend(
 	 */
 	_step: function() {
 		// Fire timeout event, if one was scheduled
-		var timeout = this._timeout; 
-		if(timeout && 
+		var timeout = this._timeout;
+		if(timeout &&
 			((this.game.timeCorrection && this.game.time >= timeout.time)
 			 || (!this.game.timeCorrection && this.game.frameCount >= timeout.frame))
 			 ){

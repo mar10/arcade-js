@@ -1,170 +1,170 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>jsQuirks - Mobile</title>
-    
-    <script src="../../depends/jquery.js" type="text/javascript"></script>
-    <script src="../../depends/jquery.mousewheel.js" type="text/javascript"></script>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>jsQuirks - Mobile</title>
 
-    <script src="../../lina.js/lina.js" type="text/javascript"></script>
-    <script src="../../arcade.js/arcade.js" type="text/javascript"></script>
-    <script src="../../arcade.js/arcade-controls.js" type="text/javascript"></script>
+	<script src="../../depends/jquery.js" type="text/javascript"></script>
+	<script src="../../depends/jquery.mousewheel.js" type="text/javascript"></script>
 
-    <script src="jsQuirks.js" type="text/javascript"></script>
+	<script src="../../lina.js/lina.js" type="text/javascript"></script>
+	<script src="../../arcade.js/arcade.js" type="text/javascript"></script>
+	<script src="../../arcade.js/arcade-controls.js" type="text/javascript"></script>
 
-    <!-- Safari/iPhone: Display web content in full-screen mode: -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
+	<script src="jsQuirks.js" type="text/javascript"></script>
 
-    <!-- Safari/iPhone: Hide status bar (requires full-screen mode) -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <!-- Safari/iPhone: Set fixed viewport -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;">
+	<!-- Safari/iPhone: Display web content in full-screen mode: -->
+	<meta name="apple-mobile-web-app-capable" content="yes">
 
-    <!-- Safari/iPhone: Define App icon: -->
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+	<!-- Safari/iPhone: Hide status bar (requires full-screen mode) -->
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- Safari/iPhone: Define startup icon: -->
-    <link rel="apple-touch-startup-image" href="startup.png">
+	<!-- Safari/iPhone: Set fixed viewport -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;">
 
-    <script type="text/javascript">
-    // http://articles.sitepoint.com/article/iphone-development-12-tips/
-    
-    $(function(){
-        var canvas = document.getElementById("gameCanvas");
-        var game = new QuirksGame(canvas, {
-        	fullscreenMode: true,
-            debug: {
-                showFps: true,
-                logToCanvas: true
-            }
-            });
-        // Add iPod extensions
-        var stick = game.addObject(new TouchStick({
-            pos: new Point2(60, canvas.height - 60),
-            r1: 10,
-            r2: 30
-        }));
-        var thrustSound = new AudioJS("thrust.wav");
-        
-        var btn1 = game.addObject(new TouchButton({
-            pos: new Point2(canvas.width - 40, canvas.height - 40),
-            r: 20,
-            onClick: function(){
-                thrustSound.play();
-                if(this.game.quirk.color == "red"){
-                    this.game.quirk.color = "green";
-                }else{
-                    this.game.quirk.color = "red";
-                }
-            }
-        }));
-        game.preStep = function(){
-            var dx = -stick.getY(); 
-            if(dx) {
-                var f = 1 + (dx / 10); // [0.9 .. 1.1]
-                if( f > 1 || game.quirk.velocity1.length() > 1){
-                    game.quirk.velocity1.scale(f).limit(30);
-                }
-                if( f > 1 || game.quirk.velocity2.length() > 1){
-                    game.quirk.velocity2.scale(f).limit(30);
-                }
-            }
-            var dy = stick.getX(); 
-            if((dy < 0 && game.quirk.maxLines > 2) || (dy > 0 && game.quirk.maxLines < 150)){
-                game.quirk.maxLines += dy;
-            }
-            return true; 
-        };
-        game.preDraw = function(ctx){
-            ctx.save();
-            // Display score
-            ctx.font = "12px sans-serif";
-            ctx.fillText("canvas " + this.canvas.width + " x " + this.canvas.height, 10, 15);
-            // done
-            ctx.restore();
-        };
-        game.onResize = function(e, width, height){
-            game.debug("game.onResize(" + width + ", " + height + ")");
-            // Adjust controls that are relative to right or bottom border 
-            stick.pos = new Point2(60, height - 60);
-            btn1.pos = new Point2(width - 40, height - 40);
-            // Let ArcadeGame adjust canvas size to new dimensions
-            return true; 
-        };
-        if(window.navigator){
-            if(Math.abs(window.orientation) === 90){
-                $("body").addClass("landscape");
-            }else{
-                $("body").addClass("portrait");
-            }
-            if(window.navigator.standalone === false){
-                // Scroll one pixel down, so Safari URL toolbar disappears
-                setTimeout(scrollTo, 10, 0, 1);
-                alert("This web page is optimized to run in fullscreen mode.\n"
-                      + "You should create a desktop link on your iPhone and restart from there.");
-            }else if(window.navigator.standalone !== true){
-                alert("This web page is optimized to run on iPhones/iPods.");
-            }
-        }
-/*        
-        $(document).resize(function(){
-        	game.debug("document.resize: " + $(window).width() + " x " +  $(window).height());
-        });
-        
-        $(window).bind("orientationchange", function(e) {
-            game.debug("orientationchange: e=" + e);
-            if(Math.abs(window.orientation) === 90){
-                $("body").removeClass("portrait").addClass("landscape");
-            }else{
-                $("body").removeClass("landscape").addClass("portrait");
-            }
-            game.debug("orientationchange: class=" + $("body").attr("class") + ", e=" + e);
-            game.debug("orientationchange: window=" + $(window).width() + " x " + $(window).height());
-            game.debug("orientationchange: document=" + $(document).width() + " x " + $(document).height());
+	<!-- Safari/iPhone: Define App icon: -->
+	<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+	<!-- Safari/iPhone: Define startup icon: -->
+	<link rel="apple-touch-startup-image" href="startup.png">
+
+	<script type="text/javascript">
+	// http://articles.sitepoint.com/article/iphone-development-12-tips/
+
+	$(function(){
+		var canvas = document.getElementById("gameCanvas");
+		var game = new QuirksGame(canvas, {
+			fullscreenMode: true,
+			debug: {
+				showFps: true,
+				logToCanvas: true
+			}
+			});
+		// Add iPod extensions
+		var stick = game.addObject(new TouchStick({
+			pos: new Point2(60, canvas.height - 60),
+			r1: 10,
+			r2: 30
+		}));
+		var thrustSound = new AudioJS("thrust.wav");
+
+		var btn1 = game.addObject(new TouchButton({
+			pos: new Point2(canvas.width - 40, canvas.height - 40),
+			r: 20,
+			onClick: function(){
+				thrustSound.play();
+				if(this.game.quirk.color == "red"){
+					this.game.quirk.color = "green";
+				}else{
+					this.game.quirk.color = "red";
+				}
+			}
+		}));
+		game.preStep = function(){
+			var dx = -stick.getY();
+			if(dx) {
+				var f = 1 + (dx / 10); // [0.9 .. 1.1]
+				if( f > 1 || game.quirk.velocity1.length() > 1){
+					game.quirk.velocity1.scale(f).limit(30);
+				}
+				if( f > 1 || game.quirk.velocity2.length() > 1){
+					game.quirk.velocity2.scale(f).limit(30);
+				}
+			}
+			var dy = stick.getX();
+			if((dy < 0 && game.quirk.maxLines > 2) || (dy > 0 && game.quirk.maxLines < 150)){
+				game.quirk.maxLines += dy;
+			}
+			return true;
+		};
+		game.preDraw = function(ctx){
+			ctx.save();
+			// Display score
+			ctx.font = "12px sans-serif";
+			ctx.fillText("canvas " + this.canvas.width + " x " + this.canvas.height, 10, 15);
+			// done
+			ctx.restore();
+		};
+		game.onResize = function(e, width, height){
+			game.debug("game.onResize(" + width + ", " + height + ")");
+			// Adjust controls that are relative to right or bottom border
+			stick.pos = new Point2(60, height - 60);
+			btn1.pos = new Point2(width - 40, height - 40);
+			// Let ArcadeGame adjust canvas size to new dimensions
+			return true;
+		};
+		if(window.navigator){
+			if(Math.abs(window.orientation) === 90){
+				$("body").addClass("landscape");
+			}else{
+				$("body").addClass("portrait");
+			}
+			if(window.navigator.standalone === false){
+				// Scroll one pixel down, so Safari URL toolbar disappears
+				setTimeout(scrollTo, 10, 0, 1);
+				alert("This web page is optimized to run in fullscreen mode.\n"
+					  + "You should create a desktop link on your iPhone and restart from there.");
+			}else if(window.navigator.standalone !== true){
+				alert("This web page is optimized to run on iPhones/iPods.");
+			}
+		}
+/*
+		$(document).resize(function(){
+			game.debug("document.resize: " + $(window).width() + " x " +  $(window).height());
+		});
+
+		$(window).bind("orientationchange", function(e) {
+			game.debug("orientationchange: e=" + e);
+			if(Math.abs(window.orientation) === 90){
+				$("body").removeClass("portrait").addClass("landscape");
+			}else{
+				$("body").removeClass("landscape").addClass("portrait");
+			}
+			game.debug("orientationchange: class=" + $("body").attr("class") + ", e=" + e);
+			game.debug("orientationchange: window=" + $(window).width() + " x " + $(window).height());
+			game.debug("orientationchange: document=" + $(document).width() + " x " + $(document).height());
 
 //            $(document).css("height", $(window).height());
 //            document.height = $(window).height();
-            game.debug("orientationchange: document 2=" + $(document).width() + " x " + $(document).height());
+			game.debug("orientationchange: document 2=" + $(document).width() + " x " + $(document).height());
 //            $("#gameCanvas").attr("height", $(window).height());
 //            $(window).resize();
 //                .attr("width", $(window).width() );
-        });
-        */
+		});
+		*/
 /*
-        $(document).resize(function(){
-            var isStandalone = window.navigator && window.navigator.standalone;
-            game.debug("resize: standalone: " + isStandalone);
-            game.debug("    window: " + $(window).width() + " x " +  $(window).height());
-            if(window.navigator && window.navigator.standalone === false){
-            }else{
-            }
+		$(document).resize(function(){
+			var isStandalone = window.navigator && window.navigator.standalone;
+			game.debug("resize: standalone: " + isStandalone);
+			game.debug("    window: " + $(window).width() + " x " +  $(window).height());
+			if(window.navigator && window.navigator.standalone === false){
+			}else{
+			}
 //            $('#screen').attr("height", $(window).height() );
 //            $('#screen').attr("width", $(window).width() );
 
-        });
-        */
-    });
-    </script>
+		});
+		*/
+	});
+	</script>
 
 <style>
-* { 
-    margin: 0; 
-    padding: 0;
+* {
+	margin: 0;
+	padding: 0;
 }
-body, html { 
-    width: 100%; 
-    height: 100%; 
-/*    height: device-height;*/ 
+body, html {
+	width: 100%;
+	height: 100%;
+/*    height: device-height;*/
 }
-body.landscape { 
-/*    height: 320px;*/ 
-/*    height: device-height;*/ 
+body.landscape {
+/*    height: 320px;*/
+/*    height: device-height;*/
 }
 #gameCanvas {
-    -webkit-user-select: none; /* disable */
-    width: 100%;
+	-webkit-user-select: none; /* disable */
+	width: 100%;
 /*    height: 100%;*/
 }
 </style>
@@ -174,17 +174,17 @@ body.landscape {
 <!--
 
 $(document).ready(function()
-        {
-            $('#screen').attr("height", $(window).height() );
-            $('#screen').attr("width", $(window).width() );
+		{
+			$('#screen').attr("height", $(window).height() );
+			$('#screen').attr("width", $(window).width() );
 
-            //prevent scrolling
-            $(document).bind('touchstart touchmove', function(e)
-            {
-                e.preventDefault();
-            });
-        });
+			//prevent scrolling
+			$(document).bind('touchstart touchmove', function(e)
+			{
+				e.preventDefault();
+			});
+		});
 -->
-    <canvas id="gameCanvas" class="arcade-js">This game requires HTML 5 support.</canvas>
+	<canvas id="gameCanvas" class="arcade-js">This game requires HTML 5 support.</canvas>
 </body>
 </html>

@@ -247,19 +247,67 @@ var RipOffGame = ArcadeJS.extend({
 				pg: banditDef.pg.copy()
 				}));
 
-			if(forceAttack && i === 0){
-				bandit.target = this.player1;
-			}else if(i < canisters.length){
-				bandit.target = canisters[i];
-			}else{
-				bandit.target = this.player1;
-			}
+//			if(forceAttack && i === 0){
+//				bandit.target = this.player1;
+//			}else if(i < canisters.length){
+//				bandit.target = canisters[i];
+//			}else{
+//				bandit.target = this.player1;
+//			}
 		}
+		this._assignTargets();
 
 		this.setActivity("prepare");
 		this.later(3, function(){
 			this.setActivity("run");
 		});
+	},
+	/**
+	 * Check if targets are still valid, and re-assign as necessary
+	 */ 
+	_assignTargets: function(){
+		var i, canister, bandit, 
+			bandits = this.getObjectsByType("bandit"),
+			canisters = this.getObjectsByType("canister"),
+			attachedCanisterMap = {};
+		// Collect attached/targeted canisters and remove invalid targets
+		for(i=0; i<bandits.length; i++){
+			bandit = bandits[i];
+			if(bandit.canister){
+				attachedCanisterMap[bandit.canister.id] = bandit;
+			}else if(bandit.target && bandit.target.type == "canister"){
+				attachedCanisterMap[bandit.target.id] = bandit;
+			}
+			if(bandit.target && bandit.target.hidden){
+				bandit.target = null;
+			}
+		}
+		// Attache free canisters to lazy bandits
+		var nextIdx = 0;
+		for(i=0; i<bandits.length; i++){
+			bandit = bandits[i];
+			if(!bandit.target){
+				canister = null;
+				while(!canister && nextIdx < canisters.length){
+					canister = canisters[nextIdx];
+					if(attachedCanisterMap[canister.id]){
+						nextIdx++;
+						canister = null;
+					}
+				}
+				if(canister){
+					bandit.target = canister;
+					attachedCanisterMap[canister.id] = bandit;
+				}else{
+					if(bandit.game.player2 && (i % 2)){
+						bandit.target = bandit.game.player2;
+					}else{
+						bandit.target = bandit.game.player1;
+					}
+				}
+				bandit.game.debug("Assign " + bandit.target + " to " + bandit);
+			}
+		}
 	},
 	postStep: function(){
 		var bandits = this.getObjectsByType("bandit");
@@ -400,7 +448,8 @@ var Tank = Movable.extend({
 				this.orientation -= turnRate * this.game.frameDuration;
 				this.velocity.setAngle(this.orientation + 90*LinaJS.D2R);
 			}
-		}else if(this.id == "player2"){
+		}
+		if(!this.game.twoPlayer || this.id == "player2"){
 			// Player 2 is mouse controlled
 			if(this.game.leftButtonDown){ // left mouse button is pressed
 				driveToPosition(this, this.game.frameDuration, this.game.mousePos,
@@ -409,7 +458,7 @@ var Tank = Movable.extend({
 				this.velocity.accelerate(-decel * this.game.frameDuration);
 			}
 			if(this.game.rightButtonDown){ // right mouse is pressed
-				// Turn to mouse pois and fire
+				// Turn to mouse pos and fire
 				if(turnToDirection(this, this.game.frameDuration, this.game.mousePos, turnRate)){
 					this.fire();
 				}
@@ -422,6 +471,7 @@ var Tank = Movable.extend({
 			if(!this.game.preCheckCollision(this, obj)){
 				continue;
 			}
+//			alert("Collision von " + this + " mit " + obj);
 			// Pre-check is exact enough for our purpose...
 			obj.hitBy(this);
 			this.hitBy(obj);
@@ -437,6 +487,7 @@ var Tank = Movable.extend({
 	hitBy: function(obj) {
 		this.game.explosionSound.play();
 		this.hidden = true;
+		this.game._assignTargets();
 //		this.pos.set(1000, 1000);
 		this.later(this.game.gracePeriod, function(){
 			this.pos.set(this.homePos);
@@ -444,7 +495,7 @@ var Tank = Movable.extend({
 		});
 	},
 	fire: function() {
-		if(this.game.time - this.lastFire < this.fireRate){
+		if(this.hidden || this.game.time - this.lastFire < this.fireRate){
 			return;
 		}
 		this.lastFire = this.game.time;
@@ -496,7 +547,7 @@ var Bandit = Movable.extend({
 		if( !this.isActivity("escape")){
 			this.game.visitObjects(function(obj){
 				vDest = self.pos.vectorTo(obj.pos);
-				if(vDest.length() < self.attackRange){
+				if(!obj.hidden && vDest.length() < self.attackRange){
 					// temporarily override target
 					target = obj;
 					vTarget = vDest;

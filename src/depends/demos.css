@@ -5,7 +5,6 @@ body
     background-color: #ddd;
     color: #222;
 }
-
 h1
 {
 	font-size: 1.2em;
@@ -66,6 +65,16 @@ pre{
 /*******************************************************************************
  *
  */
+body.game640
+{
+    margin: 3px;
+    font-size: smaller;
+}
+body.game640 h1
+{
+    font-size: 1.1em;
+}
+
 canvas.demo
 {
 	width: 640px;

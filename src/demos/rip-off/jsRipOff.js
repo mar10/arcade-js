@@ -103,6 +103,41 @@ var pgTank1 = new Polygon2([
 	 4,  3
 ]).transform(LinaJS.scale33(2.0));
 
+var pgBandit10 = new Polygon2([
+	 -2, 3,
+	 -2, -3,
+	 -4,  2,
+	 0, 4,
+	 4,  2,
+	 2, -3,
+	 2,  3,
+	 0,  -4,
+	 -2, 3
+	
+]).transform(LinaJS.scale33(-3.0));
+
+var pgBandit20 = new Polygon2([
+  	 0, -5,
+  	 0.25, -2,
+  	 4,  6,
+  	 3.75, -2,
+  	 3.75,  -1,
+  	 3, -1,
+  	 1,  3,
+  	 1,  0,
+  	 0.25, -2,
+  	 0, -5,
+  	 -0.25, -2,
+  	 -4, 6,
+  	 -3.75, -2,
+  	 -3.75, -1,
+  	 -3, -1,
+  	 -1, 4,
+  	 -1, 0,
+  	 -0.25, -2,
+  	 0, -5
+  ]).transform(LinaJS.scale33(-2.5));
+
 var pgBandit30 = new Polygon2([
 	 0,  5,
 	 2, -2,
@@ -111,7 +146,25 @@ var pgBandit30 = new Polygon2([
 	-2,  3,
 	-2, -2,
 	 0,  5
-]).transform(LinaJS.scale33(3.0));
+]).transform(LinaJS.scale33(4.0));
+
+var pgBandit40 = new Polygon2([
+  	 0, -3,
+  	 4, 3,
+  	 2, 6,
+  	 3, 3,
+  	 1.5, 0,
+  	 -1.5, 0,
+  	 -3, 3,
+  	 -2, 6,
+  	 -4, 3,
+  	 0, -3,
+  	 1, 0,
+  	 2, 3,
+  	 -2, 3,
+  	 -1, 0,
+  	 0, -3
+  ]).transform(LinaJS.scale33(-3.0));
 
 var pgBandit50 = new Polygon2([
 	 3,  3,
@@ -125,7 +178,7 @@ var pgBandit50 = new Polygon2([
 	-1, -2,
 	-3, -2,
 	-3,  2
-  ]).transform(LinaJS.scale33(-3.0));
+  ]).transform(LinaJS.scale33(-4.0));
 
 var pgBandit60 = new Polygon2([
 	 0, -3,
@@ -137,23 +190,23 @@ var pgBandit60 = new Polygon2([
 	-6,  6,
 	 1, -1,
 	 0, -3
-]).transform(LinaJS.scale33(-2.0));
+]).transform(LinaJS.scale33(-3.0));
 
 var banditsDefs = [
 	{score: 10, maxSpeed: 50, accel: 50, decel: 50, turnRate: 90*LinaJS.D2R, attackRange: 50, fireRate: 2500,
-	 pg: pgBandit30},
+	 pg: pgBandit10},
 	{score: 20, maxSpeed: 70, accel: 70, decel: 70, turnRate: 110*LinaJS.D2R, attackRange: 50, fireRate: 1500,
-	 pg: pgBandit50},
+	 pg: pgBandit20},
 	{score: 30, maxSpeed: 90, accel: 90, decel: 90, turnRate: 130*LinaJS.D2R, attackRange: 150, fireRate: 1000,
-	 pg: pgBandit60},
-	{score: 40, maxSpeed: 110, accel: 100, decel: 100, turnRate: 150*LinaJS.D2R, attackRange: 150, fireRate: 1000,
 	 pg: pgBandit30},
+	{score: 40, maxSpeed: 110, accel: 100, decel: 100, turnRate: 150*LinaJS.D2R, attackRange: 150, fireRate: 1000,
+	 pg: pgBandit40},
 	{score: 50, maxSpeed: 140, accel: 120, decel: 120, turnRate: 170*LinaJS.D2R, attackRange: 150, fireRate: 800,
 	 pg: pgBandit50},
 	{score: 60, maxSpeed: 180, accel: 150, decel: 150, turnRate: 180*LinaJS.D2R, attackRange: 150, fireRate: 500,
-	 pg: pgTank1.copy().transform(LinaJS.scale33(.9))}
+	 pg: pgBandit60}
 ];
-
+// pgTank1.copy().transform(LinaJS.scale33(.9))
 
 
 ///**
@@ -540,6 +593,9 @@ var Bandit = Movable.extend({
 		// Drag attached canister
 		if(this.canister){
 			this.canister.pos = this.pos.copy();
+			if(this.velocity.length() > 15){
+				this.canister.pos.translate(this.velocity.copy().revert().setLength(15));
+			}
 		}
 
 		// If a player is in reach, switch to attack mode
@@ -575,7 +631,7 @@ var Bandit = Movable.extend({
 				// Reached a canister: attach and run home
 				this.canister = target;
 				var targetPos = new Point2(this.pos.x + LinaJS.random(-100, 100), -50);
-				if(this.pos.y > 240){
+				if(this.pos.y > 240){ 
 					targetPos.y = 530;
 				}
 				this.target = {type: "home", pos: targetPos};

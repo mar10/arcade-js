@@ -37,7 +37,7 @@ var Quirk = Movable.extend({
 		var vMin = 100, vMax = 300;
 		this.pos1 = new Point2(LinaJS.randomInt(100, 200), LinaJS.randomInt(100, 200));
 		this.velocity1 = new Vec2(LinaJS.randomInt(vMin, vMax), LinaJS.randomInt(vMin, vMax));
-		this.pos2 = new Point2(LinaJS.randomInt(vMin, 200), LinaJS.randomInt(100, 200));
+		this.pos2 = new Point2(LinaJS.randomInt(100, 200), LinaJS.randomInt(100, 200));
 		this.velocity2 = new Vec2(LinaJS.randomInt(vMin, vMax), LinaJS.randomInt(vMin, vMax));
 //		window.console.log("v1: %s", this.velocity1);
 //		window.console.log("v2: %s", this.velocity2);
@@ -79,10 +79,10 @@ var Quirk = Movable.extend({
 		ctx.strokeStyle = this.color;
 //    	this.game.debug("render: " + this.color);
 		for(var i=0, l=this.lines.length; i<l; i++){
-			var l = this.lines[i];
+			var line = this.lines[i];
 			ctx.beginPath();
-			ctx.moveTo(l.pos1.x, l.pos1.y);
-			ctx.lineTo(l.pos2.x, l.pos2.y);
+			ctx.moveTo(line.pos1.x, line.pos1.y);
+			ctx.lineTo(line.pos2.x, line.pos2.y);
 			ctx.stroke();
 		}
 	},

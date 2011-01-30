@@ -432,6 +432,7 @@ test("Polygon2", function() {
 	ok(!pg.contains(pt), "contains");
 	pt = new Point2(-.1, .5);
 	ok(!pg.contains(pt), "contains");
+	
 });
 
 /******************************************************************************/

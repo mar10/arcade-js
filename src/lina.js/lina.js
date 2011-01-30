@@ -447,6 +447,17 @@ Point2.prototype = {
 	distanceTo: function(ptOrX, y) {
 		return Math.sqrt(this.sqrDistanceTo(ptOrX, y));
 	},
+	/** Return Manhattan-Distance from this to pt2.
+	 * @param {Point2} pt2 (optional) Second point.
+	 * @returns {float}
+	 */
+	mdistance: function(pt2) {
+		if(pt2 === undefined){
+			return Math.abs(this.x) + Math.abs(this.y);
+		}else{
+			return Math.abs(this.x - pt2.x) + Math.abs(this.y - pt2.y);
+		}
+	},
 	/** Check if pt2 is (aproximately) equal to this.
 	 * @param {Point2|JS-Object} pt2 Second point.
 	 * @param {float} eps (optional) accepted maximum distance.
@@ -730,7 +741,8 @@ Vec2.prototype = {
 	*/
 	angleTo: function(v2){
 //		return Math.acos(this.dot(v2) /  (this.length() * Math.sqrt(v2.dx * v2.dx + v2.dy * v2.dy)));
-		return Math.asin(this.cross(v2) /  (this.length() * Math.sqrt(v2.dx * v2.dx + v2.dy * v2.dy)));
+//		return Math.asin(this.cross(v2) /  (this.length() * Math.sqrt(v2.dx * v2.dx + v2.dy * v2.dy)));
+		return Math.atan2(v2.dy, v2.dx) - Math.atan2(this.dy, this.dx); 
 	},
 	/**Set the angle (in-place, relative to positive x axis).
 	   @returns {Vec2}
@@ -1280,18 +1292,23 @@ Polygon2 = function(xyList){
 };
 Polygon2.prototype = {
 	set: function(xyList){
-		if( xyList.length) {
+		if( xyList.length !== undefined) {
 			this.xyList = xyList.slice(0, xyList.length);
 		}else{
 			this.xyList = xyList.xyList.slice(0, xyList.xyList.length);
 		}
 	},
 	/** Return string representation '[(x1,y1), (x2,y2), ...]'.*/
-	toString: function() {
+	toString: function(prec) {
 		var xy = this.xyList;
 		var l = [];
 		for(var i=0; i<xy.length; i+=2){
-			l.push("("+xy[i]+","+xy[i+1]+")");
+			if(prec !== undefined){
+//				return "(" + this.x.toPrecision(prec) + "/" + this.y.toPrecision(prec)  + ")";
+				l.push("("+xy[i].toPrecision(prec)+"/"+xy[i+1].toPrecision(prec)+")");
+			}else{
+				l.push("("+xy[i]+"/"+xy[i+1]+")");
+			}
 		}
 		return "[" + l.join(", ") + "]";
 	},
@@ -1330,6 +1347,17 @@ Polygon2.prototype = {
 			throw("Polygon2.getXY: Index out of bounds");
 		}
 		return {x: this.xyList[idx], y: this.xyList[idx+1]};
+	},
+	/**Return polygon point by index.
+	 * @param {int} idx
+	 * @returns Point2
+	 */
+	getPoint: function(idx) {
+		idx *= 2;
+		if(idx > this.xyList.length-2){
+			throw("Polygon2.getPoint: Index out of bounds");
+		}
+		return new Point2(this.xyList[idx], this.xyList[idx+1]);
 	},
 	/**Return polygon edge by index.
 	 * If idx == last then the closing edge is returned.
@@ -1401,6 +1429,22 @@ Polygon2.prototype = {
 		alert("Not implemented: Polygon2.intersects()");
 		return false;
 	},
+	/** Find index of point with minimmum y coord (and minimum x, if multiple 
+	 *  matches found).
+	 */
+    indexOfLowestPoint: function() {
+    	var iMin = 0,
+    		xy = this.xyList,
+			len = xy.length,
+    		xyMin = this.getXY(0);
+		for(var i=2; i<len-1; i+=2){
+			if(xy[i+1] < xyMin.y || (xy[i+1] === xyMin.y && xy[i] < xyMin.x)){
+				iMin = i / 2;
+				xyMin = this.getXY(iMin); 
+			}
+		}
+		return iMin;
+    },
 	/**Return polygon point nearest to pt.
 	 * @param {Point2} pt
 	 * @param {Vec2} cullingVector (optional) If we pass a velocity vector here,
@@ -1551,7 +1595,115 @@ Polygon2.prototype = {
 	makeCW: function() {
 		return this.isCCW() ? this.revert() : this;
 	},
-	/** Return the smallest bounding circle as {center: {x:_,y:_}, r:_}.*/
+	/**Reorder polygon to start with given index.
+	 * @param {int} idx
+	 * @returns this
+	 */
+	makeFirst: function(idx) {
+		alert("Not implemented: Polygon2.makeFirst()");
+	},
+	/**Append a point or polygon.
+	 * @param {Point2, Polygon2, float[]} ptOrPg
+	 * @returns this
+	 */
+	append: function(ptOrPg) {
+		if(ptOrPg.xyList !== undefined){
+			this.xyList = this.xyList.concat(ptOrPg.xyList);
+		}else if(ptOrPg.length !== undefined){
+			this.xyList = this.xyList.concat(ptOrPg);
+		} else {
+//			this.xyList = this.xyList.concat([ptOrPg.x, ptOrPg.y]);
+			this.xyList.push(ptOrPg.x);
+			this.xyList.push(ptOrPg.y);
+		}
+		return this;
+	},
+	/**Append a point or polygon, discarding duplicate points.
+	 * @param {Point2, Polygon2, float[]} ptOrPg
+	 * @param {float} eps (optional) defaults to LinaJS.EPS
+	 * @returns this
+	 */
+	appendUnique: function(ptOrPg, eps) {
+		var arr = (ptOrPg.length !== undefined) ? ptOrPg : ptOrPg.xyList,
+//			arrLen = arr.length,
+			xy, l, i, j;
+		// Add point list
+		if(arr !== undefined){
+			l = arr.length;
+			eps = (eps === undefined) ? LinaJS.EPS : eps; // Default, if undefined
+			for(i=0; i<l-3; i+=2){
+				this.appendUnique({x: arr[i], y: arr[i+1]}, eps);
+			}
+			return this;
+		}
+		// Adding a single point
+		xy = this.xyList;
+		l = xy.length;
+		if(eps === 0){
+			// TODO: reverse loop and use -- for speed improvement
+			for(i=0; i<l-3; i+=2){
+				if(Math.abs(xy[i] - ptOrPg.x) <= eps && Math.abs(xy[i+1] - ptOrPg.y) <= eps){
+					return this;
+				}
+			}
+		}else{
+			eps = eps || LinaJS.EPS; // Default, if undefined
+			for(i=0; i<l-3; i+=2){
+				if(Math.abs(xy[i] - ptOrPg.x) <= eps && Math.abs(xy[i+1] - ptOrPg.y) <= eps){
+					return this;
+				}
+			}
+		}
+		xy.push(ptOrPg.x);
+		xy.push(ptOrPg.y);
+		return this;
+	},
+	/**Return a copy with duplicate points removed.
+	 * @param {float} eps (optional) defaults to LinaJS.EPS
+	 * @returns new Polygon2
+	 */
+	getUniquePoints: function(eps) {
+		return new Polygon2([]).appendUnique(this.xyList, eps);
+	},
+	/**Remove point at index.
+	 * @param {int} idx
+	 * @returns this
+	 */
+	remove: function(idx) {
+		alert("Not implemented: Polygon2.remove()");
+		return this;
+	},
+	/**Exchange points.
+	 * @param {int} idx
+	 * @returns this
+	 */
+	swap: function(idx1, idx2) {
+		if(idx1 !== idx2){
+			idx1 *= 2;
+			idx2 *= 2;
+			var xy = this.xyList,
+				x = xy[idx1],
+				y = xy[idx1+1];
+			xy[idx1] = xy[idx2];  xy[idx1+1] = xy[idx2+1];
+			xy[idx2] = x;  xy[idx2+1] = y;
+		}
+		return this;
+	},
+	/**Return number of points.
+	 */
+	count: function() {
+		return this.xyList.length / 2;
+	},
+	/**Set maximum number of points (truncating trailing points).
+	 */
+	setCount: function(n) {
+		if(n > this.count()){
+			throw "n must be <= count";
+		}
+		this.xyList = this.xyList.slice(0, 2*n);
+		return this;
+	},
+	/** Return the smallest bounding circle.*/
 	getBoundingCircle: function() {
 		// TODO: Gems II, 1.4
 		alert("Not implemented: Polygon2.getBoundingCircle()");
@@ -1573,13 +1725,70 @@ Polygon2.prototype = {
 		return 0;
 	},
 	/** Return a new polygon that connects the extreme points of this polygon.
-	 * Also known as 'convex hull'.
-	 *	The result will be convex, non-intersecting.
+	 * 
+	 * The result will be convex, non-intersecting.
+	 * This bounding polygon has typically less points, and my be used for faster
+	 * collision testing.
+	 * This polygon is treated as unconnected point cloud, so it is possible to
+	 * get a bounding polygon of multiple objects like this: 
+	 * @example
+	 * var pgHull = pg1.copy().append(pg2).append(pg3).getConvexHull();
 	 */
-	getBoundingPolygon: function() {
-		// TODO: file:///C:/Prj/eclipse-ws/arcade-js/res/Math/Geometry%20Concepts%20Line%20Intersection%20and%20its%20Applications/tc.htm
-		alert("Not implemented: Polygon2.getBoundingPolygon()");
-		return null;
+	getConvexHull: function() {
+		// Do the Jarvis-March: 
+		// http://www.inf.fh-flensburg.de/lang/algorithmen/geo/jarvis.htm
+		var pg = this.getUniquePoints(LinaJS.eps),
+			xy = pg.xyList,
+			i, 
+			h = 0;
+		if( pg.count() <= 3 ){
+			return pg;
+		}
+//		window.console.log("PG: ", this);
+//		window.console.log("PG unique: ", pg);
+	    var _indexOfRightmostPointFrom = function(idx){
+	    	// Check 
+	        var pt0 = pg.getPoint(idx),
+	        	v0 = (idx === 0) ? new Vec2(1, 0) : pg.getPoint(idx-1).vectorTo(pt0),
+	        	n = pg.count(),
+	        	nLast = (idx === 0) ? n : n + 1,
+	        	iBest = -1,
+	        	lBest = 0,
+	        	aBest = 1000,
+	        	pt, a, l, i;
+//			window.console.log("indexOfRightmostPointFrom(" + idx + ") -> " + pt0.toString(1));
+//			window.console.log("    v0:" + v0);
+
+			for(i=idx+1; i<nLast; i++){
+				pt =  pg.getPoint(i % n);
+	        	v = pt0.vectorTo(pt);
+	        	a = LinaJS.normAngle(v0.angleTo(v));
+	        	l = v.length();
+//				window.console.log("    vectorTo #" + i + " -> " + pt.toString(1) + ", v=" + v.toString(1) + ": " + a*LinaJS.R2D, "° l=", l);
+	        	if(l > LinaJS.EPS && (a < aBest || (a === aBest && l > lBest))){
+//					window.console.log("    -> is best!");
+	        		iBest = i % n;
+	        		aBest = a;
+	        		lBest = l;
+	        	}
+	        }
+//			window.console.log("iBest=", iBest);
+	        return iBest;
+	    };
+	    // The lowest point must be member of the convex hull, so we make it
+	    // start (and end) point
+		i = this.indexOfLowestPoint();
+//		window.console.log("lowest idx=" + i + ", pg:", pg.toString(1));
+		do{
+			pg.swap(h, i);
+//			window.console.log("swapped", h, i, " -> ", pg.toString(1));
+			i = _indexOfRightmostPointFrom(h);
+			h += 1;
+		} while(i > 0);
+//		window.console.log("hull:", pg.toString(1));
+		pg.setCount(h);
+//		window.console.log("hull 2:", pg.toString(1));
+		return pg;
 	},
 	/** Return a new polygon that draws along the outer lines of this polygon.*/
 	getShapePolygon: function() {

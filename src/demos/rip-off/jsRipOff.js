@@ -469,6 +469,7 @@ var Tank = Movable.extend({
 		// Copy selected options as object attributes
 //		ArcadeJS.extendAttributes(this, opts, "homePos");
 		this.pg = pgTank1.copy();
+//		this.pgHull = this.pg.getConvexHull();
 		this.homePos = this.pos.copy();
 		this.fireRate = 330; // ms
 		this.fireRange = 1.3; // sec
@@ -536,6 +537,8 @@ var Tank = Movable.extend({
 	},
 	render: function(ctx) {
 		ctx.strokePolygon2(this.pg, false);
+//		ctx.strokeStyle = "magenta";
+//		ctx.strokePolygon2(this.pgHull, false);
 	},
 	hitBy: function(obj) {
 		this.game.explosionSound.play();
@@ -576,6 +579,7 @@ var Bandit = Movable.extend({
 		// Copy selected options as object attributes
 		ArcadeJS.extendAttributes(this, opts, "score maxSpeed accel decel turnRate attackRange fireRate pg");
 		this.target = null;
+//		this.pgHull = this.pg.getConvexHull();
 	},
 	getBoundingCircle: function() {
 		return new Circle2(this.pos, 9);
@@ -666,6 +670,8 @@ var Bandit = Movable.extend({
 			ctx.strokeStyle = "lightblue";
 		}
 		ctx.strokePolygon2(this.pg, false);
+//		ctx.strokeStyle = "magenta";
+//		ctx.strokePolygon2(this.pgHull, false);
 	},
 	hitBy: function(obj) {
 		this.game.explosionSound.play();

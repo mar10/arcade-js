@@ -50,7 +50,7 @@ var Quirk = Movable.extend({
 		}
 		this.lines.push({pos1: this.pos1.copy(), pos2: this.pos2.copy()});
 		// Calculate new position for first point. The velocity is defined in
-		// WC units per second, so we scale by current set duration.
+		// WC units per second, so we scale by current step duration.
 		var v1 = this.velocity1.copy().scale(this.game.frameDuration),
 			v2 = this.velocity2.copy().scale(this.game.frameDuration);
 		this.pos1.translate(v1);

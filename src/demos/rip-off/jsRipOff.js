@@ -386,9 +386,10 @@ var RipOffGame = ArcadeJS.extend({
 			ctx.font = "30px sans-serif";
 			ctx.strokeScreenText("Game over (hit [F5])", 0, 0);
 		}
-		ctx.font = "10px sans-serif";
-		ctx.fillScreenText("Copyright (c) 2011 Martin Wendt - Made with ArcadeJS", 0, -1);
-
+		if(!this.opts.debug.showMouse){
+			ctx.font = "10px sans-serif";
+			ctx.fillScreenText("Copyright (c) 2011 Martin Wendt - Made with ArcadeJS", 0, -1);
+		}
 		// done
 		ctx.restore();
 	},
@@ -477,12 +478,12 @@ var Tank = Movable.extend({
 	getBoundingCircle: function() {
 		return new Circle2(this.pos, 18);
 	},
-	step: function(p) {
+	applyControls: function(){
 		var maxSpeed = 150,
 			accel = 150,
 			decel = 100,
 			turnRate = 90 * LinaJS.D2R;
-
+	
 		// --- Handle key controls ---
 		if(this.id == "player1"){
 			// Player 1 is keyboard controlled
@@ -518,6 +519,10 @@ var Tank = Movable.extend({
 				}
 			}
 		}
+	},
+	step: function(p) {
+		// Evaluate keyboard, mouse, and touch events
+		this.applyControls();
 		// --- Check for collisions
 		var list = this.game.getObjectsByType("tank bandit");
 		for(var i=0, l=list.length; i<l; i++) {

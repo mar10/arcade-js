@@ -345,9 +345,11 @@ var ArcadeJS = Class.extend(
 					self.downKeyCodes.push(self.keyCode);
 				}
 //            	self.debug("Keydown %s: %o", self.key, self.downKeyCodes);
-			} else {
+			} else { // keypress
 //            	self.debug("Keypress %s: %o", self.key, e);
-				// keypress
+				if(self.key == "ctrl+meta+D"){
+					self.setDebug(!self.opts.debug.showActivity);
+				}
 			}
 			for(var i=0; i<self.keyListeners.length; i++) {
 				var obj = self.keyListeners[i];
@@ -505,6 +507,15 @@ var ArcadeJS = Class.extend(
 	},
 	toString: function() {
 		return "ArcadeJS<" + this.name + ">";
+	},
+	/**Enable debug output
+	 * 
+	 */
+	setDebug: function(flag){
+		flag = !!flag;
+		var d = this.opts.debug;
+		d.showActivity = d.showKeys = d.showObjects = d.showMouse 
+		= d.showVelocity = d.showBCircle = flag;
 	},
 	/**Output string to console.
 	 * @param: {string} msg
@@ -696,7 +707,9 @@ var ArcadeJS = Class.extend(
 		this.wc2cc = new Matrix3()
 			.translate(-vpa.x, -vpa.y)
 			.scale(ccWidth/vpa.width, -ccHeight/vpa.height)
-			.translate(0, ccHeight);
+			.translate(0, ccHeight)
+//			.translate(-this.canvasArea.x, -this.canvasArea.y)
+			;
 //		this.debug("wc2cc: %s", this.wc2cc);
 		this.cc2wc = this.wc2cc.copy().invert();
 		this.onePixelWC = vpa.width / ccWidth;

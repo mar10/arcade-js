@@ -578,6 +578,7 @@ var ArcadeJS = Class.extend(
 				width: width, height: height, 
 				clip: !!clip};
 		this._customCanvasArea = true;
+		this.debug("setCanvasArea: %o", this.canvasArea);
 		this._realizeViewport();
 	},
 	/**Reset the usable part of the canvas to full extent.
@@ -587,6 +588,7 @@ var ArcadeJS = Class.extend(
 		this.canvasArea = {x: 0, y: 0, 
 			width: $canvas.width(), height: $canvas.height(), 
 			clip: false};
+		this.debug("resetCanvasArea: %o", this.canvasArea);
 		this._customCanvasArea = false;
 	},
 
@@ -615,7 +617,7 @@ var ArcadeJS = Class.extend(
 			ccHeight = this.canvasArea.height,
 			ccAspect = ccWidth / ccHeight;
 
-		this.debug("_realizeViewport('" + mapMode + "') for canvas " + ccWidth + "px x " + ccHeight + "px");
+		this.debug("_realizeViewport('" + mapMode + "') for canvas " + ccWidth + " x " + ccHeight + " px");
 		if(mapMode == "none"){
 //			this.viewport = {x: 0, y: 0, width: ccWidth, height: ccHeight};
 			this.viewport = {x: 0, y: ccHeight, width: ccWidth, height: -ccHeight};

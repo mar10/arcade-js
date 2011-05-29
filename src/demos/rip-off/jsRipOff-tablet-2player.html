@@ -55,8 +55,6 @@
                 this.button.pos = new Point2(width - 40, height - 40);
             }
             // Adjust usable canvas area to lower half and enable clipping
-//            var cca = this.canvasArea;
-//            this.setCanvasArea(0, 0.5*cca.height, cca.width, 0.5*cca.height, true);
             this.setCanvasArea(0, 0.5*height, width, 0.5*height, true);
             // true: Let ArcadeGame adjust canvas size to new dimensions
             return true;
@@ -70,6 +68,12 @@
             ctx.rotate(Math.PI);
             ctx.drawImage(ctx.canvas, -cca.width, -2*cca.height);
             ctx.restore();
+            // divider bar
+            ctx.save();
+            ctx.fillStyle = "#444";
+            ctx.fillRect(0, cca.height - 3, cca.width, 6);
+            ctx.restore();
+            // _super is 'undefined' in parent for performance reasons 
             return; // this._super(ctx);
         },
 	    // --- end of class
@@ -77,9 +81,9 @@
 	});
 
 	$(function(){
-		var canvas = document.getElementById("gameCanvas");
-		var game = new TabletRipOffGame(canvas, {
-			fullscreenMode: true, //true,
+		var game = new TabletRipOffGame("#gameCanvas", {
+			fullscreenMode: true,
+            twoPlayer: true,
 			debug: {
 				showFps: true,
 				logToCanvas: false

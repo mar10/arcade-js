@@ -22,16 +22,20 @@
 	<!-- Safari/iPhone: Define startup icon -->
 	<link rel="apple-touch-startup-image" href="startup.png">
 	<style>
-	canvas.ipad {
-		background-color: green;
-		width: 640;
-		height: 480;
-	}
 	</style>
 	<script type="text/javascript">
-
+/*
+	var TabletRipOffGame = RipOffGame.extend({
+	    init: function(canvas, opts) {
+	        this._super(canvas, opts);
+	    },
+	    // --- end of class
+	    lastentry: undefined
+	});
+*/
 	$(function(){
 		var canvas = document.getElementById("gameCanvas");
+		
 		var game = new RipOffGame(canvas, {
 			fullscreenMode: false, //true,
 			debug: {
@@ -39,7 +43,10 @@
 				logToCanvas: false
 			}
 			});
-		// Add iPod extensions
+		var cca = game.canvasArea;
+        game.setCanvasArea(0, 0.5*cca.height, cca.width, 0.5*cca.height, true);
+
+        // Add iPod extensions
 		game.stick = game.addObject(new TouchStick({
 			id: "stick",
 			pos: new Point2(60, canvas.height - 60),
@@ -58,31 +65,27 @@
             // Adjust controls that are relative to right or bottom border
             game.stick.pos = new Point2(60, height - 60);
             game.button.pos = new Point2(width - 40, height - 40);
+            //
+//	        var cca = game.canvasArea;
+//	        game.setCanvasArea(0, 0.5*cca.height, cca.width, 0.5*cca.height, false);
+
             // Let ArcadeGame adjust canvas size to new dimensions
             return true;
         };
-        var _org_postDraw = game.postDraw;
-        var canvas2 = document.getElementById("gameCanvas2"),
-            ctx2 = canvas2.getContext("2d");
-         
-        game.postDraw = function(ctx){
-//            alert("pd");
-            //canvas.width - 40, canvas.height
-//            var myImageData = context.createImageData(640, 480);
-//            var image = ctx.getImageData(0, 0, 640, 480);
-//            context2.putImageData(image, 0, 0);
-            
-            ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
-            ctx2.save();
-            ctx2.scale(1, 0.5);
-            ctx2.rotate(0.5 * Math.PI);
-            ctx2.drawImage(game.canvas, 0, -0.5 * canvas2.width)
-            ctx2.rotate(-Math.PI);
-            ctx2.drawImage(game.canvas, -canvas2.width, canvas2.height);
-            ctx2.restore();
+        /** Draw a flipped copy of the lower canvas part into to the upper
+         *  canvas half.. 
+         */
+        var _org_postDraw = game.postDrawCC;
+        game.postDrawCC = function(ctx){
+            var cca = game.canvasArea;
+            ctx.save();
+            ctx.rotate(Math.PI);
+            ctx.drawImage(ctx.canvas, -cca.width, -2*cca.height);
+            ctx.restore();
             return _org_postDraw;
         };
-		if(window.navigator){
+
+        if(window.navigator){
 			if(window.navigator.standalone === false){
 				// Scroll one pixel down, so Safari URL toolbar disappears
 				alert("This web page is optimized to run in fullscreen mode.\n"
@@ -105,12 +108,13 @@ body, html {
 	height: 100%;
 }
 #gameCanvas {
+    width: 768px;
+    height: 1024px;
 }
 </style>
 </head>
 
 <body>
 	<canvas id="gameCanvas" class="arcade-js">This game requires HTML 5 support.</canvas>
-	<canvas id="gameCanvas2" class="ipad">This game requires HTML 5 support.</canvas>
 </body>
 </html>

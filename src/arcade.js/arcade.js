@@ -236,15 +236,22 @@ var ArcadeJS = Class.extend(
 
 		var $canvas = $(this.canvas);
 		$canvas.css("backgroundColor", this.opts.backgroundColor);
+
 		// Adjust canvas height and width (if specified as %, it would default to 300x150)
 		this.canvas.width = $canvas.width();
 		this.canvas.height = $canvas.height();
 		this.context.strokeStyle = this.opts.strokeStyle;
 		this.context.fillStyle = this.opts.fillStyle;
 
+		/** Usable canvas area (defaults to full extent) */
+		this.canvasArea = null; 
+		this.resetCanvasArea();
+
+		/** Requested viewport */
 		this.viewportOrg = null;
+		/** Realized viewport (adjusted according to map mode).*/
 		this.viewport = null;
-		this.viewPortMapMode = "none";
+		this.viewportMapMode = "none";
 		this.debug("game.init()");
 		this._realizeViewport();
 
@@ -436,6 +443,7 @@ var ArcadeJS = Class.extend(
 				  .css("top", pad.top)
 				  .css("left", pad.left);
 			}
+			// Call onResize() and let user prevent default processing
 			if(!self.onResize || self.onResize(e, width, height) !== false) {
 				switch(self.resizeMode) {
 				case "adjust":
@@ -489,7 +497,14 @@ var ArcadeJS = Class.extend(
 		}
 		if(window.console && window.console.log) {
 //        	var args = Array.prototype.slice.apply(arguments, [1]);
-			window.console.log.apply(window.console, arguments);
+//			Function.prototype.call.bind(console.log, console);
+			try{
+				// works on Firefox, Safari and Chrome and supports '%o', etc.
+				window.console.log.apply(window.console, arguments);
+			}catch(e){
+				// works with IE as well, but can't make use of '%o' formatters
+				window.console.log(Array.prototype.join.call(arguments));
+			}
 		}
 	},
 	/**Return current activity.
@@ -546,6 +561,35 @@ var ArcadeJS = Class.extend(
 		this._timeout = timeout;
 		return timeout.id;
 	},
+	/**Define the usable part of the canvas.
+	 * 
+	 * If set, the viewport is projected into ths region.
+	 * This method should be called on startup and onResize.
+	 * 
+	 * @param {float} x upper left corner in canvas coordinates
+	 * @param {float} y upper left corner in canvas coordinates
+	 * @param {float} width in canvas coordinates
+	 * @param {float} height in canvas coordinates
+	 * @param {boolean} clip prevent drawing outside this area (default: true)
+	 */
+	setCanvasArea: function(x, y, width, height, clip) {
+		clip = (clip !== false);
+		this.canvasArea = {x: x, y: y, 
+				width: width, height: height, 
+				clip: !!clip};
+		this._customCanvasArea = true;
+		this._realizeViewport();
+	},
+	/**Reset the usable part of the canvas to full extent.
+	 */
+	resetCanvasArea: function() {
+		var $canvas = $(this.canvas);
+		this.canvasArea = {x: 0, y: 0, 
+			width: $canvas.width(), height: $canvas.height(), 
+			clip: false};
+		this._customCanvasArea = false;
+	},
+
 	/**Define the visible part of the world.
 	 * @param {float} x lower left corner in world coordinates
 	 * @param {float} y lower left corner in world coordinates
@@ -554,17 +598,21 @@ var ArcadeJS = Class.extend(
 	 * @param {string} mapMode 'stretch' | 'fit' | 'extend' | 'trim' | 'none'
 	 */
 	setViewport: function(x, y, width, height, mapMode) {
-		this.viewPortMapMode = mapMode || "extend";
+		this.viewportMapMode = mapMode || "extend";
 		this.viewportOrg = {x: x, y: y, width: width, height: height};
 		this.debug("setViewport('" + mapMode + "')");
 		this._realizeViewport();
 	},
 
 	_realizeViewport: function() {
-		var mapMode = this.viewPortMapMode,
-			$canvas = $(this.canvas),
-			ccWidth = $canvas.width(),
-			ccHeight = $canvas.height(),
+		// Recalc usable canvas size. (In case of custom areas the user has to
+		// do this in the onResize event.)
+		if(self._customCanvasArea === false){
+			this.resetCanvasArea();
+		}
+		var mapMode = this.viewportMapMode,
+			ccWidth = this.canvasArea.width,
+			ccHeight = this.canvasArea.height,
 			ccAspect = ccWidth / ccHeight;
 
 		this.debug("_realizeViewport('" + mapMode + "') for canvas " + ccWidth + "px x " + ccHeight + "px");
@@ -705,6 +753,16 @@ var ArcadeJS = Class.extend(
 		// Push current transformation and rendering context
 		ctx.save();
 		try{
+			if(this._customCanvasArea){
+				var cca = this.canvasArea; 
+				if(cca.clip){
+					ctx.beginPath();
+					ctx.rect(cca.x, cca.y, cca.width, cca.height);
+//				    ctx.stroke();
+					ctx.clip();
+				}
+				ctx.translate(cca.x, cca.y);
+			}
 			ctx.transformMatrix3(this.wc2cc);
 			ctx.lineWidth = this.onePixelWC;
 			if(this.preDraw){
@@ -770,6 +828,9 @@ var ArcadeJS = Class.extend(
 			ctx.fillStyle = this.opts.debug.strokeStyle;
 			ctx.fillText(infoList.join(", "), 10, this.canvas.height - 5);
 			ctx.restore();
+		}
+		if(this.postDrawCC){
+			this.postDrawCC(ctx);
 		}
 	},
 	/**Start render loop.
@@ -1022,6 +1083,11 @@ var ArcadeJS = Class.extend(
 	 * @param ctx Canvas 2D context.
 	 */
 	postDraw: undefined,
+	/**@function Called after all rendering happened and transformations are reset.
+	 * Allows accessing the full, untransformed canvas in Canvas Coordinates.
+	 * @param ctx Canvas 2D context.
+	 */
+	postDrawCC: undefined,
 	// --- end of class
 	__lastentry: undefined
 });
@@ -1059,7 +1125,7 @@ ArcadeJS._firstGame = null;
 /**Used to generate unique object IDs.*/
 ArcadeJS._nextObjectId = 1;
 
-/**Used to generate unique object IDs.*/
+/**Used to generate unique timer IDs.*/
 ArcadeJS._nextTimeoutId = 1;
 
 /**Default options dictionary.*/

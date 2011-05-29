@@ -229,8 +229,18 @@ var ArcadeJS = Class.extend(
 
 		this._logBuffer = [];
 		/**HTML5 canvas element*/
+		if(typeof(canvas) == "string"){
+			if(canvas[0] == "#") {
+				canvas = canvas.substr(1);
+			}
+			canvas = document.getElementById(canvas);
+		}
+		if(!canvas || !canvas.getContext){
+			throw "Invalid canvas (expeced Canvas element or element ID)";
+		}
+		/**The HTML &lt;canvas&gt; element */
 		this.canvas = canvas;
-		/**Canvas 2d context*/
+		/**The 2D Rendering Context*/
 		this.context = canvas.getContext("2d");
 		$.extend(this.context, ArcadeCanvas);
 
@@ -251,6 +261,7 @@ var ArcadeJS = Class.extend(
 		this.viewportOrg = null;
 		/** Realized viewport (adjusted according to map mode).*/
 		this.viewport = null;
+		/** Viewport map mode ('none', 'extend', 'trim', 'stretch').*/
 		this.viewportMapMode = "none";
 		this.debug("game.init()");
 		this._realizeViewport();
@@ -264,7 +275,7 @@ var ArcadeJS = Class.extend(
 		this.dragListeners = [];
 		this._draggedObjects = [];
 		this.typeMap = {};
-		this.downKeyCodes = [];
+//		this.downKeyCodes = [];
 		this._activity = "idle";
 
 		/**Current time in ticks*/
@@ -291,9 +302,24 @@ var ArcadeJS = Class.extend(
 		this._timeout = null;
 //		this._timoutCallback = null;
 
-		this.clickPos = undefined;
+		/**True if the left mouse button is down. */
+		this.leftButtonDown = undefined;
+		/**True if the middle mouse button is down. */
+		this.middleButtonDown = undefined;
+		/**True if then right mouse button is down. */
+		this.rightButtonDown = undefined;
+		/**Current mouse position in World Coordinates. */
 		this.mousePos = undefined;
+		/**Current mouse position in Canvas Coordinates. */
+		this.mousePosCC = undefined;
+		/**Position of last mouse click in World Coordinates. */
+		this.clickPos = undefined;
+		/**Position of last mouse click in Canvas Coordinates. */
+		this.clickPosCC = undefined;
+		/**Distance between clickPos and mousePos while dragging in World Coordinates. */
 		this.dragOffset = undefined;
+		/**Distance between clickPos and mousePos while dragging in Canvas Coordinates. */
+		this.dragOffsetCC = undefined;
 		this.keyCode = undefined;
 		this.key = undefined;
 		this.downKeyCodes = [];
@@ -794,7 +820,8 @@ var ArcadeJS = Class.extend(
 		if(this.opts.debug.logToCanvas){
 			ctx.save();
 			ctx.font = "12px sans-serif";
-			var x = 10, y = this.canvas.height-15;
+			var x = 10, 
+				y = this.canvas.height - 15;
 			for(var i=this._logBuffer.length-1; i>0; i--){
 				ctx.fillText(this._logBuffer[i], x, y);
 				y -= 15;
@@ -831,6 +858,7 @@ var ArcadeJS = Class.extend(
 			ctx.fillText(infoList.join(", "), 10, this.canvas.height - 5);
 			ctx.restore();
 		}
+		// Let derived class draw overlays in CC
 		if(this.postDrawCC){
 			this.postDrawCC(ctx);
 		}

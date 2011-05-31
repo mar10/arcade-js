@@ -708,7 +708,7 @@ var ArcadeJS = Class.extend(
 			.translate(-vpa.x, -vpa.y)
 			.scale(ccWidth/vpa.width, -ccHeight/vpa.height)
 			.translate(0, ccHeight)
-//			.translate(-this.canvasArea.x, -this.canvasArea.y)
+			.translate(this.canvasArea.x, this.canvasArea.y)
 			;
 //		this.debug("wc2cc: %s", this.wc2cc);
 		this.cc2wc = this.wc2cc.copy().invert();
@@ -802,7 +802,7 @@ var ArcadeJS = Class.extend(
 //				    ctx.stroke();
 					ctx.clip();
 				}
-				ctx.translate(cca.x, cca.y);
+//				ctx.translate(cca.x, cca.y);
 			}
 			ctx.transformMatrix3(this.wc2cc);
 			ctx.lineWidth = this.onePixelWC;
@@ -1518,8 +1518,9 @@ var Movable = Class.extend(
 //        this.tran = new BiTran2();.translate();
 	},
 	toString: function() {
+		var DEGS = String.fromCharCode(176);
 		return "Movable<"+this.type+"> '" + this.id + "' @ "
-			+ this.pos.toString(4) + " " + (this.orientation * LinaJS.R2D).toFixed(0) + "°"
+			+ this.pos.toString(4) + " " + (this.orientation * LinaJS.R2D).toFixed(0) + DEGS
 			+ " acivity: '" + this._activity + "'";
 	},
 	/**Return current activity.

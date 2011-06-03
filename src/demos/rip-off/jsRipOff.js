@@ -640,6 +640,7 @@ var Bandit = Movable.extend({
 				// Reached a canister: attach and run home
 				this.canister = target;
 				var targetPos = new Point2(this.pos.x + LinaJS.random(-100, 100), -50);
+				// flee to bottom if this is nearer
 				if(this.pos.y > 240){ 
 					targetPos.y = 530;
 				}

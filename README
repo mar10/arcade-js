@@ -11,9 +11,9 @@
   Web Site          http://wwWendt.de/jsripoff 
 
   
-Arcade.js is ...
+Arcade.js is a 2d game engine based on JavaScript and HTML5 Canvas.
   
-  Part of the distribution is
+Part of the distribution is
   
   - lina.js
     An independent object oriented library for points, vectors, and homogeneous 
@@ -22,7 +22,7 @@ Arcade.js is ...
   - arcade.js
     A 2D game engine that provides a render loop and support for multiple
     moving objects. 
-  - Rip-off clone
+  - Demos, for example Rip-off:
     A port of the Rip-Off arcade game written by Tim Skelly / Cinematronix in 
     1980.
 

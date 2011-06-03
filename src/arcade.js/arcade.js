@@ -1066,9 +1066,10 @@ var ArcadeJS = Class.extend(
 		} else if(object1.hidden || object2.hidden || object1._dead || object2._dead ) {
 			return false;
 		}
-		var id1 = ""+object1.id, id2 = ""+object2.id;
-		var tag = (id1 < id2) ? id1 + "~" + id2 : id2 + "~" + id1;
-		var cc = this.frameCache.collisionCache;
+		var id1 = ""+object1.id, 
+			id2 = ""+object2.id,
+			tag = (id1 < id2) ? id1 + "~" + id2 : id2 + "~" + id1,
+			cc = this.frameCache.collisionCache;
 		// This pair was already checked
 		if( cc[tag] ) {
 			return false;
@@ -1492,8 +1493,9 @@ var Movable = Class.extend(
 		// Set options
 		this.opts = $.extend(true, {}, Movable.defaultOptions, opts);
 		// TODO: required?
-		if(opts)
+		if(opts){
 			this.opts.debug = $.extend({}, Movable.defaultOptions.debug, opts.debug);
+		}
 		opts = this.opts;
 		// Copy some options as direct attributes
 		this.pos = opts.pos ? new Point2(opts.pos) : new Point2(0, 0);
@@ -1511,7 +1513,9 @@ var Movable = Class.extend(
 		/**Defines, what happens when object leaves the viewport to the left or right.
 		 * Values: ('none', 'wrap', 'stop', 'bounce')*/
 		this.clipModeX = opts.clipModeX || "none";
-		/**@See clipModeX*/
+		/**Defines, what happens when object leaves the viewport to the left or right.
+		 * @See clipModeX
+		 * */
 		this.clipModeY = opts.clipModeY || "none";
 		this._timeout = null; //+opts.timeout;
 

@@ -69,7 +69,7 @@
 			}
 			return true;
 		};
-		game.onResize = function(e, width, height){
+		game.onResize = function(width, height, e){
 			game.debug("game.onResize(" + width + ", " + height + ")");
 			// Adjust controls that are relative to right or bottom border
 			stick.pos = new Point2(60, height - 60);

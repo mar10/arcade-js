@@ -113,29 +113,29 @@ var pgBandit10 = new Polygon2([
 	 2,  3,
 	 0,  -4,
 	 -2, 3
-	
+
 ]).transform(LinaJS.scale33(-3.0));
 
 var pgBandit20 = new Polygon2([
-  	 0, -5,
-  	 0.25, -2,
-  	 4,  6,
-  	 3.75, -2,
-  	 3.75,  -1,
-  	 3, -1,
-  	 1,  3,
-  	 1,  0,
-  	 0.25, -2,
-  	 0, -5,
-  	 -0.25, -2,
-  	 -4, 6,
-  	 -3.75, -2,
-  	 -3.75, -1,
-  	 -3, -1,
-  	 -1, 4,
-  	 -1, 0,
-  	 -0.25, -2,
-  	 0, -5
+	 0, -5,
+	 0.25, -2,
+	 4,  6,
+	 3.75, -2,
+	 3.75,  -1,
+	 3, -1,
+	 1,  3,
+	 1,  0,
+	 0.25, -2,
+	 0, -5,
+	 -0.25, -2,
+	 -4, 6,
+	 -3.75, -2,
+	 -3.75, -1,
+	 -3, -1,
+	 -1, 4,
+	 -1, 0,
+	 -0.25, -2,
+	 0, -5
   ]).transform(LinaJS.scale33(-2.5));
 
 var pgBandit30 = new Polygon2([
@@ -149,21 +149,21 @@ var pgBandit30 = new Polygon2([
 ]).transform(LinaJS.scale33(4.0));
 
 var pgBandit40 = new Polygon2([
-  	 0, -3,
-  	 4, 3,
-  	 2, 6,
-  	 3, 3,
-  	 1.5, 0,
-  	 -1.5, 0,
-  	 -3, 3,
-  	 -2, 6,
-  	 -4, 3,
-  	 0, -3,
-  	 1, 0,
-  	 2, 3,
-  	 -2, 3,
-  	 -1, 0,
-  	 0, -3
+	 0, -3,
+	 4, 3,
+	 2, 6,
+	 3, 3,
+	 1.5, 0,
+	 -1.5, 0,
+	 -3, 3,
+	 -2, 6,
+	 -4, 3,
+	 0, -3,
+	 1, 0,
+	 2, 3,
+	 -2, 3,
+	 -1, 0,
+	 0, -3
   ]).transform(LinaJS.scale33(-3.0));
 
 var pgBandit50 = new Polygon2([
@@ -317,9 +317,9 @@ var RipOffGame = ArcadeJS.extend({
 	},
 	/**
 	 * Check if targets are still valid, and re-assign as necessary
-	 */ 
+	 */
 	_assignTargets: function(){
-		var i, canister, bandit, 
+		var i, canister, bandit,
 			bandits = this.getObjectsByType("bandit"),
 			canisters = this.getObjectsByType("canister"),
 			attachedCanisterMap = {};
@@ -483,7 +483,7 @@ var Tank = Movable.extend({
 			accel = 150,
 			decel = 100,
 			turnRate = 90 * LinaJS.D2R;
-	
+
 		// --- Handle key controls ---
 		if(this.id == "player1"){
 			// Player 1 is keyboard controlled
@@ -641,7 +641,7 @@ var Bandit = Movable.extend({
 				this.canister = target;
 				var targetPos = new Point2(this.pos.x + LinaJS.random(-100, 100), -50);
 				// flee to bottom if this is nearer
-				if(this.pos.y > 240){ 
+				if(this.pos.y > 240){
 					targetPos.y = 530;
 				}
 				this.target = {type: "home", pos: targetPos};

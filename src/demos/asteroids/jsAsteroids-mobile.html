@@ -23,36 +23,35 @@
 
 	<script type="text/javascript">
 
-    var MobileAsteroidsGame = AsteroidsGame.extend({
-        init: function(canvas, opts) {
-            // Call parent constructor
-            this._super(canvas, opts);
-//            canvas = this.canvas; // Maybe we converted element ID to canvas
-            // Add iPod extensions
-            this.stick = this.addObject(new TouchStick({
-                id: "stick",
-                r1: 10,
-                r2: 30,
-                r3: 60,
-                onResize: function(width, height){
-                    this.pos.x = 60;
-                    this.pos.y = height - 60;
-                }
-            }));
-            this.button = this.addObject(new TouchButton({
-                id: "button",
-                r: 20,
-                r3: 40,
-                onResize: function(width, height){
-                    this.pos.x = width - 40;
-                    this.pos.y = height - 40;
-                },
-                onClick: function(){ }
-            }));
-        },
-        // --- end of class
-        lastentry: undefined
-    });
+	var MobileAsteroidsGame = AsteroidsGame.extend({
+		init: function(canvas, opts) {
+			// Call parent constructor
+			this._super(canvas, opts);
+			// Add iPod extensions
+			this.stick = this.addObject(new TouchStick({
+//              id: "stick",
+				r1: 10,
+				r2: 30,
+				r3: 60,
+				onResize: function(width, height){
+					this.pos.x = 60;
+					this.pos.y = height - 60;
+				}
+			}));
+			this.button = this.addObject(new TouchButton({
+//              id: "button",
+				r: 20,
+				r3: 40,
+				onResize: function(width, height){
+					this.pos.x = width - 40;
+					this.pos.y = height - 40;
+				},
+				onClick: function(){ }
+			}));
+		},
+		// --- end of class
+		lastentry: undefined
+	});
 	$(function(){
 		var game = new MobileAsteroidsGame("#gameCanvas", {
 			fullscreenMode: true,

@@ -29,12 +29,12 @@ function _getTouchWithId(touchList, id){
 /*----------------------------------------------------------------------------*/
 
 /**Base class for screen controls.
- * 
+ *
  * As opposed to a 'normal' Movable, this class sets pos to `undfined` and uses
  * posCC instead.
- * 
+ *
  * @class
- * @extends CanvasObject
+ * @extends Movable
  */
 
 var CanvasObject = Movable.extend(
@@ -74,7 +74,7 @@ var CanvasObject = Movable.extend(
 
 /**Button for mouse touch screen devices.
  * @class
- * @extends Movable
+ * @extends CanvasObject
  */
 
 var TouchButton = CanvasObject.extend(
@@ -181,7 +181,7 @@ var TouchButton = CanvasObject.extend(
 
 /**Joystick emulation for mouse and touch screen devices.
  * @class
- * @extends Movable
+ * @extends CanvasObject
  */
 var TouchStick = CanvasObject.extend(
 /** @lends TouchStick.prototype */

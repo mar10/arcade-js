@@ -742,7 +742,7 @@ Vec2.prototype = {
 	angleTo: function(v2){
 //		return Math.acos(this.dot(v2) /  (this.length() * Math.sqrt(v2.dx * v2.dx + v2.dy * v2.dy)));
 //		return Math.asin(this.cross(v2) /  (this.length() * Math.sqrt(v2.dx * v2.dx + v2.dy * v2.dy)));
-		return Math.atan2(v2.dy, v2.dx) - Math.atan2(this.dy, this.dx); 
+		return Math.atan2(v2.dy, v2.dx) - Math.atan2(this.dy, this.dx);
 	},
 	/**Set the angle (in-place, relative to positive x axis).
 	   @returns {Vec2}
@@ -1429,22 +1429,22 @@ Polygon2.prototype = {
 		alert("Not implemented: Polygon2.intersects()");
 		return false;
 	},
-	/** Find index of point with minimmum y coord (and minimum x, if multiple 
+	/** Find index of point with minimmum y coord (and minimum x, if multiple
 	 *  matches found).
 	 */
-    indexOfLowestPoint: function() {
-    	var iMin = 0,
-    		xy = this.xyList,
+	indexOfLowestPoint: function() {
+		var iMin = 0,
+			xy = this.xyList,
 			len = xy.length,
-    		xyMin = this.getXY(0);
+			xyMin = this.getXY(0);
 		for(var i=2; i<len-1; i+=2){
 			if(xy[i+1] < xyMin.y || (xy[i+1] === xyMin.y && xy[i] < xyMin.x)){
 				iMin = i / 2;
-				xyMin = this.getXY(iMin); 
+				xyMin = this.getXY(iMin);
 			}
 		}
 		return iMin;
-    },
+	},
 	/**Return polygon point nearest to pt.
 	 * @param {Point2} pt
 	 * @param {Vec2} cullingVector (optional) If we pass a velocity vector here,
@@ -1725,58 +1725,58 @@ Polygon2.prototype = {
 		return 0;
 	},
 	/** Return a new polygon that connects the extreme points of this polygon.
-	 * 
+	 *
 	 * The result will be convex, non-intersecting.
 	 * This bounding polygon has typically less points, and my be used for faster
 	 * collision testing.
 	 * This polygon is treated as unconnected point cloud, so it is possible to
-	 * get a bounding polygon of multiple objects like this: 
+	 * get a bounding polygon of multiple objects like this:
 	 * @example
 	 * var pgHull = pg1.copy().append(pg2).append(pg3).getConvexHull();
 	 */
 	getConvexHull: function() {
-		// Do the Jarvis-March: 
+		// Do the Jarvis-March:
 		// http://www.inf.fh-flensburg.de/lang/algorithmen/geo/jarvis.htm
 		var pg = this.getUniquePoints(LinaJS.eps),
 			xy = pg.xyList,
-			i, 
+			i,
 			h = 0;
 		if( pg.count() <= 3 ){
 			return pg;
 		}
 //		window.console.log("PG: ", this);
 //		window.console.log("PG unique: ", pg);
-	    var _indexOfRightmostPointFrom = function(idx){
-	    	// Check 
-	        var pt0 = pg.getPoint(idx),
-	        	v0 = (idx === 0) ? new Vec2(1, 0) : pg.getPoint(idx-1).vectorTo(pt0),
-	        	n = pg.count(),
-	        	nLast = (idx === 0) ? n : n + 1,
-	        	iBest = -1,
-	        	lBest = 0,
-	        	aBest = 1000,
-	        	pt, a, l, i;
+		var _indexOfRightmostPointFrom = function(idx){
+			// Check
+			var pt0 = pg.getPoint(idx),
+				v0 = (idx === 0) ? new Vec2(1, 0) : pg.getPoint(idx-1).vectorTo(pt0),
+				n = pg.count(),
+				nLast = (idx === 0) ? n : n + 1,
+				iBest = -1,
+				lBest = 0,
+				aBest = 1000,
+				pt, a, l, i;
 //			window.console.log("indexOfRightmostPointFrom(" + idx + ") -> " + pt0.toString(1));
 //			window.console.log("    v0:" + v0);
 
 			for(i=idx+1; i<nLast; i++){
 				pt =  pg.getPoint(i % n);
-	        	v = pt0.vectorTo(pt);
-	        	a = LinaJS.normAngle(v0.angleTo(v));
-	        	l = v.length();
+				v = pt0.vectorTo(pt);
+				a = LinaJS.normAngle(v0.angleTo(v));
+				l = v.length();
 //				window.console.log("    vectorTo #" + i + " -> " + pt.toString(1) + ", v=" + v.toString(1) + ": " + a*LinaJS.R2D, "° l=", l);
-	        	if(l > LinaJS.EPS && (a < aBest || (a === aBest && l > lBest))){
+				if(l > LinaJS.EPS && (a < aBest || (a === aBest && l > lBest))){
 //					window.console.log("    -> is best!");
-	        		iBest = i % n;
-	        		aBest = a;
-	        		lBest = l;
-	        	}
-	        }
+					iBest = i % n;
+					aBest = a;
+					lBest = l;
+				}
+			}
 //			window.console.log("iBest=", iBest);
-	        return iBest;
-	    };
-	    // The lowest point must be member of the convex hull, so we make it
-	    // start (and end) point
+			return iBest;
+		};
+		// The lowest point must be member of the convex hull, so we make it
+		// start (and end) point
 		i = this.indexOfLowestPoint();
 //		window.console.log("lowest idx=" + i + ", pg:", pg.toString(1));
 		do{

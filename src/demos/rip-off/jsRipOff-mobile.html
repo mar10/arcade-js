@@ -47,7 +47,7 @@
 			r3: 40,
 			onClick: function(){ }
 		}));
-		game.onResize = function(e, width, height){
+		game.onResize = function(width, height, e){
 			// Adjust controls that are relative to right or bottom border
 			game.stick.pos = new Point2(60, height - 60);
 			game.button.pos = new Point2(width - 40, height - 40);

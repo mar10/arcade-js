@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>ArcadeJS - Benchmark (Rip-Off, 640x480)</title>
+
+    <script src="../../depends/jquery.js" type="text/javascript"></script>
+    <script src="../../lina.js/lina.js" type="text/javascript"></script>
+    <script src="../../arcade.js/arcade.js" type="text/javascript"></script>
+    <script src="../../arcade.js/arcade-controls.js" type="text/javascript"></script>
+<!-- 
+    <script src="../quirks/jsQuirks.js" type="text/javascript"></script>
+-->
+    <script src="../rip-off/jsRipOff.js" type="text/javascript"></script>
+
+    <!-- Safari/iPhone: Display web content in full-screen mode -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <!-- Safari/iPhone: Hide status bar (requires full-screen mode) -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <!-- Safari/iPhone: Set fixed viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;">
+    <!-- Safari/iPhone: Define App icon -->
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <!-- Safari/iPhone: Define startup icon -->
+    <link rel="apple-touch-startup-image" href="startup.png">
+
+    <script type="text/javascript">
+
+//    var BenchGame = QuirksGame.extend({
+    var BenchGame = RipOffGame.extend({
+        init: function(canvas, opts) {
+            // Call parent constructor
+            this._super(canvas, opts);
+
+//            this.quirk.color = "red";
+            this.startFrame = 30;
+            this.numFrames = 1000;
+            this.startTime = 0; 
+            this.stopTime = 0; 
+
+            // Add iPod extensions
+            this.btn1 = this.addObject(new TouchButton({
+                r: 20,
+                onResize: function(width, height){
+                    this.pos = new Point2(width-40, height - 40);
+                },
+                onClick: function(){
+                    var game = this.game, 
+                        quirk = game.quirk;
+                    game.thrustSound.play();
+                    if(quirk.color == "red"){
+                        quirk.color = "green";
+                    }else{
+                        quirk.color = "red";
+                    }
+                }
+            }));
+        },
+        preStep: function(){
+            if(this.frameCount === this.startFrame){
+//                this.quirk.color = "yellow";
+                this.startTime = this.time;
+            }else if(this.frameCount === this.numFrames + this.startFrame){
+                var elap = .001 * (this.time - this.startTime),
+                    res = "" + this.numFrames + " frames in " + elap + "sec -> "
+                          + Math.round(this.numFrames / elap) +" frames/sec";
+                this.stopLoop();
+                this.debug(res);
+                alert(res);
+        	}
+        },
+        // --- end of class
+        lastentry: undefined
+    });
+    $(function(){
+        var game = new BenchGame("#gameCanvas", {
+            fps: 1000,
+            debug: {
+                showFps: true,
+                logToCanvas: false
+            }
+            });
+    });
+    </script>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+}
+body, html {
+    width: 100%;
+    height: 100%;
+}
+#gameCanvas {
+    width: 640px;
+    height: 480px;
+}
+</style>
+</head>
+
+<body>
+    <canvas id="gameCanvas" class="arcade-js">This game requires HTML 5 support.</canvas>
+<table width="100%">
+  <colgroup>
+  <col width="100px" valign="top" align="left">
+  <col width="120px">
+  <col width="120px">
+  <col width="120px">
+  <col width="120px">
+  <col width="*">
+  </colgroup>
+  <tr>
+    <th>Date</th>
+    <th>Firefox</th>
+    <th>IE 9</th>
+    <th>Safari</th>
+    <th>Chrome</th>
+    <th>Remarks</th>
+  </tr>
+  <tr>
+    <td>2011-05-05</td>
+    <td>53fps (v4.0.1)</td>
+    <td>60fps (v9.0.8112)</td>
+    <td>70fps (v5.0.5)</td>
+    <td>97fps (v11.0.696)</td>
+    <td>Athlon 5000, DualCore 2,6@MHz, 3GB RAM, 32bit-Vista</td>
+  </tr>
+</table>
+</body>
+</html>

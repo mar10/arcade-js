@@ -119,7 +119,8 @@ var TouchButton = CanvasObject.extend(
 		this.down = this.clicked = false;
 	},
 	onTouchevent: function(e, orgEvent) {
-		var touch = null;
+		var touch = null,
+			game = this.game;
 		if(this.touchDownId){
 			touch = _getTouchWithId(orgEvent.changedTouches, this.touchDownId);
 		}else if(e.type == "touchstart" && orgEvent.changedTouches.length == 1) {
@@ -133,15 +134,15 @@ var TouchButton = CanvasObject.extend(
 		orgEvent.preventDefault();
 
 		var touchPos = new Point2(
-			touch.pageX - this.game.canvas.offsetLeft,
-			touch.pageY - this.game.canvas.offsetTop);
+			touch.pageX - game.canvas.offsetLeft,
+			touch.pageY - game.canvas.offsetTop);
 		var isInside = this.containsCC(touchPos);
 
 		// TODO: seems that we get touchend for both fingers, even if only the other
 		// finger was lifted!
 		// http://stackoverflow.com/questions/3695128/webkit-iphone-ipad-issue-with-mutl-touch
 //		if(e.type!="touchmove"){
-//			this.game.debug("button " + e.type + " - isInside: " + isInside + ", drag: " + this.touchDragOffset + ", id=" + touch.identifier);
+//			game.debug("button " + e.type + " - isInside: " + isInside + ", drag: " + this.touchDragOffset + ", id=" + touch.identifier);
 //		}
 
 		switch (e.type) {
@@ -245,7 +246,8 @@ var TouchStick = CanvasObject.extend(
 	onTouchevent: function(e, orgEvent) {
 		// http://developer.apple.com/safari/library/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW1
 		// http://www.sitepen.com/blog/2008/07/10/touching-and-gesturing-on-the-iphone/
-		var touch = null;
+		var touch = null,
+			game = this.game;
 		if(this.touchDownId){
 			touch = _getTouchWithId(orgEvent.changedTouches, this.touchDownId);
 		}else if(e.type == "touchstart" && orgEvent.changedTouches.length == 1) {
@@ -260,10 +262,10 @@ var TouchStick = CanvasObject.extend(
 		orgEvent.preventDefault();
 
 		var touchPos = new Point2(
-			touch.pageX - this.game.canvas.offsetLeft,
-			touch.pageY - this.game.canvas.offsetTop);
+			touch.pageX - game.canvas.offsetLeft,
+			touch.pageY - game.canvas.offsetTop);
 //		if(e.type!="touchmove"){
-//			this.game.debug("stick " + e.type + " - isInside: " + this.contains(touchPos) + ", drag: " + this.touchDragOffset + ", id=" + touch.identifier);
+//			game.debug("stick " + e.type + " - isInside: " + this.contains(touchPos) + ", drag: " + this.touchDragOffset + ", id=" + touch.identifier);
 //		}
 		// TODO: seems that we get touchend for both fingers, even if only the other
 		// finger was lifted!
@@ -303,6 +305,118 @@ var TouchStick = CanvasObject.extend(
 	/**Return deflection vector with length [0..r2]. */
 	getDeflection: function() {
 		return this.isActive() ? this.touchDragOffset.copy().normalize() : 0;
+	},
+	/**Called when button was clicked (i.e. pushed and released). */
+	onClick: undefined,
+	// --- end of class
+	__lastentry: undefined
+});
+
+/**Text area with click event.
+ * @class
+ * @extends CanvasObject
+ */
+
+var TouchArea = CanvasObject.extend(
+/** @lends TouchArea.prototype */
+{
+	init: function(opts) {
+		this._super("touchArea", $.extend({
+			width: 20,
+			height: 40,
+			text: "Ok\nsoweit?",
+			border: true,
+			onResize: function(width, height){
+				this.textWidth = this.game.context.measureText(this.text).width;
+				this.textHeight = this.game.context.measureText("M").width;
+				this.box = {
+						top: 0.5 * (height - this.textHeight) - this.padding,
+						left: 0.5 * (width - this.textWidth) - this.padding,
+						width: this.textWidth + 2 *  this.padding,
+						height: this.textHeight + 2 *  this.padding
+						};
+				this.pos.set(this.box.left + this.padding, this.box.top + this.padding + this.textHeight);
+			},
+			padding: 5
+//			onClick: function() { alert("onClick is mandatory"); }
+		}, opts));
+		// Copy selected options as object attributes
+		ArcadeJS.extendAttributes(this, this.opts, "width height padding text onClick");
+		this.touchDownId = null;
+		this.clicked = false;
+		this.down = false;
+	},
+	containsCC: function(ptCC) {
+		var box = this.box;
+		return ptCC.x >= box.left && ptCC.x <= box.left + box.width
+			ptCC.y >= box.top && ptCC.y <= box.top + box.height;
+	},
+	render: function(ctx) {
+		ctx.save();
+		ctx.resetTransform(); // TODO: why is this required?
+		var box = this.box;
+		ctx.strokeRect(box.left, box.top, box.width, box.height);
+		ctx.strokeText(this.text, this.pos.x, this.pos.y);
+		ctx.restore();
+	},
+	onMousedown: function(e) {
+		this.down = this.clicked = this.containsCC(this.game.mousePosCC);
+	},
+	onMousemove: function(e) {
+		this.down = this.clicked && this.containsCC(this.game.mousePosCC);
+	},
+	onMouseup: function(e) {
+		if(this.clicked && this.containsCC(this.game.mousePosCC)){
+			this.onClick.call(this);
+		}
+		this.down = this.clicked = false;
+	},
+	onTouchevent: function(e, orgEvent) {
+		var touch = null,
+			game = this.game;
+		if(this.touchDownId){
+			touch = _getTouchWithId(orgEvent.changedTouches, this.touchDownId);
+		}else if(e.type == "touchstart" && orgEvent.changedTouches.length == 1) {
+			touch =  orgEvent.changedTouches[0];
+		}
+		// Ignore event, if touch identifier is different from start event
+		if(!touch){
+			return;
+		}
+		// Otherwise, prevent default handling
+		orgEvent.preventDefault();
+
+		var touchPos = new Point2(
+			touch.pageX - game.canvas.offsetLeft,
+			touch.pageY - game.canvas.offsetTop);
+		var isInside = this.containsCC(touchPos);
+
+		switch (e.type) {
+		case "touchstart":
+		case "touchmove":
+			this.down = isInside;
+			if(isInside){
+				this.touchDownId = touch.identifier;
+			}
+			break;
+		case "touchend":
+			if(this.down && isInside){
+				this.onClick.call(this);
+			}
+			this.touchDownId = null;
+			this.down = false;
+			break;
+		case "touchcancel":
+			this.touchDownId = null;
+			this.down = false;
+			break;
+		default:
+			alert("not handled " + e.type);
+		}
+	},
+	/**Return true if button is down (but mouse key is also still down). */
+	isDown: function() {
+		return this.down === true;
 	},
 	/**Called when button was clicked (i.e. pushed and released). */
 	onClick: undefined,

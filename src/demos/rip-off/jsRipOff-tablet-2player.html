@@ -31,17 +31,17 @@
 			this._super(canvas, opts);
 			canvas = this.canvas; // Maybe we converted element ID to canvas
 			// Add iPad touch controls
-/*
-			this.stick = this.addObject(new TouchStick({
-				id: "stick",
-				pos: new Point2(60, canvas.height - 60),
+			this.stick1 = this.addObject(new TouchStick({
+				isBackground: false,
 				r1: 10,
 				r2: 30,
-				r3: 60
+				r3: 60,
+				onResize: function(width, height){
+					this.pos.x = width - 60;
+					this.pos.y = height - 60;
+				}
 			}));
-			*/
 			this.button1 = this.addObject(new TouchButton({
-				id: "button1",
 				isBackground: false,
 				r: 20,
 				r3: 40,
@@ -49,10 +49,19 @@
 					this.pos.x = 30;
 					this.pos.y = height - 30;
 				},
-				onClick: function(){ alert("fire 1"); }
+				onClick: function(){ this.game.getObjectById("player1").fire(); }
+			}));
+			this.stick2 = this.addObject(new TouchStick({
+				isBackground: false,
+				r1: 10,
+				r2: 30,
+				r3: 60,
+				onResize: function(width, height){
+					this.pos.x = 60;
+					this.pos.y = 60;
+				}
 			}));
 			this.button2 = this.addObject(new TouchButton({
-				id: "button2",
 				isBackground: false,
 				r: 20,
 				r3: 40,
@@ -60,27 +69,28 @@
 					this.pos.x = width - 30;
 					this.pos.y = 30;
 				},
-				onClick: function(){ alert("fire 2"); }
+				onClick: function(){ this.game.getObjectById("player2").fire(); }
+			}));
+			this.textArea = this.addObject(new TouchArea({
+				isBackground: false,
+				onClick: function(){ alert("click"); }
 			}));
 		},
-		/**Adjust controls that are relative to right or bottom border
-		 */
 		onResize: function(width, height){
 			// Adjust usable canvas area to lower half and enable clipping
 			this.setCanvasArea(0, 0.5*height, width, 0.5*height, true);
 			// true: Let ArcadeGame adjust canvas size to new dimensions
 			return true;
 		},
-		/** Draw a flipped copy of the lower canvas part into to the upper
-		 *  canvas half.
-		 */
 		postDrawCC: function(ctx){
+			// Draw a flipped copy of the lower canvas part into to the upper
+			// canvas half.
 			var cca = this.canvasArea;
 			ctx.save();
 			ctx.rotate(Math.PI);
 			ctx.drawImage(ctx.canvas, -cca.width, -2*cca.height);
 			ctx.restore();
-			// divider bar
+			// Draw divider bar
 			ctx.save();
 			ctx.fillStyle = "#444";
 			ctx.fillRect(0, cca.height - 3, cca.width, 6);

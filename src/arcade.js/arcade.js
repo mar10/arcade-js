@@ -1024,6 +1024,12 @@ var ArcadeJS = Class.extend(
 		this._purging = false;
 		return true;
 	},
+	/**Return objects with a given ID or null.
+	 * @param: {string} id
+	 */
+	getObjectById: function(id) {
+		return this.idMap[id] || null;
+	},
 	/**Return an array of objects with a given type (array may be empty).
 	 * @param: {string} type (separate multiple types with a space)
 	 */

@@ -225,7 +225,7 @@ var ArcadeJS = Class.extend(
 		// TODO: required?
 		this.opts.debug = $.extend({}, ArcadeJS.defaultGameOptions.debug, opts.debug);
 		// Copy selected options as object attributes
-		ArcadeJS.extendAttributes(this, this.opts, 
+		ArcadeJS.extendAttributes(this, this.opts,
 			"name fps resizeMode fullscreenMode fullscreenMargin timeCorrection");
 
 		this._logBuffer = [];
@@ -255,7 +255,7 @@ var ArcadeJS = Class.extend(
 		this.context.fillStyle = this.opts.fillStyle;
 
 		/** Usable canvas area (defaults to full extent) */
-		this.canvasArea = null; 
+		this.canvasArea = null;
 		this.resetCanvasArea();
 
 		/** Requested viewport */
@@ -527,12 +527,12 @@ var ArcadeJS = Class.extend(
 		return "ArcadeJS<" + this.name + ">";
 	},
 	/**Enable debug output
-	 * 
+	 *
 	 */
 	setDebug: function(flag){
 		flag = !!flag;
 		var d = this.opts.debug;
-		d.showActivity = d.showKeys = d.showObjects = d.showMouse 
+		d.showActivity = d.showKeys = d.showObjects = d.showMouse
 		= d.showVelocity = d.showBCircle = flag;
 	},
 	/**Output string to console.
@@ -617,10 +617,10 @@ var ArcadeJS = Class.extend(
 		return timeout.id;
 	},
 	/**Define the usable part of the canvas.
-	 * 
+	 *
 	 * If set, the viewport is projected into this region.
 	 * This method should be called on startup and onResize.
-	 * 
+	 *
 	 * @param {float} x upper left corner in canvas coordinates
 	 * @param {float} y upper left corner in canvas coordinates
 	 * @param {float} width in canvas coordinates
@@ -629,8 +629,8 @@ var ArcadeJS = Class.extend(
 	 */
 	setCanvasArea: function(x, y, width, height, clip) {
 		clip = (clip !== false);
-		this.canvasArea = {x: x, y: y, 
-				width: width, height: height, 
+		this.canvasArea = {x: x, y: y,
+				width: width, height: height,
 				clip: !!clip};
 		this._customCanvasArea = true;
 		this.debug("setCanvasArea: %o", this.canvasArea);
@@ -640,9 +640,9 @@ var ArcadeJS = Class.extend(
 	 */
 	resetCanvasArea: function() {
 		var $canvas = $(this.canvas);
-		this.canvasArea = {x: 0, y: 0, 
-			width: $canvas.width(), height: $canvas.height(), 
-//			width: this.canvas.width, height: this.canvas.height, 
+		this.canvasArea = {x: 0, y: 0,
+			width: $canvas.width(), height: $canvas.height(),
+//			width: this.canvas.width, height: this.canvas.height,
 			clip: false};
 		this.debug("resetCanvasArea: %o", this.canvasArea);
 		this._customCanvasArea = false;
@@ -811,7 +811,7 @@ var ArcadeJS = Class.extend(
 			ol, i, o;
 
 		ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-		// Draw background canvas objects 
+		// Draw background canvas objects
 		ol = this.canvasObjects;
 		for(i=0, l=ol.length; i<l; i++){
 			o = ol[i];
@@ -823,7 +823,7 @@ var ArcadeJS = Class.extend(
 		ctx.save();
 		try{
 			if(this._customCanvasArea){
-				var cca = this.canvasArea; 
+				var cca = this.canvasArea;
 				if(cca.clip){
 					ctx.beginPath();
 					ctx.rect(cca.x, cca.y, cca.width, cca.height);
@@ -861,7 +861,7 @@ var ArcadeJS = Class.extend(
 		if(this.opts.debug.logToCanvas){
 			ctx.save();
 			ctx.font = "12px sans-serif";
-			var x = 10, 
+			var x = 10,
 				y = this.canvas.height - 15;
 			for(var i=this._logBuffer.length-1; i>0; i--){
 				ctx.fillText(this._logBuffer[i], x, y);
@@ -903,7 +903,7 @@ var ArcadeJS = Class.extend(
 		if(this.postDrawCC){
 			this.postDrawCC(ctx);
 		}
-		// Draw foreground canvas objects 
+		// Draw foreground canvas objects
 		ol = this.canvasObjects;
 		for(i=0, l=ol.length; i<l; i++){
 			o = ol[i];
@@ -961,7 +961,7 @@ var ArcadeJS = Class.extend(
 //			this.objects.push(o);
 		}
 		this.idMap[o.id] = o;
-		
+
 		if( typeof o.onKeydown === "function"
 			|| typeof o.onKeypress === "function"
 			|| typeof o.onKeyup === "function") {
@@ -1112,7 +1112,7 @@ var ArcadeJS = Class.extend(
 		} else if(object1.hidden || object2.hidden || object1._dead || object2._dead ) {
 			return false;
 		}
-		var id1 = ""+object1.id, 
+		var id1 = ""+object1.id,
 			id2 = ""+object2.id,
 			tag = (id1 < id2) ? id1 + "~" + id2 : id2 + "~" + id1,
 			cc = this.frameCache.collisionCache;
@@ -1578,7 +1578,7 @@ var Movable = Class.extend(
 		this.useCC = !!opts.useCC;
 		/**Object position in World Coordinates (center of mass).*/
 		this.pos = opts.pos ? new Point2(opts.pos) : new Point2(0, 0);
-/*		
+/*
 		if(this.useCC){
 			if( opts.pos ){ throw("'pos' is not allowed with useCC mode."); }
 			if( !opts.posCC ){ throw("Missing required option: 'posCC'."); }
@@ -1679,7 +1679,7 @@ var Movable = Class.extend(
 	 */
 	_updateTransformations: function() {
 		// TODO: Use negative orientation??
-		// Otherwise ctx.tran_redraw 
+		// Otherwise ctx.tran_redraw
 //		this.mc2wc = new Matrix3().scale(this.scale).rotate(this.orientation).translate(this.pos.x, this.pos.y);
 		this.mc2wc = new Matrix3().scale(this.scale).rotate(-this.orientation).translate(this.pos.x, this.pos.y);
 		this.wc2mc = this.mc2wc.copy().invert();
@@ -1778,9 +1778,9 @@ var Movable = Class.extend(
 			// orientation in _updateTransformations():
 			//   this.mc2wc = new Matrix3().scale(this.scale).rotate(-this.orientation).translate(this.pos.x, this.pos.y);
 			ctx.transformMatrix3(this.mc2wc);
-			// This also works (note that we apply a positive orientaion here, 
+			// This also works (note that we apply a positive orientaion here,
 			// and the order is differnt from mc2wc:
-/* 
+/*
 			ctx.translate(this.pos.x, this.pos.y);
 			if( this.scale && this.scale != 1.0 ){
 				ctx.scale(this.scale, this.scale);

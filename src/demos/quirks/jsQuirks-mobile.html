@@ -23,60 +23,66 @@
 
 	<script type="text/javascript">
 
+	var MobileQuirksGame = QuirksGame.extend({
+		init: function(canvas, opts) {
+			// Call parent constructor
+			this._super(canvas, opts);
+
+			this.thrustSound = new AudioJS("thrust.wav");
+
+			// Add iPod extensions
+			this.stick = this.addObject(new TouchStick({
+				r1: 10,
+				r2: 30,
+				onResize: function(width, height){
+					this.pos = new Point2(60, height - 60);
+				}
+			}));
+			this.btn1 = this.addObject(new TouchButton({
+				r: 20,
+				onResize: function(width, height){
+					this.pos = new Point2(width-40, height - 40);
+				},
+				onClick: function(){
+					var game = this.game,
+						quirk = game.quirk;
+					game.thrustSound.play();
+					if(quirk.color == "red"){
+						quirk.color = "green";
+					}else{
+						quirk.color = "red";
+					}
+				}
+			}));
+		},
+		preStep: function(){
+			var dx = -this.stick.getY();
+			if(dx) {
+				var f = 1 + (dx / 10); // [0.9 .. 1.1]
+				if( f > 1 || this.quirk.velocity1.length() > 1){
+					this.quirk.velocity1.scale(f).limit(500);
+				}
+				if( f > 1 || this.quirk.velocity2.length() > 1){
+					this.quirk.velocity2.scale(f).limit(500);
+				}
+			}
+			var dy = this.stick.getX();
+			if((dy < 0 && this.quirk.maxLines > 2) || (dy > 0 && this.quirk.maxLines < 150)){
+				this.quirk.maxLines += dy;
+			}
+			return true;
+		},
+		// --- end of class
+		lastentry: undefined
+	});
 	$(function(){
-		var canvas = document.getElementById("gameCanvas");
-		var game = new QuirksGame(canvas, {
+		var game = new MobileQuirksGame("#gameCanvas", {
 			fullscreenMode: true,
 			debug: {
 				showFps: true,
 				logToCanvas: false
 			}
 			});
-		// Add iPod extensions
-		var stick = game.addObject(new TouchStick({
-			pos: new Point2(60, canvas.height - 60),
-			r1: 10,
-			r2: 30
-		}));
-		var thrustSound = new AudioJS("thrust.wav");
-
-		var btn1 = game.addObject(new TouchButton({
-			pos: new Point2(canvas.width - 40, canvas.height - 40),
-			r: 20,
-			onClick: function(){
-				thrustSound.play();
-				if(this.game.quirk.color == "red"){
-					this.game.quirk.color = "green";
-				}else{
-					this.game.quirk.color = "red";
-				}
-			}
-		}));
-		game.preStep = function(){
-			var dx = -stick.getY();
-			if(dx) {
-				var f = 1 + (dx / 10); // [0.9 .. 1.1]
-				if( f > 1 || game.quirk.velocity1.length() > 1){
-					game.quirk.velocity1.scale(f).limit(500);
-				}
-				if( f > 1 || game.quirk.velocity2.length() > 1){
-					game.quirk.velocity2.scale(f).limit(500);
-				}
-			}
-			var dy = stick.getX();
-			if((dy < 0 && game.quirk.maxLines > 2) || (dy > 0 && game.quirk.maxLines < 150)){
-				game.quirk.maxLines += dy;
-			}
-			return true;
-		};
-		game.onResize = function(width, height, e){
-			game.debug("game.onResize(" + width + ", " + height + ")");
-			// Adjust controls that are relative to right or bottom border
-			stick.pos = new Point2(60, height - 60);
-			btn1.pos = new Point2(width - 40, height - 40);
-			// Let ArcadeGame adjust canvas size to new dimensions
-			return true;
-		};
 		if(window.navigator){
 			if(Math.abs(window.orientation) === 90){
 				$("body").addClass("landscape");

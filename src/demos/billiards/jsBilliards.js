@@ -249,7 +249,8 @@ var Ball = Movable.extend({
 		if(this.id != "player" || this.game.isActivity("rolling")){
 			return;
 		}
-		var touch = null;
+		var touch = null,
+			game = this.game;
 		if(this.touchDownId){
 			touch = _getTouchWithId(orgEvent.changedTouches, this.touchDownId);
 		}else if(e.type == "touchstart" && orgEvent.changedTouches.length == 1) {
@@ -263,25 +264,25 @@ var Ball = Movable.extend({
 		orgEvent.preventDefault();
 
 		var touchPos = new Point2(
-			touch.pageX - this.game.canvas.offsetLeft,
-			touch.pageY - this.game.canvas.offsetTop).transform(this.game.cc2wc);;
+			touch.pageX - game.canvas.offsetLeft,
+			touch.pageY - game.canvas.offsetTop).transform(game.cc2wc);;
 
 		switch (e.type) {
 		case "touchstart":
-			this.game.dragOffset = new Vec2(0, 0);
+			game.dragOffset = new Vec2(0, 0);
 			this.touchDownId = touch.identifier;
-			this.game.setActivity("aiming");
+			game.setActivity("aiming");
 			break;
 		case "touchmove":
 			// Drag vector is always relative to controls center
-			this.game.dragOffset = new Vec2(
+			game.dragOffset = new Vec2(
 					touchPos.x - this.pos.x,
 					touchPos.y - this.pos.y);
-//           	this.game.debug("- drag: " + this.game.dragOffset);
+//           	game.debug("- drag: " + game.dragOffset);
 			break;
 		case "touchend":
-			this.velocity = this.game.dragOffset.copy().revert().scale(this.game.velocityScale);
-			this.game.setActivity("rolling");
+			this.velocity = game.dragOffset.copy().revert().scale(game.velocityScale);
+			game.setActivity("rolling");
 			// fall through
 		case "touchcancel":
 			this.touchDownId = null;

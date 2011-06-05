@@ -482,39 +482,40 @@ var Tank = Movable.extend({
 		var maxSpeed = 150,
 			accel = 150,
 			decel = 100,
-			turnRate = 90 * LinaJS.D2R;
+			turnRate = 90 * LinaJS.D2R,
+			game = this.game;
 
 		// --- Handle key controls ---
 		if(this.id == "player1"){
 			// Player 1 is keyboard controlled
-			if(this.game.isKeyDown(32)){ // [space]
+			if(game.isKeyDown(32)){ // [space]
 				this.fire();
 			}
-			if(this.game.isKeyDown(38)){ // [up]
-				var force = LinaJS.polarToVec(this.orientation + 90*LinaJS.D2R, accel * this.game.frameDuration);
+			if(game.isKeyDown(38)){ // [up]
+				var force = LinaJS.polarToVec(this.orientation + 90*LinaJS.D2R, accel * game.frameDuration);
 				this.velocity.accelerate(force, maxSpeed);
 			}else{
-				this.velocity.accelerate(-decel * this.game.frameDuration);
+				this.velocity.accelerate(-decel * game.frameDuration);
 			}
 			if(this.game.isKeyDown(37)){ // [left]
-				this.orientation += turnRate * this.game.frameDuration;
+				this.orientation += turnRate * game.frameDuration;
 				this.velocity.setAngle(this.orientation + 90*LinaJS.D2R);
 			}else if(this.game.isKeyDown(39)){ // [right]
-				this.orientation -= turnRate * this.game.frameDuration;
+				this.orientation -= turnRate * game.frameDuration;
 				this.velocity.setAngle(this.orientation + 90*LinaJS.D2R);
 			}
 		}
-		if(!this.game.twoPlayer || this.id == "player2"){
+		if(!game.twoPlayer || this.id == "player2"){
 			// Player 2 is mouse controlled
-			if(this.game.leftButtonDown){ // left mouse button is pressed
-				driveToPosition(this, this.game.frameDuration, this.game.mousePos,
-						10, maxSpeed, turnRate, accel, decel);
+			if(game.leftButtonDown){ // left mouse button is pressed
+				driveToPosition(this, game.frameDuration, game.mousePos,
+					10, maxSpeed, turnRate, accel, decel);
 			}else{
-				this.velocity.accelerate(-decel * this.game.frameDuration);
+				this.velocity.accelerate(-decel * game.frameDuration);
 			}
-			if(this.game.rightButtonDown){ // right mouse is pressed
+			if(game.rightButtonDown){ // right mouse is pressed
 				// Turn to mouse pos and fire
-				if(turnToDirection(this, this.game.frameDuration, this.game.mousePos, turnRate)){
+				if(turnToDirection(this, game.frameDuration, game.mousePos, turnRate)){
 					this.fire();
 				}
 			}

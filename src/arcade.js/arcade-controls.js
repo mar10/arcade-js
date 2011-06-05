@@ -28,19 +28,63 @@ function _getTouchWithId(touchList, id){
 
 /*----------------------------------------------------------------------------*/
 
+/**Base class for screen controls.
+ * 
+ * As opposed to a 'normal' Movable, this class sets pos to `undfined` and uses
+ * posCC instead.
+ * 
+ * @class
+ * @extends CanvasObject
+ */
+
+var CanvasObject = Movable.extend(
+/** @lends CanvasObject.prototype */
+{
+	init: function(type, opts) {
+		this._super(type, $.extend({
+			useCC: true,
+			isBackground: true,
+			onClick: function() { alert("onClick is mandatory"); }
+		}, opts));
+		// Copy selected options as object attributes
+		ArcadeJS.extendAttributes(this, this.opts, "onClick onResize useCC isBackground");
+//		ArcadeJS.assertAttributes(this, this.opts, "onClick pos useCC");
+	},
+	/**Return true, if point hits this object.
+	 * @param {Point2} pt Point in canvas coordinates
+	 * @returns {boolean}
+	 */
+	containsCC: undefined,
+	contains: undefined, // in useCC mode, this shouldn't be called
+	/**@function Called when window is resized (and on start).
+	 * The default processing depends on the 'resizeMode' option.
+	 * @param {Int} width
+	 * @param {Int} height
+	 * @param {Event} e
+	 * @returns false to prevent default handling
+	 */
+	onResize: undefined,
+	/**Called when button was clicked (i.e. pushed and released). */
+	onClick: undefined,
+	// --- end of class
+	__lastentry: undefined
+});
+
+/*----------------------------------------------------------------------------*/
+
 /**Button for mouse touch screen devices.
  * @class
  * @extends Movable
  */
 
-var TouchButton = Movable.extend(
+var TouchButton = CanvasObject.extend(
 /** @lends TouchButton.prototype */
 {
 	init: function(opts) {
 		this._super("button", $.extend({
 			r: 20,
-			r3: 40,
-			onClick: function() { alert("onClick is mandatory"); }
+			r3: 40//,
+//			onClick: function() { alert("onClick is mandatory"); }
 		}, opts));
 		// Copy selected options as object attributes
 		ArcadeJS.extendAttributes(this, this.opts, "r r3 onClick");
@@ -48,8 +92,8 @@ var TouchButton = Movable.extend(
 		this.clicked = false;
 		this.down = false;
 	},
-	getBoundingCircle: function() {
-		return new Circle2({x: this.pos.x, y: this.pos.y}, this.r3);
+	containsCC: function(ptCC) {
+		return this.pos.distanceTo(ptCC) <= this.r3;
 	},
 	render: function(ctx) {
 		// Draw gray sphere
@@ -63,13 +107,13 @@ var TouchButton = Movable.extend(
 		ctx.fillCircle2(0, 0, this.r);
 	},
 	onMousedown: function(e) {
-		this.down = this.clicked = this.contains(this.game.mousePos);
+		this.down = this.clicked = this.containsCC(this.game.mousePosCC);
 	},
 	onMousemove: function(e) {
-		this.down = this.clicked && this.contains(this.game.mousePos);
+		this.down = this.clicked && this.containsCC(this.game.mousePosCC);
 	},
 	onMouseup: function(e) {
-		if(this.clicked && this.contains(this.game.mousePos)){
+		if(this.clicked && this.containsCC(this.game.mousePosCC)){
 			this.onClick.call(this);
 		}
 		this.down = this.clicked = false;
@@ -91,7 +135,7 @@ var TouchButton = Movable.extend(
 		var touchPos = new Point2(
 			touch.pageX - this.game.canvas.offsetLeft,
 			touch.pageY - this.game.canvas.offsetTop);
-		var isInside = this.contains(touchPos);
+		var isInside = this.containsCC(touchPos);
 
 		// TODO: seems that we get touchend for both fingers, even if only the other
 		// finger was lifted!
@@ -139,7 +183,7 @@ var TouchButton = Movable.extend(
  * @class
  * @extends Movable
  */
-var TouchStick = Movable.extend(
+var TouchStick = CanvasObject.extend(
 /** @lends TouchStick.prototype */
 {
 	init: function(opts) {
@@ -155,9 +199,8 @@ var TouchStick = Movable.extend(
 		this.touchDownId = null;
 		this.touchDragOffset = null;
 	},
-	getBoundingCircle: function() {
-//		var r =
-		return new Circle2({x: this.pos.x, y: this.pos.y}, this.r3);
+	containsCC: function(ptCC) {
+		return this.pos.distanceTo(ptCC) <= this.r3;
 	},
 	render: function(ctx) {
 		// Draw gray sphere
@@ -180,7 +223,7 @@ var TouchStick = Movable.extend(
 		ctx.fillCircle2(pos2.x, pos2.y, this.r1);
 	},
 	onDragstart: function(clickPos) {
-		if(this.contains(this.game.mousePos)){
+		if(this.containsCC(this.game.mousePosCC)){
 			this.touchDownPos = this.pos;
 			this.touchDragOffset = new Vec2(0, 0);
 			return true;
@@ -227,7 +270,7 @@ var TouchStick = Movable.extend(
 		// http://stackoverflow.com/questions/3695128/webkit-iphone-ipad-issue-with-mutl-touch
 		switch (e.type) {
 		case "touchstart":
-			if(this.contains(touchPos)){
+			if(this.containsCC(touchPos)){
 				this.touchDownPos = touchPos;
 				this.touchDragOffset = new Vec2(0, 0);
 				this.touchDownId = touch.identifier;

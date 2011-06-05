@@ -1061,11 +1061,11 @@ Matrix3.prototype = {
 	/** Apply rotation (in-place) and return this instance.*/
 	rotate: function(a, pt) {
 		if( pt === undefined ){
-//			return this.mult(rotation33(a));
-			var c = Math.cos(a);
-			var s = Math.sin(a);
-			var m = this.m;
-			var t = m.slice(); // Temporary copy
+//			return this.mult(LinaJS.rotation33(a));
+			var c = Math.cos(a),
+				s = Math.sin(a),
+				m = this.m,
+				t = m.slice(); // Temporary copy
 			m[0] = c*t[0] - s*t[1];    m[1] = s*t[0] + c*t[1];
 			m[3] = c*t[3] - s*t[4];    m[4] = s*t[3] + c*t[4];
 			m[6] = c*t[6] - s*t[7];    m[7] = s*t[6] + c*t[7];

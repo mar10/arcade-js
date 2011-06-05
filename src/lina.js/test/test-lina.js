@@ -266,7 +266,7 @@ test("Vec2", function() {
 
 
 test("Matrix3", function() {
-	expect(15);
+	expect(18);
 
 	var mi = new Matrix3();
 	assertEqual(mi, [1, 0, 0,
@@ -330,6 +330,12 @@ test("Matrix3", function() {
 
 	var m2 = m.copy().invert().invert();
 	assertEqual(m2, m, "invert(invert(m)) == m")
+	
+	m = new Matrix3().rotate(90*LinaJS.D2R);
+	assertEqual(m.transformPt(1, 2), {x:-2, y:1}, "rot90.transformPt");
+	assertEqual(new Point2(1, 2).transform(m), {x:-2, y:1}, "rot90.transform");
+	assertEqual(m, LinaJS.rotation33(90*LinaJS.D2R), "LinaJS.rotation33");
+	
 });
 
 

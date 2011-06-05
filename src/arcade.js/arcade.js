@@ -225,7 +225,8 @@ var ArcadeJS = Class.extend(
 		// TODO: required?
 		this.opts.debug = $.extend({}, ArcadeJS.defaultGameOptions.debug, opts.debug);
 		// Copy selected options as object attributes
-		ArcadeJS.extendAttributes(this, this.opts, "name fps resizeMode fullscreenMode fullscreenMargin timeCorrection");
+		ArcadeJS.extendAttributes(this, this.opts, 
+			"name fps resizeMode fullscreenMode fullscreenMargin timeCorrection");
 
 		this._logBuffer = [];
 		/**HTML5 canvas element*/
@@ -267,6 +268,7 @@ var ArcadeJS = Class.extend(
 		this._realizeViewport();
 
 		this.objects = [];
+		this.canvasObjects = [];
 		this.idMap = {};
 		this.keyListeners = [ this ];
 		this.mouseListeners = [ this ];
@@ -347,6 +349,7 @@ var ArcadeJS = Class.extend(
 //            	self.debug("Keydown %s: %o", self.key, self.downKeyCodes);
 			} else { // keypress
 //            	self.debug("Keypress %s: %o", self.key, e);
+				// Ctrl+Shift+D toggles debug mode
 				if(self.key == "ctrl+meta+D"){
 					self.setDebug(!self.opts.debug.showActivity);
 				}
@@ -363,7 +366,7 @@ var ArcadeJS = Class.extend(
 			}
 		});
 		// Prevent context menu on right clicks
-		$(document).bind("contextmenu",function(e){
+		$(document).bind("contextmenu", function(e){
 			return false;
 		});
 		// Bind mouse events
@@ -429,19 +432,26 @@ var ArcadeJS = Class.extend(
 				self._draggedObjects = [];
 				for(var i=0; i<self.dragListeners.length; i++) {
 					var obj = self.dragListeners[i];
-					if( obj.contains(self.clickPos) && obj.onDragstart(self.clickPos) === true ) {
-						self._draggedObjects.push(obj);
+					if(obj.useCC){
+						if( obj.containsCC(self.clickPosCC) && obj.onDragstart(self.clickPosCC) === true ) {
+							self._draggedObjects.push(obj);
+						}
+					}else{
+						if( obj.contains(self.clickPos) && obj.onDragstart(self.clickPos) === true ) {
+							self._draggedObjects.push(obj);
+						}
 					}
 				}
 			}else{
 				for(var i=0; i<self._draggedObjects.length; i++) {
-					var obj = self._draggedObjects[i];
+					var obj = self._draggedObjects[i],
+						do2 = obj.useCC ? self.dragOffsetCC : self.dragOffset;
 					if(drop && obj.onDrop) {
-						obj.onDrop(self.dragOffset);
+						obj.onDrop(do2);
 					} else if(cancelDrag && obj.onDragcancel) {
-						obj.onDragcancel(self.dragOffset);
+						obj.onDragcancel(do2);
 					} else if(self._dragging && e.type == "mousemove" && obj.onDrag) {
-						obj.onDrag(self.dragOffset);
+						obj.onDrag(do2);
 					}
 				}
 //            	if(drop || cancelDrag)
@@ -472,7 +482,7 @@ var ArcadeJS = Class.extend(
 				  .css("left", pad.left);
 			}
 			// Call onResize() and let user prevent default processing
-			if(!self.onResize || self.onResize(e, width, height) !== false) {
+			if(!self.onResize || self.onResize(width, height, e) !== false) {
 				switch(self.resizeMode) {
 				case "adjust":
 					var hasChanged = false;
@@ -486,7 +496,7 @@ var ArcadeJS = Class.extend(
 						self.canvas.height = height;
 						hasChanged = true;
 					}
-					// Adjust WC-to-CC transformationss
+					// Adjust WC-to-CC transformation
 					if(hasChanged){
 						self._realizeViewport();
 					}
@@ -497,11 +507,19 @@ var ArcadeJS = Class.extend(
 				// Resizing resets the canvas context(?)
 				self.context.strokeStyle = self.opts.strokeStyle;
 				self.context.fillStyle = self.opts.fillStyle;
+				// Let canvas objects adjust their positions
+				var ol = self.canvasObjects;
+				for(var i=0, l=ol.length; i<l; i++){
+					var o = ol[i];
+					if( !o._dead && o.onResize ) {
+						o.onResize(width, height, e);
+					}
+				}
 				// Trigger afterResize callback
 				self.afterResize && self.afterResize(e);
 			}
 		});
-		// Trigger first resize event on load
+		// Trigger first resize event on page load
 		self.debug("Trigger canvas.resize on init");
 		$(window).resize();
 	},
@@ -600,7 +618,7 @@ var ArcadeJS = Class.extend(
 	},
 	/**Define the usable part of the canvas.
 	 * 
-	 * If set, the viewport is projected into ths region.
+	 * If set, the viewport is projected into this region.
 	 * This method should be called on startup and onResize.
 	 * 
 	 * @param {float} x upper left corner in canvas coordinates
@@ -624,6 +642,7 @@ var ArcadeJS = Class.extend(
 		var $canvas = $(this.canvas);
 		this.canvasArea = {x: 0, y: 0, 
 			width: $canvas.width(), height: $canvas.height(), 
+//			width: this.canvas.width, height: this.canvas.height, 
 			clip: false};
 		this.debug("resetCanvasArea: %o", this.canvasArea);
 		this._customCanvasArea = false;
@@ -646,7 +665,7 @@ var ArcadeJS = Class.extend(
 	_realizeViewport: function() {
 		// Recalc usable canvas size. (In case of custom areas the user has to
 		// do this in the onResize event.)
-		if(self._customCanvasArea === false){
+		if(this._customCanvasArea === false){
 			this.resetCanvasArea();
 		}
 		var mapMode = this.viewportMapMode,
@@ -788,9 +807,18 @@ var ArcadeJS = Class.extend(
 		}
 	},
 	_redrawAll: function() {
-		var ctx = this.context;
+		var ctx = this.context,
+			ol, i, o;
 
 		ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		// Draw background canvas objects 
+		ol = this.canvasObjects;
+		for(i=0, l=ol.length; i<l; i++){
+			o = ol[i];
+			if( !o._dead && !o.hidden && o.isBackground) {
+				o._redraw(ctx);
+			}
+		}
 		// Push current transformation and rendering context
 		ctx.save();
 		try{
@@ -802,17 +830,17 @@ var ArcadeJS = Class.extend(
 //				    ctx.stroke();
 					ctx.clip();
 				}
-//				ctx.translate(cca.x, cca.y);
 			}
 			ctx.transformMatrix3(this.wc2cc);
 			ctx.lineWidth = this.onePixelWC;
 			if(this.preDraw){
 				this.preDraw(ctx);
 			}
-			var ol = this.objects;
-			for(var i=0, l=ol.length; i<l; i++){
-				var o = ol[i];
-				if( !o._dead && !o.hidden ) {
+			// Draw non-canvas objects
+			ol = this.objects;
+			for(i=0, l=ol.length; i<l; i++){
+				o = ol[i];
+				if( !o._dead && !o.hidden && !o.useCC) {
 					o._redraw(ctx);
 				}
 			}
@@ -875,6 +903,14 @@ var ArcadeJS = Class.extend(
 		if(this.postDrawCC){
 			this.postDrawCC(ctx);
 		}
+		// Draw foreground canvas objects 
+		ol = this.canvasObjects;
+		for(i=0, l=ol.length; i<l; i++){
+			o = ol[i];
+			if( !o._dead && !o.hidden && !o.isBackground) {
+				o._redraw(ctx);
+			}
+		}
 	},
 	/**Start render loop.
 	 */
@@ -919,7 +955,13 @@ var ArcadeJS = Class.extend(
 		this.purge(false);
 
 		this.objects.push(o);
+		if(o.useCC){
+			this.canvasObjects.push(o);
+		}else{
+//			this.objects.push(o);
+		}
 		this.idMap[o.id] = o;
+		
 		if( typeof o.onKeydown === "function"
 			|| typeof o.onKeypress === "function"
 			|| typeof o.onKeyup === "function") {
@@ -944,6 +986,10 @@ var ArcadeJS = Class.extend(
 			this.typeMap[o.type].push(o);
 		} else {
 			this.typeMap[o.type] = [ o ];
+		}
+		// Call onResize on startup, so object can initialize o.pos
+		if( typeof o.onResize === "function") {
+			o.onResize(this.canvas.width, this.canvas.height);
 		}
 		return o;
 	},
@@ -1097,9 +1143,9 @@ var ArcadeJS = Class.extend(
 	onTimeout: undefined,
 	/**@function Called when window is resized (and on start).
 	 * The default processing depends on the 'resizeMode' option.
-	 * @param {Event} e
 	 * @param {Int} width
 	 * @param {Int} height
+	 * @param {Event} e
 	 * @returns false to prevent default handling
 	 */
 	onResize: undefined,
@@ -1153,14 +1199,37 @@ ArcadeJS.explode = function(s){
  * @throws "Attribute 'x' not found."
  */
 ArcadeJS.extendAttributes = function(object, dict, attrNames){
-//	if(typeof attrNames === "string")
-//		attrNames = attrNames.replace(",", " ").split(" ");
 	attrNames = ArcadeJS.explode(attrNames);
 	for(var i=0; i<attrNames.length; i++){
 		var name = $.trim(attrNames[i]);
-		if(dict[name] === undefined)
+		if(dict[name] === undefined){
 			throw("Attribute '" + name + "' not found in dictionary.");
+		}
 		object[name] = dict[name];
+	}
+};
+/**Raise error if .
+ * @param {object} object or dictionary
+ * @param {string} attrNames comma seperated attribute names that will be
+ * checked.
+ * @throws "Attribute 'x' not found."
+ */
+ArcadeJS.assertAttributes = function(object, attrNames){
+	attrNames = ArcadeJS.explode(attrNames);
+	for(var i=0; i<attrNames.length; i++){
+		var name = $.trim(attrNames[i]);
+		if(object[name] === undefined){
+			throw("Attribute '" + name + "' is undefined.");
+		}
+	}
+	return true;
+};
+/**Throw error, if expression is `false`.
+ * @throws "Assert failed: '...'"
+ */
+ArcadeJS.assert = function(expression, errorMsg){
+	if( !expression ){
+		throw("Assert failed: '" + errorMsg + "'.");
 	}
 };
 /**Global pointer to first created game object.*/
@@ -1277,10 +1346,12 @@ ArcadeCanvas =
 		var xy = pg.xyList;
 		this.beginPath();
 		this.moveTo(xy[0], xy[1]);
-		for(var i=2; i<xy.length; i+=2)
+		for(var i=2; i<xy.length; i+=2){
 			this.lineTo(xy[i], xy[i+1]);
-		if(closed !== false)
+		}
+		if(closed !== false){
 			this.closePath();
+		}
 		this.stroke();
 	},
 	/**Render a filled Polygon2 to a canvas.
@@ -1291,8 +1362,9 @@ ArcadeCanvas =
 		var xy = pg.xyList;
 		this.beginPath();
 		this.moveTo(xy[0], xy[1]);
-		for(var i=2; i<xy.length; i+=2)
+		for(var i=2; i<xy.length; i+=2){
 			this.lineTo(xy[i], xy[i+1]);
+		}
 		this.fill();
 	},
 	/**Render a vector to the canvas.
@@ -1485,8 +1557,12 @@ var Movable = Class.extend(
 	 * @constructs
 	 */
 	init: function(type, opts) {
+		/**Type identifier used to filter objects.*/
 		this.type = type;
+		/**Unique ID (automatically assigned if ommited).*/
 		this.id = (opts && opts.id) ? opts.id : "#" + ArcadeJS._nextObjectId++;
+		/**Parent ArcadeJS object (set by game.addObject() method).*/
+		this.game = undefined;
 		this.hidden = false;
 		this._dead = false;
 		this._activity = null;
@@ -1498,8 +1574,25 @@ var Movable = Class.extend(
 		}
 		opts = this.opts;
 		// Copy some options as direct attributes
+		/**True, if this control uses native Canvas Coords instead of WC viewport.*/
+		this.useCC = !!opts.useCC;
+		/**Object position in World Coordinates (center of mass).*/
 		this.pos = opts.pos ? new Point2(opts.pos) : new Point2(0, 0);
+/*		
+		if(this.useCC){
+			if( opts.pos ){ throw("'pos' is not allowed with useCC mode."); }
+			if( !opts.posCC ){ throw("Missing required option: 'posCC'."); }
+			this.pos = undefined;
+			this.posCC = opts.posCC;
+		}else{
+			if( opts.posCC ){ throw("'pos' is only allowed in useCC mode."); }
+			this.pos = opts.pos ? new Point2(opts.pos) : new Point2(0, 0);
+			this.posCC = undefined;
+		}
+*/
+		/** Object scale.*/
 		this.scale = opts.scale ? +opts.scale : 1.0;
+		/** Object orientation in radians.*/
 		this.orientation = opts.orientation ? +opts.orientation : 0;
 		this.mc2wc = null;
 		this.wc2mc = null;
@@ -1515,7 +1608,7 @@ var Movable = Class.extend(
 		this.clipModeX = opts.clipModeX || "none";
 		/**Defines, what happens when object leaves the viewport to the left or right.
 		 * @See clipModeX
-		 * */
+		 */
 		this.clipModeY = opts.clipModeY || "none";
 		this._timeout = null; //+opts.timeout;
 
@@ -1582,10 +1675,13 @@ var Movable = Class.extend(
 		return timeout.id;
 	},
 
-	/**Set transformation matrix and inverse from this.pos, .orientation and .scale.
+	/**Set MC-to-WC transformation matrix and inverse from this.pos, .orientation and .scale.
 	 */
 	_updateTransformations: function() {
-		this.mc2wc = new Matrix3().scale(this.scale).rotate(this.orientation).translate(this.pos.x, this.pos.y);
+		// TODO: Use negative orientation??
+		// Otherwise ctx.tran_redraw 
+//		this.mc2wc = new Matrix3().scale(this.scale).rotate(this.orientation).translate(this.pos.x, this.pos.y);
+		this.mc2wc = new Matrix3().scale(this.scale).rotate(-this.orientation).translate(this.pos.x, this.pos.y);
 		this.wc2mc = this.mc2wc.copy().invert();
 	},
 
@@ -1678,6 +1774,13 @@ var Movable = Class.extend(
 			}
 			ctx.restore();
 			// Apply object translation, rotation and scale
+			// TODO: this currently works, but only if we apply a *negative*
+			// orientation in _updateTransformations():
+			//   this.mc2wc = new Matrix3().scale(this.scale).rotate(-this.orientation).translate(this.pos.x, this.pos.y);
+			ctx.transformMatrix3(this.mc2wc);
+			// This also works (note that we apply a positive orientaion here, 
+			// and the order is differnt from mc2wc:
+/* 
 			ctx.translate(this.pos.x, this.pos.y);
 			if( this.scale && this.scale != 1.0 ){
 				ctx.scale(this.scale, this.scale);
@@ -1685,6 +1788,7 @@ var Movable = Class.extend(
 			if( this.orientation ){
 				ctx.rotate(this.orientation);
 			}
+*/
 			// Let object render itself in its own modelling coordinates
 			this.render(ctx);
 		}finally{
@@ -1715,7 +1819,7 @@ var Movable = Class.extend(
 		if(this._dead){
 			this.game._deadCount++;
 			if(!this.game.purge(false)){
-				// If we did not purge, make sure it is removed from the type map
+				// If we did not purge, make sure it is at least removed from the type map
 				var typeMap = this.game.typeMap[this.type];
 				var idx = typeMap.indexOf(this);
 				typeMap.splice(idx, 1);

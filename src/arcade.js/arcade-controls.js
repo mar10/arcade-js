@@ -423,3 +423,97 @@ var TouchArea = CanvasObject.extend(
 	// --- end of class
 	__lastentry: undefined
 });
+
+/**Text area with click event.
+ * @class
+ * @extends Class
+ */
+
+var HtmlOverlay = Class.extend(
+/** @lends HtmlOverlay.prototype */
+{
+	init: function(canvas, pos, html, css, callback) {
+		var self = this,
+			defaultCss = {
+				position: "absolute",
+				left: 0, 
+				top: 0, 
+				display: "none",
+				padding: 5,
+				border: "1px solid white",
+				zIndex: 1000,
+				color: "white",
+				backgroundColor: "transparent"
+			};
+		css = $.extend({}, defaultCss, css);
+		this.$canvas = $(canvas);
+		this.pos = pos;
+		this.callback = callback;
+		
+		id = "htmlOverlay";
+		this.$div = $("<div class='arcadePopup' id='" + id + "'>" + html + "</div>")
+//			.hide(0)
+			.css(css)
+			.appendTo("body")
+			.click(function(e){
+				self.onClick(e);
+			}).bind("touchstart", function(e){
+				var oe = e.originalEvent;
+				self.onClick(e);
+			});			
+	//	$("body").append(this.$div)
+		//	.click(alert('click'));
+		$(window).resize(function(e){
+			self.onResize();
+		});
+		this.onResize(null);
+		this.$div.show("normal");
+	},
+/*	
+	close: function() {
+		this.$div.remove();
+	},
+	hide: function() {
+		this.$div.hide("slow");
+	},
+	*/
+	/**Called when button was clicked (i.e. pushed and released). */
+	onClick: function(){
+		var self = this;
+		this.$div.hide("normal", function(){
+			self.$div.remove();
+			if(self.callback){
+				self.callback();
+			}
+		});
+	},
+	onResize: function(e){
+		var x, y,
+			dw = this.$div.width(),
+			dh = this.$div.height(),
+			cx = this.$canvas.offset().left,
+			cy = this.$canvas.offset().top,
+			cw = this.$canvas.width(),
+			ch = this.$canvas.height();
+		if(this.pos.x === 0){
+			x = cx + 0.5 * (cw - dw);  
+		}else if(this.pos.x < 0){
+			x = cx + (cw - dw - this.pos.x);  
+		}else{
+			x = cx + this.pos.x;  
+		}
+		this.$div.css("left", x);
+
+		if(this.pos.y === 0){
+			y = cy + 0.5 * (ch - dh);  
+		}else if(this.pos.y < 0){
+			y = cy + (ch - dh - this.pos.y);  
+		}else{
+			y = cy + this.pos.y;  
+		}
+		this.$div.css("top", y);
+//		alert("resi");
+	},
+	// --- end of class
+	__lastentry: undefined
+});

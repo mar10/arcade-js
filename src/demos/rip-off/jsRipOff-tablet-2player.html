@@ -71,10 +71,19 @@
 				},
 				onClick: function(){ this.game.getObjectById("player2").fire(); }
 			}));
+			/*
 			this.textArea = this.addObject(new TouchArea({
 				isBackground: false,
 				onClick: function(){ alert("click"); }
 			}));
+			*/
+            this.popUp = new HtmlOverlay(this.canvas, 
+            		new Point2(0, 0), 
+            		"Huhu<br>Martin",
+            		{backgroundColor: "red"},
+            		function(){
+            			alert("clicked popup");
+            		});
 		},
 		onResize: function(width, height){
 			// Adjust usable canvas area to lower half and enable clipping

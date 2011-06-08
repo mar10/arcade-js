@@ -144,6 +144,7 @@ var Ball = Movable.extend({
 		//
 		this.circle = new Circle2({x:0, y:0}, this.r);
 		this.hitByPlayer = false;
+		this.touchDownId = null;
 	},
 	getBoundingCircle: function() {
 		return new Circle2({x: this.pos.x, y: this.pos.y}, this.r);
@@ -251,7 +252,7 @@ var Ball = Movable.extend({
 		}
 		var touch = null,
 			game = this.game;
-		if(this.touchDownId){
+		if(this.touchDownId !== null){
 			touch = _getTouchWithId(orgEvent.changedTouches, this.touchDownId);
 		}else if(e.type == "touchstart" && orgEvent.changedTouches.length == 1) {
 			touch =  orgEvent.changedTouches[0];

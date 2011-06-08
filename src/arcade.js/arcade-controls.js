@@ -15,7 +15,8 @@
  */
 
 function _getTouchWithId(touchList, id){
-	if(id && touchList && touchList.length){
+	// `0` is a valid id on Android! 
+	if(id !== null && touchList && touchList.length){
 		for(var i=0; i<touchList.length; i++) {
 			var touch = touchList[i];
 			if(touch.identifier === id){
@@ -121,7 +122,7 @@ var TouchButton = CanvasObject.extend(
 	onTouchevent: function(e, orgEvent) {
 		var touch = null,
 			game = this.game;
-		if(this.touchDownId){
+		if(this.touchDownId !== null){
 			touch = _getTouchWithId(orgEvent.changedTouches, this.touchDownId);
 		}else if(e.type == "touchstart" && orgEvent.changedTouches.length == 1) {
 			touch =  orgEvent.changedTouches[0];
@@ -248,7 +249,7 @@ var TouchStick = CanvasObject.extend(
 		// http://www.sitepen.com/blog/2008/07/10/touching-and-gesturing-on-the-iphone/
 		var touch = null,
 			game = this.game;
-		if(this.touchDownId){
+		if(this.touchDownId !== null){
 			touch = _getTouchWithId(orgEvent.changedTouches, this.touchDownId);
 		}else if(e.type == "touchstart" && orgEvent.changedTouches.length == 1) {
 			touch =  orgEvent.changedTouches[0];
@@ -374,7 +375,7 @@ var TouchArea = CanvasObject.extend(
 	onTouchevent: function(e, orgEvent) {
 		var touch = null,
 			game = this.game;
-		if(this.touchDownId){
+		if(this.touchDownId !== null){
 			touch = _getTouchWithId(orgEvent.changedTouches, this.touchDownId);
 		}else if(e.type == "touchstart" && orgEvent.changedTouches.length == 1) {
 			touch =  orgEvent.changedTouches[0];

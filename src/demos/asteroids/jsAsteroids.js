@@ -98,8 +98,8 @@ var AsteroidsGame = ArcadeJS.extend({
 		ctx.font = "12px sans-serif";
 		ctx.fillScreenText("Score: " + this.score, 10, 15);
 		if(this.isActivity("over")){
-			ctx.font = "30px sans-serif";
-			ctx.strokeScreenText("Game over (hit [F5])", 0, 0);
+//			ctx.font = "30px sans-serif";
+//			ctx.strokeScreenText("Game over (hit [F5])", 0, 0);
 		}else if(this.isActivity("prepare")){
 			// Doesn't work in chrome
 			// http://code.google.com/p/chromium/issues/detail?id=44017
@@ -238,8 +238,20 @@ var Rocket = Movable.extend({
 				this.later(this.game.gracePeriod, function(){
 					this.setActivity("idle");
 				});
-			} else {
+			}else if(this.game.getActivity() != "over"){
 				this.game.setActivity("over");
+				var popUp = new HtmlOverlay({
+					canvas: this.game.canvas,
+					html: "Game Over.",
+					css: {
+						opacity: 0.8,
+						backgroundColor: "black",
+						color: "white"
+					},
+					onClick: function(e){
+						window.location.reload();
+					}
+				});
 			}
 		}
 	},

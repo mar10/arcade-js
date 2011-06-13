@@ -265,7 +265,7 @@ var RipOffGame = ArcadeJS.extend({
 		this._startWave();
 
 		// Start render loop
-		this.startLoop()
+		this.startLoop();
 	},
 
 	_startWave: function(){
@@ -369,8 +369,15 @@ var RipOffGame = ArcadeJS.extend({
 			var canisters = this.getObjectsByType("canister");
 			if(canisters.length){
 				this._startWave();
-			}else{
+			}else if(this.getActivity() != "over"){
 				this.setActivity("over");
+				var popUp = new HtmlOverlay({
+					canvas: this.canvas,
+					html: "Game Over.",
+					onClick: function(e){
+						window.location.reload();
+					}
+				});
 			}
 		}
 	},

@@ -322,6 +322,9 @@ var ArcadeJS = Class.extend(
 		this.dragOffset = undefined;
 		/**Distance between clickPos and mousePos while dragging in Canvas Coordinates. */
 		this.dragOffsetCC = undefined;
+		/**e.touches recorded at last touch event.*/
+		this.touches = undefined;
+
 		this.keyCode = undefined;
 		this.key = undefined;
 		this.downKeyCodes = [];
@@ -460,6 +463,13 @@ var ArcadeJS = Class.extend(
 		});
 		// Bind touch and gesture events
 		$(canvas).bind("touchstart touchend touchmove touchcancel gesturestart gestureend gesturechange", function(e){
+//			self.touches = e.originalEvent.touches;
+			self.touches = e.originalEvent.targetTouches;
+			// Prevent default handling (i.e. don't scroll or dselect the canvas)
+			// Standard <a> handling is OK
+			if(e.target.nodeName != "A"){
+				e.originalEvent.preventDefault();
+			}
 			for(var i=0, l=self.touchListeners.length; i<l; i++) {
 				var obj = self.touchListeners[i];
 				if(obj.onTouchevent) {
@@ -1214,6 +1224,39 @@ ArcadeJS.extendAttributes = function(object, dict, attrNames){
 		object[name] = dict[name];
 	}
 };
+
+/**Copy all entries from `opts` as `target` properties, if there is a matching
+ * entry in `template`.
+ *
+ * Note: this is different from `$.extend()`, because only values are copied that
+ * are present in `template`. This prevents accidently overriding protected
+ * target members in `target`.
+ * If `temnplate` members have a value of `undefined`, they are mandatory. An
+ * exception will be raised, if they are not found in `opts`.
+ *
+ * @param {object} target class object that will receive the properties (typically `this`).
+ * @param {object} template defines names and default values of all members to copy
+ * @param {object} opts dictionary with methods and values that override `template` (typically passed to the target constructor).
+ */
+ArcadeJS.guerrillaDerive = function(target, template, source){
+	var missing = [];
+	for(var name in template){
+		if(source.hasOwnProperty(name)){
+			target[name] = source[name];
+		}else if(template.hasOwnProperty(name)){
+			var val = template[name];
+			if(val === undefined){
+				missing.unshift(name);
+			}else{
+				target[name] = val;
+			}
+		}
+	}
+	if(missing.length){
+		alert("guerrillaDerive: Missing mandatory options '" + missing.join("', '") + "'");
+	}
+};
+
 /**Raise error if .
  * @param {object} object or dictionary
  * @param {string} attrNames comma seperated attribute names that will be

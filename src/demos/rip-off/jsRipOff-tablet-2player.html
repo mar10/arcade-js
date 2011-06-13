@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<title>jsRipOff - 2-player tablet version</title>
+	<title>jsRipOff - 2-player split screen tablet version</title>
 
 	<script src="../../depends/jquery.js" type="text/javascript"></script>
 	<script src="../../lina.js/lina.js" type="text/javascript"></script>
@@ -31,6 +31,7 @@
 			this._super(canvas, opts);
 			canvas = this.canvas; // Maybe we converted element ID to canvas
 			// Add iPad touch controls
+			/*
 			this.stick1 = this.addObject(new TouchStick({
 				isBackground: false,
 				r1: 10,
@@ -71,25 +72,150 @@
 				},
 				onClick: function(){ this.game.getObjectById("player2").fire(); }
 			}));
+			*/
 			/*
 			this.textArea = this.addObject(new TouchArea({
 				isBackground: false,
 				onClick: function(){ alert("click"); }
 			}));
 			*/
-            this.popUp = new HtmlOverlay(this.canvas, 
-            		new Point2(0, 0), 
-            		"Huhu<br>Martin",
-            		{backgroundColor: "red"},
-            		function(){
-            			alert("clicked popup");
-            		});
+			/*
+			Platform:
+				"Win32", "iPhone",
+				"Linux armv7I" (Samsung Galaxy s2)
+			*/
+			var startMessage = "<h4>jsRip-Off - 2-Player Tablet version</h4>";
+			if(navigator){
+				startMessage += "<p>Platform: " + navigator.platform + "</p>";
+				if(navigator.standalone === false){
+					// Scroll one pixel down, so Safari URL toolbar disappears
+					setTimeout(scrollTo, 10, 0, 1);
+					if(navigator.platform == "iPhone" || navigator.platform == "iPod"){
+						startMessage += "<p>This page is optimized to run on iPads or other tablets in fullscreen mode.<br>"
+							+ "Use the 'Add to Home Screen' function at the bottom of this page and restart this game from the new link icon.";
+							+ "</p>"
+					}else if(navigator.platform == "iPad"){
+						startMessage += "<p>This page is optimized to run in fullscreen mode.<br>"
+							+ "Use the 'Add to Home Screen' function at the bottom of this page and restart this game from the new link icon.";
+							+ "</p>"
+					}
+				}else if(navigator.standalone !== true){
+//					startMessage += "<p>This web page is optimized to run on iPads ot other tablets.</p>";
+				}
+			}
+			startMessage += "<p style='text-align: center; font-size: 150%;'><button id='start'>Play Now !</button></p>";
+			startMessage += "<p>Other versions:<br>&nbsp;&nbsp;<a href='jsRipOff-2.html'>Classic (Single player)</a> - <a href='jsRipOff-2.html'>Classic (2-player)</a></p>";
+			startMessage += "<p>&nbsp;</p>";
+			startMessage += "<p style='text-align: center; font-size: 80%;'>Copyright &copy; 2011 Martin Wendt. Made with <a href='http://arcade-js.googlecode.com/' target='_blank'>ArcadeJS</a>.</p>";
+//			this.stopLoop();
+			this.stopRequest = true;
+			var game = this; // Required for callback closures
+			var popUp = new HtmlOverlay({
+				canvas: this.canvas,
+				html: startMessage,
+				css: {
+					opacity: 0.8
+//                    backgroundColor: "black",
+//                    color: "white"
+				},
+				showSpeed: "slow",
+				hideSpeed: "normal",
+				onClick: function(e){
+					switch( $(e.target).attr("id") ) {
+					case "start":
+						this.close();
+						game.startLoop();
+						break;
+					}
+				}
+			});
+			// Create fire buttons as HTML overlay in the lower left corners
+			this.btnFire1 = new HtmlOverlay({
+				canvas: this.canvas,
+				html: "",
+				closeOnClick: false,
+				pos: {x: 1, y: -1},
+				css: {
+					padding: 25,
+					backgroundColor: "silver",
+					opacity: 0.2
+				}
+			});
+			this.btnFire2 = new HtmlOverlay({
+				canvas: this.canvas,
+				html: "",
+				closeOnClick: false,
+				pos: {x: -1, y: 1},
+				css: {
+					padding: 25,
+					backgroundColor: "silver",
+					opacity: 0.2
+				}
+			});
 		},
 		onResize: function(width, height){
 			// Adjust usable canvas area to lower half and enable clipping
 			this.setCanvasArea(0, 0.5*height, width, 0.5*height, true);
 			// true: Let ArcadeGame adjust canvas size to new dimensions
 			return true;
+		},
+		postStep: function(){
+			if(this.btnFire1.isDown()){
+				this.player1.fire();
+			}
+			if(this.btnFire2 && this.btnFire2.isDown()){
+				this.player2.fire();
+			}
+			// Find touches for top and bottom split screen (we only consider
+			// the first touch on each).
+			// Convert top-touch coordinates to standard CC (because top screen
+			// was flipped) and calc WC for both.
+			var touches = this.touches;
+			if(touches){
+				var bottomTouch, topTouch, t, ptCC;
+				for(var i=0; i<touches.length; i++){
+					t = touches[i];
+					ptCC = new Point2(
+						t.pageX - this.canvas.offsetLeft,
+						t.pageY - this.canvas.offsetTop);
+					if(ptCC.y > 0.5 * this.canvas.height){
+						if(!bottomTouch){
+							bottomTouch = {touch: t,
+										   posCC: new Point2(ptCC.x, ptCC.y)};
+							bottomTouch.pos = Point2.transform(bottomTouch.posCC, this.cc2wc);
+						}
+					}else if(!topTouch){
+						topTouch = {touch: t,
+									posCC: new Point2(this.canvasArea.width - ptCC.x, this.canvas.height - ptCC.y)};
+						topTouch.pos = Point2.transform(topTouch.posCC, this.cc2wc);
+					}
+				}
+			}
+			// Accelerate players towards touch positions
+			var maxSpeed = 300,
+				accel = 150,
+				decel = 100,
+				turnRate = 180 * LinaJS.D2R,
+				eps = 10,
+				dist;
+			if(bottomTouch){
+				dist = bottomTouch.pos.distanceTo(this.player1.pos);
+				if(dist < 100){
+					turnToDirection(this.player1, this.frameDuration,
+						bottomTouch.pos, turnRate);
+				}else{
+					driveToPosition(this.player1, this.frameDuration,
+						bottomTouch.pos, 10, maxSpeed, turnRate, accel, decel);
+				}
+//                alert("bottomTouch:" + bottomTouch.posCC + ", WC:" + bottomTouch.pos + "\n" + this.player1);
+			}
+			if(topTouch){
+//                alert("topTouch:" + topTouch.posCC + ", WC:" + topTouch.pos + "\n" + this.player2);
+				driveToPosition(this.player2, this.frameDuration, topTouch.pos,
+						10, maxSpeed, turnRate, accel, decel);
+			}
+			//
+			this._super();
 		},
 		postDrawCC: function(ctx){
 			// Draw a flipped copy of the lower canvas part into to the upper
@@ -120,17 +246,6 @@
 				logToCanvas: false
 			}
 			});
-
-		if(window.navigator){
-			if(window.navigator.standalone === false){
-				// Scroll one pixel down, so Safari URL toolbar disappears
-				alert("This web page is optimized to run in fullscreen mode.\n"
-					  + "Use the 'Add to Home Screen' function at the bottom of this page and restart this game from the new link icon.");
-				setTimeout(scrollTo, 10, 0, 1);
-			}else if(window.navigator.standalone !== true){
-				alert("This web page is optimized to run on iPhones/iPods/iPads.");
-			}
-		}
 	});
 	</script>
 
@@ -139,10 +254,12 @@
 	margin: 0;
 	padding: 0;
 }
+/*
 body, html {
 	width: 100%;
 	height: 100%;
 }
+*/
 </style>
 </head>
 

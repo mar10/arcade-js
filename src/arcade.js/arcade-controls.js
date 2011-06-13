@@ -15,7 +15,7 @@
  */
 
 function _getTouchWithId(touchList, id){
-	// `0` is a valid id on Android! 
+	// `0` is a valid id on Android!
 	if(id !== null && touchList && touchList.length){
 		for(var i=0; i<touchList.length; i++) {
 			var touch = touchList[i];
@@ -31,7 +31,7 @@ function _getTouchWithId(touchList, id){
 
 /**Base class for screen controls.
  *
- * As opposed to a 'normal' Movable, this class sets pos to `undfined` and uses
+ * As opposed to a 'normal' Movable, this class sets pos to `undefined` and uses
  * posCC instead.
  *
  * @class
@@ -127,6 +127,7 @@ var TouchButton = CanvasObject.extend(
 		}else if(e.type == "touchstart" && orgEvent.changedTouches.length == 1) {
 			touch =  orgEvent.changedTouches[0];
 		}
+//		alert("e.type: " + e.type + ", id=" + (touch ? touch.identifier : "?"));
 		// Ignore event, if touch identifier is different from start event
 		if(!touch){
 			return;
@@ -313,13 +314,13 @@ var TouchStick = CanvasObject.extend(
 	__lastentry: undefined
 });
 
-/**Text area with click event.
+/* *Text area with click event.
  * @class
  * @extends CanvasObject
  */
-
+/*
 var TouchArea = CanvasObject.extend(
-/** @lends TouchArea.prototype */
+/ ** @lends TouchArea.prototype * /
 {
 	init: function(opts) {
 		this._super("touchArea", $.extend({
@@ -415,17 +416,18 @@ var TouchArea = CanvasObject.extend(
 			alert("not handled " + e.type);
 		}
 	},
-	/**Return true if button is down (but mouse key is also still down). */
+	/ **Return true if button is down (but mouse key is also still down). * /
 	isDown: function() {
 		return this.down === true;
 	},
-	/**Called when button was clicked (i.e. pushed and released). */
+	/ **Called when button was clicked (i.e. pushed and released). * /
 	onClick: undefined,
 	// --- end of class
 	__lastentry: undefined
 });
+*/
 
-/**Text area with click event.
+/**HTML overlay, attached to canvas.
  * @class
  * @extends Class
  */
@@ -433,87 +435,145 @@ var TouchArea = CanvasObject.extend(
 var HtmlOverlay = Class.extend(
 /** @lends HtmlOverlay.prototype */
 {
-	init: function(canvas, pos, html, css, callback) {
-		var self = this,
-			defaultCss = {
-				position: "absolute",
-				left: 0, 
-				top: 0, 
-				display: "none",
-				padding: 5,
-				border: "1px solid white",
-				zIndex: 1000,
-				color: "white",
-				backgroundColor: "transparent"
-			};
-		css = $.extend({}, defaultCss, css);
-		this.$canvas = $(canvas);
-		this.pos = pos;
-		this.callback = callback;
-		
-		id = "htmlOverlay";
-		this.$div = $("<div class='arcadePopup' id='" + id + "'>" + html + "</div>")
-//			.hide(0)
-			.css(css)
+	_defaultCss: {
+		position: "absolute",
+//		display: "none",
+		left: 0,
+		top: 0,
+		display: "none",
+		padding: 10,
+		border: "1px solid white",
+		zIndex: 1000,
+		color: "black",
+//		backgroundColor: "transparent",
+		backgroundColor: "#f1f3f2",
+//		filter: "alpha(opacity=20)",
+//		opacity: 0.2,
+		borderRadius: "5px",
+		"-moz-border-radius": "5px",
+		"-webkit-border-radius": "5px",
+		boxShadow: "3px 3px 10px #bfbfbf",
+		"-moz-box-shadow": "3px 3px 10px #bfbfbf",
+		"-webkit-box-shadow": "3px 3px 10px #bfbfbf"
+	},
+	init: function(opts){
+		// Define and override default properties
+		ArcadeJS.guerrillaDerive(this, {
+			canvas: undefined, // (mandatory) parent canvas element
+			pos: {x: 0, y: 0}, // Centered on screen
+//			title: null, // Title
+			html: undefined, // (mandatory) Box content
+			onClick: null, // Called when box is clicked or touched
+			onClose: null, // Called after box was closed
+			closeOnClick: false,
+			blockClicks: true,
+			showSpeed: "normal",
+			hideSpeed: "normal",
+			timeout: 0 // [ms], 0: never
+		}, opts);
+		this.css = $.extend({}, this._defaultCss, opts.css);
+		var self = this;
+		this.down = false;
+		this.inside = false;
+		this.touchDownId = null;
+
+		this.$div = $("<div class='arcadePopup'>" + this.html + "</div>")
+			.hide(0)
+			.css(this.css)
 			.appendTo("body")
 			.click(function(e){
-				self.onClick(e);
+				if(e.target.nodeName == "A"){ return; } // Allow <a> tags to work
+				self._clicked(e);
+			}).bind("mousedown", function(e){
+				if(e.target.nodeName == "A"){ return; } // Allow <a> tags to work
+				self.inside = self.down = true;
+				// 'eat' this event, so it isn't dispatched to the parent canvas
+				return !self.blockClicks;
+			}).bind("mouseup", function(e){
+				self.down = false;
 			}).bind("touchstart", function(e){
-				var oe = e.originalEvent;
-				self.onClick(e);
-			});			
-	//	$("body").append(this.$div)
-		//	.click(alert('click'));
+				if(e.target.nodeName == "A"){ return; } // Allow <a> tags to work
+//				e.originalEvent.preventDefault();
+				self.touchDownId = e.originalEvent.changedTouches[0].identifier;
+				$(this).css("backgroundColor", "red");
+				self.down = true;
+				self._clicked(e);
+//			}).bind("touchenter", function(e){
+//				self.inside = false;
+//			}).bind("touchleave", function(e){
+//				self.inside = false;
+			}).bind("touchend touchcancel", function(e){
+				if(!_getTouchWithId(e.originalEvent.changedTouches, self.touchDownId)){
+					return; // touch event was for another target
+				}
+				$(this).css("backgroundColor", "blue");
+				self.inside = self.down = false;
+			});
 		$(window).resize(function(e){
-			self.onResize();
+			self._resized(e);
 		});
-		this.onResize(null);
+//		$("button", this.$div).click(function(e){
+//			alert(e);
+//		});
+		this._resized(null);
 		this.$div.show("normal");
 	},
-/*	
+	/**Hide and remove this box (triggers onClose callback).*/
 	close: function() {
-		this.$div.remove();
-	},
-	hide: function() {
-		this.$div.hide("slow");
-	},
-	*/
-	/**Called when button was clicked (i.e. pushed and released). */
-	onClick: function(){
 		var self = this;
-		this.$div.hide("normal", function(){
+		this.$div.hide(this.hideSpeed, function(){
 			self.$div.remove();
-			if(self.callback){
-				self.callback();
+			if(self.onClose){
+				self.onClose();
 			}
 		});
 	},
-	onResize: function(e){
+	/**Return true if button is down (but mouse key / finger is also still down). */
+	isDown: function() {
+		return this.down === true;
+	},
+	/**Called when element was clicked or touched (triggers onClick callback).*/
+	_clicked: function(e){
+		var oe = e.originalEvent,
+			res = true;
+		if(this.onClick){
+			res = this.onClick(e);
+		}
+		if(this.closeOnClick){
+			this.close();
+		}
+		return res;
+	},
+	/**Called when element was clicked or touched. */
+	_closed: function(e){
+		var oe = e.originalEvent;
+		if(this.closeOnClick){
+			this.close();
+		}
+	},
+	/**Adjust element relative to canvas center / borders.*/
+	_resized: function(e){
 		var x, y,
-			dw = this.$div.width(),
-			dh = this.$div.height(),
-			cx = this.$canvas.offset().left,
-			cy = this.$canvas.offset().top,
-			cw = this.$canvas.width(),
-			ch = this.$canvas.height();
-		if(this.pos.x === 0){
-			x = cx + 0.5 * (cw - dw);  
-		}else if(this.pos.x < 0){
-			x = cx + (cw - dw - this.pos.x);  
-		}else{
-			x = cx + this.pos.x;  
-		}
-		this.$div.css("left", x);
+			$c = $(this.canvas),
+			cx = $c.offset().left,
+			cy = $c.offset().top;
 
-		if(this.pos.y === 0){
-			y = cy + 0.5 * (ch - dh);  
-		}else if(this.pos.y < 0){
-			y = cy + (ch - dh - this.pos.y);  
+		if(this.pos.x === 0){
+			x = cx + 0.5 * ($c.width() - this.$div.outerWidth());
+		}else if(this.pos.x < 0){
+			x = cx + ($c.width() - this.$div.outerWidth() + this.pos.x + 1);
 		}else{
-			y = cy + this.pos.y;  
+			x = cx + this.pos.x - 1;
 		}
-		this.$div.css("top", y);
-//		alert("resi");
+		if(this.pos.y === 0){
+			y = cy + 0.5 * ($c.height() - this.$div.outerHeight());
+		}else if(this.pos.y < 0){
+//			alert("cy:" + cy + ", ch:" + $c.height() + ", dh:" + this.$div.outerHeight() + ", py:" + this.pos.y);
+			y = cy + ($c.height() - this.$div.outerHeight() + this.pos.y + 1);
+		}else{
+			y = cy + this.pos.y - 1;
+		}
+		this.$div.css({left: x, top: y});
 	},
 	// --- end of class
 	__lastentry: undefined

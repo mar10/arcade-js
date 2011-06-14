@@ -248,14 +248,23 @@ var RipOffGame = ArcadeJS.extend({
 		// --- Status data -----------------------------------------------------
 		this.wave = 0;
 		this.score = 0;
+		this.score2 = 0;
 		this.gracePeriod = 2; // seconds
 
 		// --- Cache sounds ----------------------------------------------------
 		this.gunSound = new AudioJS(["fire.mp3", "fire.oga"]);
 		this.explosionSound = new AudioJS(["damage.mp3", "damage.oga"]);
 
-		this.player1 =  this.addObject(new Tank({id: "player1", pos: new Point2(540, 100)}));
-		this.player2 =  this.twoPlayer ? this.addObject(new Tank({id: "player2", pos: new Point2(100, 100)})) : null;
+		this.player1 = this.addObject(new Tank({
+			id: "player1", 
+			pos: new Point2(840, 100),
+			homePos: new Point2(540, 100)
+		}));
+		this.player2 = this.twoPlayer ? this.addObject(new Tank({
+			id: "player2", 
+			pos: new Point2(-200, 100),
+			homePos: new Point2(100, 100)
+		})) : null;
 		// Seed 8 canisters in the center
 		for(var i=0; i<8; i++){
 			var pos = new Point2(LinaJS.random(250, 390), LinaJS.random(190, 290));
@@ -263,6 +272,10 @@ var RipOffGame = ArcadeJS.extend({
 		}
 		//
 		this._startWave();
+		this.player1.restart();
+		if(this.player2){
+			this.player2.restart();
+		}
 
 		// Start render loop
 		this.startLoop();
@@ -372,7 +385,7 @@ var RipOffGame = ArcadeJS.extend({
 			}else if(this.getActivity() != "over"){
 				this.setActivity("over");
 				var popUp = new HtmlOverlay({
-					canvas: this.canvas,
+					game: this,
 					html: "Game Over.",
 					onClick: function(e){
 						window.location.reload();
@@ -383,9 +396,14 @@ var RipOffGame = ArcadeJS.extend({
 	},
 	preDraw: function(ctx){
 		ctx.save();
+		var yOfs = this.canvasArea.y;
 		// Display score
 		ctx.font = "16px sans-serif";
-		ctx.fillScreenText("Score: " + this.score, 10, 15);
+		ctx.fillScreenText("Player 1: " + this.score, 10, 17 + yOfs);
+		if(this.twoPlayer){
+			ctx.fillScreenText("Player 2: " + this.score2, 10, 34 + yOfs);
+		}
+
 		if(this.isActivity("prepare")){
 			ctx.font = "30px sans-serif";
 			ctx.strokeScreenText("Wave " + this.wave + "...", 0, 0);
@@ -478,7 +496,9 @@ var Tank = Movable.extend({
 //		ArcadeJS.extendAttributes(this, opts, "homePos");
 		this.pg = pgTank1.copy();
 //		this.pgHull = this.pg.getConvexHull();
-		this.homePos = this.pos.copy();
+		this.outerPos = opts.pos.copy();
+		this.homePos = opts.homePos.copy();
+//		this.homePos = this.pos.copy();
 		this.fireRate = 330; // ms
 		this.fireRange = 1.3; // sec
 	},
@@ -492,6 +512,15 @@ var Tank = Movable.extend({
 			turnRate = 90 * LinaJS.D2R,
 			game = this.game;
 
+		// In recover mode (after it was hit), the tank drives back to it's home 
+		if(this.getActivity() == "recover"){
+			if(driveToPosition(this, game.frameDuration, this.homePos,
+					10, maxSpeed, turnRate, accel, decel)){
+				this.setActivity("idle");
+				this.clipModeX = "stop";
+			};
+			return;
+		}
 		// --- Handle key controls ---
 		if(this.id == "player1"){
 			// Player 1 is keyboard controlled
@@ -538,13 +567,9 @@ var Tank = Movable.extend({
 			if(!this.game.preCheckCollision(this, obj)){
 				continue;
 			}
-//			alert("Collision von " + this + " mit " + obj);
 			// Pre-check is exact enough for our purpose...
 			obj.hitBy(this);
 			this.hitBy(obj);
-			if(obj.score){
-				this.game.score += obj.score;
-			}
 			break;
 		}
 	},
@@ -555,13 +580,29 @@ var Tank = Movable.extend({
 	},
 	hitBy: function(obj) {
 		this.game.explosionSound.play();
+		// Score penalty for friendly fire
+		var otherId = obj.type == "bullet" ? obj.source.id : "";
+		if(otherId == "player1"){
+			this.game.score -= 100;
+		}else if(otherId == "player2"){
+			this.game.score2 -= 100;
+		}
 		this.hidden = true;
 		this.game._assignTargets();
-//		this.pos.set(1000, 1000);
-		this.later(this.game.gracePeriod, function(){
-			this.pos.set(this.homePos);
-			this.hidden = false;
-		});
+		this.hidden = false;
+
+		this.restart();
+
+//		this.later(this.game.gracePeriod, function(){
+//			this.pos.set(this.homePos);
+//			this.hidden = false;
+//		});
+	},
+	/**Move outside screen and activate 'recover' mode (i.e. drive back to home)*/
+	restart: function(){
+		this.pos.set(this.outerPos);
+		this.clipModeX = "none";
+		this.setActivity("recover");
 	},
 	fire: function() {
 		if(this.hidden || this.game.time - this.lastFire < this.fireRate){
@@ -689,7 +730,13 @@ var Bandit = Movable.extend({
 	},
 	hitBy: function(obj) {
 		this.game.explosionSound.play();
-		this.game.score += this.score;
+		// Add score if Bandit was hit by player or player bullet
+		var otherId = obj.source ? obj.source.id : obj.id;
+		if(otherId == "player1"){
+			this.game.score += this.score;
+		}else if(otherId == "player2"){
+			this.game.score2 += this.score;
+		}
 		this.die();
 	},
 	fire: function() {

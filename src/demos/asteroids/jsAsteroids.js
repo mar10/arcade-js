@@ -241,7 +241,7 @@ var Rocket = Movable.extend({
 			}else if(this.game.getActivity() != "over"){
 				this.game.setActivity("over");
 				var popUp = new HtmlOverlay({
-					canvas: this.game.canvas,
+					game: this.game,
 					html: "Game Over.",
 					css: {
 						opacity: 0.8,

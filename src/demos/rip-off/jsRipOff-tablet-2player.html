@@ -27,58 +27,9 @@
 
 	var TabletRipOffGame = RipOffGame.extend({
 		init: function(canvas, opts) {
-			// Call parent contructor
+			// Call parent constructor
 			this._super(canvas, opts);
 			canvas = this.canvas; // Maybe we converted element ID to canvas
-			// Add iPad touch controls
-			/*
-			this.stick1 = this.addObject(new TouchStick({
-				isBackground: false,
-				r1: 10,
-				r2: 30,
-				r3: 60,
-				onResize: function(width, height){
-					this.pos.x = width - 60;
-					this.pos.y = height - 60;
-				}
-			}));
-			this.button1 = this.addObject(new TouchButton({
-				isBackground: false,
-				r: 20,
-				r3: 40,
-				onResize: function(width, height){
-					this.pos.x = 30;
-					this.pos.y = height - 30;
-				},
-				onClick: function(){ this.game.getObjectById("player1").fire(); }
-			}));
-			this.stick2 = this.addObject(new TouchStick({
-				isBackground: false,
-				r1: 10,
-				r2: 30,
-				r3: 60,
-				onResize: function(width, height){
-					this.pos.x = 60;
-					this.pos.y = 60;
-				}
-			}));
-			this.button2 = this.addObject(new TouchButton({
-				isBackground: false,
-				r: 20,
-				r3: 40,
-				onResize: function(width, height){
-					this.pos.x = width - 30;
-					this.pos.y = 30;
-				},
-				onClick: function(){ this.game.getObjectById("player2").fire(); }
-			}));
-			*/
-			/*
-			this.textArea = this.addObject(new TouchArea({
-				isBackground: false,
-				onClick: function(){ alert("click"); }
-			}));
-			*/
 			/*
 			Platform:
 				"Win32", "iPhone",
@@ -107,20 +58,19 @@
 			startMessage += "<p>Other versions:<br>&nbsp;&nbsp;<a href='jsRipOff-2.html'>Classic (Single player)</a> - <a href='jsRipOff-2.html'>Classic (2-player)</a></p>";
 			startMessage += "<p>&nbsp;</p>";
 			startMessage += "<p style='text-align: center; font-size: 80%;'>Copyright &copy; 2011 Martin Wendt. Made with <a href='http://arcade-js.googlecode.com/' target='_blank'>ArcadeJS</a>.</p>";
-//			this.stopLoop();
+			// Render one frame, then stop and dispay welcome box
 			this.stopRequest = true;
 			var game = this; // Required for callback closures
 			var popUp = new HtmlOverlay({
-				canvas: this.canvas,
+				game: this,
 				html: startMessage,
 				css: {
 					opacity: 0.8
 //                    backgroundColor: "black",
 //                    color: "white"
 				},
-				showSpeed: "slow",
-				hideSpeed: "normal",
 				onClick: function(e){
+					// Evaluate id of clicked child element (the start button)
 					switch( $(e.target).attr("id") ) {
 					case "start":
 						this.close();
@@ -131,25 +81,23 @@
 			});
 			// Create fire buttons as HTML overlay in the lower left corners
 			this.btnFire1 = new HtmlOverlay({
-				canvas: this.canvas,
+				game: this,
 				html: "",
-				closeOnClick: false,
 				pos: {x: 1, y: -1},
 				css: {
-					padding: 25,
-					backgroundColor: "silver",
-					opacity: 0.2
+					padding: 35,
+					backgroundColor: "white",
+					opacity: 0.3
 				}
 			});
 			this.btnFire2 = new HtmlOverlay({
-				canvas: this.canvas,
+				game: this,
 				html: "",
-				closeOnClick: false,
 				pos: {x: -1, y: 1},
 				css: {
-					padding: 25,
-					backgroundColor: "silver",
-					opacity: 0.2
+					padding: 35,
+					backgroundColor: "white",
+					opacity: 0.3
 				}
 			});
 		},
@@ -175,6 +123,10 @@
 				var bottomTouch, topTouch, t, ptCC;
 				for(var i=0; i<touches.length; i++){
 					t = touches[i];
+					// Ignore touches for the HtmlOverlay
+					if(t.target.nodeName != "CANVAS"){
+						continue;
+					}
 					ptCC = new Point2(
 						t.pageX - this.canvas.offsetLeft,
 						t.pageY - this.canvas.offsetTop);

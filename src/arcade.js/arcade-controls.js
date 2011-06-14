@@ -459,7 +459,7 @@ var HtmlOverlay = Class.extend(
 	init: function(opts){
 		// Define and override default properties
 		ArcadeJS.guerrillaDerive(this, {
-			canvas: undefined, // (mandatory) parent canvas element
+			game: undefined, // (mandatory) parent canvas element
 			pos: {x: 0, y: 0}, // Centered on screen
 //			title: null, // Title
 			html: undefined, // (mandatory) Box content
@@ -473,6 +473,7 @@ var HtmlOverlay = Class.extend(
 		}, opts);
 		this.css = $.extend({}, this._defaultCss, opts.css);
 		var self = this;
+		this.canvas = this.game.canvas;
 		this.down = false;
 		this.inside = false;
 		this.touchDownId = null;
@@ -492,10 +493,14 @@ var HtmlOverlay = Class.extend(
 			}).bind("mouseup", function(e){
 				self.down = false;
 			}).bind("touchstart", function(e){
+				self.game.debug("HtmlOverlay got " + e.type + ", node:" + e.target.nodeName);
 				if(e.target.nodeName == "A"){ return; } // Allow <a> tags to work
-//				e.originalEvent.preventDefault();
+//				if(e.target.nodeName == "CANVAS"){ return; } // Allow <a> tags to work
+				if(self.touchDownId !== null && e.originalEvent.changedTouches.length > 1){ return; } // Already have a touch
+				e.originalEvent.preventDefault();
 				self.touchDownId = e.originalEvent.changedTouches[0].identifier;
-				$(this).css("backgroundColor", "red");
+				self.game.debug("    nChanged:" + e.originalEvent.changedTouches.length + ", id=" + self.touchDownId);
+//				$(this).css("backgroundColor", "red");
 				self.down = true;
 				self._clicked(e);
 //			}).bind("touchenter", function(e){
@@ -503,10 +508,14 @@ var HtmlOverlay = Class.extend(
 //			}).bind("touchleave", function(e){
 //				self.inside = false;
 			}).bind("touchend touchcancel", function(e){
+				self.game.debug("HtmlOverlay got " + e.type + ", node:" + e.target.nodeName);
+				self.game.debug("    id=" + self.touchDownId + ", t=" + _getTouchWithId(e.originalEvent.changedTouches, self.touchDownId));
+				e.originalEvent.preventDefault();
 				if(!_getTouchWithId(e.originalEvent.changedTouches, self.touchDownId)){
 					return; // touch event was for another target
 				}
-				$(this).css("backgroundColor", "blue");
+				self.touchDownId = null;
+//				$(this).css("backgroundColor", "white");
 				self.inside = self.down = false;
 			});
 		$(window).resize(function(e){

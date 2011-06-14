@@ -463,13 +463,16 @@ var ArcadeJS = Class.extend(
 		});
 		// Bind touch and gesture events
 		$(canvas).bind("touchstart touchend touchmove touchcancel gesturestart gestureend gesturechange", function(e){
-//			self.touches = e.originalEvent.touches;
-			self.touches = e.originalEvent.targetTouches;
+			self.touches = e.originalEvent.touches;
+//			self.touches = e.originalEvent.targetTouches;
+			self.debug("game got " + e.type + ": " + e.target.nodeName + ", touches.length=" + self.touches.length);
+			self.debug("    orgtarget" + e.originalEvent.target.nodeName);
 			// Prevent default handling (i.e. don't scroll or dselect the canvas)
 			// Standard <a> handling is OK
-			if(e.target.nodeName != "A"){
+//			if(e.target.nodeName != "A"){
 				e.originalEvent.preventDefault();
-			}
+//			}
+
 			for(var i=0, l=self.touchListeners.length; i<l; i++) {
 				var obj = self.touchListeners[i];
 				if(obj.onTouchevent) {

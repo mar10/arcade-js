@@ -239,6 +239,7 @@ var RipOffGame = ArcadeJS.extend({
 		}, customOpts);
 		this._super(canvas, opts);
 
+		var i;
 		// Copy selected options as object attributes
 		ArcadeJS.extendAttributes(this, opts, "twoPlayer");
 
@@ -255,18 +256,22 @@ var RipOffGame = ArcadeJS.extend({
 		this.gunSound = new AudioJS(["fire.mp3", "fire.oga"]);
 		this.explosionSound = new AudioJS(["damage.mp3", "damage.oga"]);
 
+		this.attackStyle = "orange";
+
 		this.player1 = this.addObject(new Tank({
 			id: "player1", 
 			pos: new Point2(840, 100),
-			homePos: new Point2(540, 100)
+			homePos: new Point2(540, 100),
+			color: "skyblue"
 		}));
 		this.player2 = this.twoPlayer ? this.addObject(new Tank({
 			id: "player2", 
 			pos: new Point2(-200, 100),
-			homePos: new Point2(100, 100)
+			homePos: new Point2(100, 100),
+			color: "yellowgreen"
 		})) : null;
 		// Seed 8 canisters in the center
-		for(var i=0; i<8; i++){
+		for(i=0; i<8; i++){
 			var pos = new Point2(LinaJS.random(250, 390), LinaJS.random(190, 290));
 			this.addObject(new Canister({pos: pos}));
 		}
@@ -398,11 +403,15 @@ var RipOffGame = ArcadeJS.extend({
 		ctx.save();
 		var yOfs = this.canvasArea.y;
 		// Display score
+		ctx.save();
 		ctx.font = "16px sans-serif";
+		ctx.fillStyle = this.player1.color;
 		ctx.fillScreenText("Player 1: " + this.score, 10, 17 + yOfs);
 		if(this.twoPlayer){
+			ctx.fillStyle = this.player2.color;
 			ctx.fillScreenText("Player 2: " + this.score2, 10, 34 + yOfs);
 		}
+		ctx.restore();
 
 		if(this.isActivity("prepare")){
 			ctx.font = "30px sans-serif";
@@ -490,10 +499,11 @@ var Tank = Movable.extend({
 	init: function(opts) {
 		this._super("tank", $.extend({
 			clipModeX: "stop",
-			clipModeY: "stop"
+			clipModeY: "stop",
+			color: "white"
 		}, opts));
 		// Copy selected options as object attributes
-//		ArcadeJS.extendAttributes(this, opts, "homePos");
+		ArcadeJS.extendAttributes(this, opts, "color");
 		this.pg = pgTank1.copy();
 //		this.pgHull = this.pg.getConvexHull();
 		this.outerPos = opts.pos.copy();
@@ -513,7 +523,7 @@ var Tank = Movable.extend({
 			game = this.game;
 
 		// In recover mode (after it was hit), the tank drives back to it's home 
-		if(this.getActivity() == "recover"){
+		if(this.isActivity("recover") ){
 			if(driveToPosition(this, game.frameDuration, this.homePos,
 					10, maxSpeed, turnRate, accel, decel)){
 				this.setActivity("idle");
@@ -574,6 +584,7 @@ var Tank = Movable.extend({
 		}
 	},
 	render: function(ctx) {
+		ctx.strokeStyle = this.color;
 		ctx.strokePolygon2(this.pg, false);
 //		ctx.strokeStyle = "magenta";
 //		ctx.strokePolygon2(this.pgHull, false);
@@ -581,10 +592,11 @@ var Tank = Movable.extend({
 	hitBy: function(obj) {
 		this.game.explosionSound.play();
 		// Score penalty for friendly fire
-		var otherId = obj.type == "bullet" ? obj.source.id : "";
-		if(otherId == "player1"){
+		var otherId = (obj.type == "bullet" ? obj.source.id : ""),
+			isReal = this.isActivity("run");
+		if(isReal && otherId == "player1"){
 			this.game.score -= 100;
-		}else if(otherId == "player2"){
+		}else if(isReal && otherId == "player2"){
 			this.game.score2 -= 100;
 		}
 		this.hidden = true;
@@ -628,7 +640,7 @@ var Bandit = Movable.extend({
 	init: function(opts) {
 		this._super("bandit", $.extend({
 			clipModeX: "none",
-			clipModeY: "none",
+			clipModeY: "none"
 		}, opts));
 		// Copy selected options as object attributes
 		ArcadeJS.extendAttributes(this, opts, "score maxSpeed accel decel turnRate attackRange fireRate pg");
@@ -722,7 +734,7 @@ var Bandit = Movable.extend({
 	},
 	render: function(ctx) {
 		if(this.attackMode){
-			ctx.strokeStyle = "lightblue";
+			ctx.strokeStyle = this.game.attackStyle; //"lightblue";
 		}
 		ctx.strokePolygon2(this.pg, false);
 //		ctx.strokeStyle = "magenta";

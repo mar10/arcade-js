@@ -32,7 +32,7 @@
 			canvas = this.canvas; // Maybe we converted element ID to canvas
 			/*
 			Platform:
-				"Win32", "iPhone",
+				"Win32", "iPhone", "iPad"
 				"Linux armv7I" (Samsung Galaxy s2)
 			*/
 			var startMessage = "<h4>jsRip-Off - 2-Player Tablet version</h4>";
@@ -47,7 +47,7 @@
 							+ "</p>"
 					}else if(navigator.platform == "iPad"){
 						startMessage += "<p>This page is optimized to run in fullscreen mode.<br>"
-							+ "Use the 'Add to Home Screen' function at the bottom of this page and restart this game from the new link icon.";
+							+ "Use the 'Add to Home Screen' function at the top of this screen and restart this game from the new link icon.";
 							+ "</p>"
 					}
 				}else if(navigator.standalone !== true){
@@ -148,23 +148,28 @@
 				accel = 150,
 				decel = 100,
 				turnRate = 180 * LinaJS.D2R,
-				eps = 10,
+                moveEps = 100, // start moving (instead of turning only) when touch is more than n px away
+                targetEps = 10, // stop moving when target is nearer then this
 				dist;
-			if(bottomTouch){
+			if( bottomTouch && !this.player1.iActivity("recover") ){
 				dist = bottomTouch.pos.distanceTo(this.player1.pos);
-				if(dist < 100){
+				if(dist < moveEps){
 					turnToDirection(this.player1, this.frameDuration,
 						bottomTouch.pos, turnRate);
 				}else{
 					driveToPosition(this.player1, this.frameDuration,
-						bottomTouch.pos, 10, maxSpeed, turnRate, accel, decel);
+						bottomTouch.pos, targetEps, maxSpeed, turnRate, accel, decel);
 				}
-//                alert("bottomTouch:" + bottomTouch.posCC + ", WC:" + bottomTouch.pos + "\n" + this.player1);
 			}
-			if(topTouch){
-//                alert("topTouch:" + topTouch.posCC + ", WC:" + topTouch.pos + "\n" + this.player2);
-				driveToPosition(this.player2, this.frameDuration, topTouch.pos,
-						10, maxSpeed, turnRate, accel, decel);
+			if( topTouch && !this.player2.iActivity("recover") ){
+                dist = topTouch.pos.distanceTo(this.player2.pos);
+                if(dist < moveEps){
+                    turnToDirection(this.player2, this.frameDuration,
+                        topTouch.pos, turnRate);
+                }else{
+                    driveToPosition(this.player2, this.frameDuration,
+                        topTouch.pos, targetEps, maxSpeed, turnRate, accel, decel);
+                }
 			}
 			//
 			this._super();

@@ -148,10 +148,10 @@
 				accel = 150,
 				decel = 100,
 				turnRate = 180 * LinaJS.D2R,
-                moveEps = 100, // start moving (instead of turning only) when touch is more than n px away
-                targetEps = 10, // stop moving when target is nearer then this
+				moveEps = 100, // start moving (instead of turning only) when touch is more than n px away
+				targetEps = 10, // stop moving when target is nearer then this
 				dist;
-			if( bottomTouch && !this.player1.iActivity("recover") ){
+			if( bottomTouch && !this.player1.isActivity("recover") ){
 				dist = bottomTouch.pos.distanceTo(this.player1.pos);
 				if(dist < moveEps){
 					turnToDirection(this.player1, this.frameDuration,
@@ -161,15 +161,15 @@
 						bottomTouch.pos, targetEps, maxSpeed, turnRate, accel, decel);
 				}
 			}
-			if( topTouch && !this.player2.iActivity("recover") ){
-                dist = topTouch.pos.distanceTo(this.player2.pos);
-                if(dist < moveEps){
-                    turnToDirection(this.player2, this.frameDuration,
-                        topTouch.pos, turnRate);
-                }else{
-                    driveToPosition(this.player2, this.frameDuration,
-                        topTouch.pos, targetEps, maxSpeed, turnRate, accel, decel);
-                }
+			if( topTouch && !this.player2.isActivity("recover") ){
+				dist = topTouch.pos.distanceTo(this.player2.pos);
+				if(dist < moveEps){
+					turnToDirection(this.player2, this.frameDuration,
+						topTouch.pos, turnRate);
+				}else{
+					driveToPosition(this.player2, this.frameDuration,
+						topTouch.pos, targetEps, maxSpeed, turnRate, accel, decel);
+				}
 			}
 			//
 			this._super();

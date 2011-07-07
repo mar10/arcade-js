@@ -259,13 +259,13 @@ var RipOffGame = ArcadeJS.extend({
 		this.attackStyle = "orange";
 
 		this.player1 = this.addObject(new Tank({
-			id: "player1", 
+			id: "player1",
 			pos: new Point2(840, 100),
 			homePos: new Point2(540, 100),
 			color: "skyblue"
 		}));
 		this.player2 = this.twoPlayer ? this.addObject(new Tank({
-			id: "player2", 
+			id: "player2",
 			pos: new Point2(-200, 100),
 			homePos: new Point2(100, 100),
 			color: "yellowgreen"
@@ -290,7 +290,7 @@ var RipOffGame = ArcadeJS.extend({
 		var i,
 			maxBandits = 3,
 			canisters = this.getObjectsByType("canister"),
-			forceAttack = false;
+			forceAttack = false,
 			banditHome = new Point2(LinaJS.random(0, 640), 500);
 
 		this.wave += 1;
@@ -522,7 +522,7 @@ var Tank = Movable.extend({
 			turnRate = 90 * LinaJS.D2R,
 			game = this.game;
 
-		// In recover mode (after it was hit), the tank drives back to it's home 
+		// In recover mode (after it was hit), the tank drives back to it's home
 		if(this.isActivity("recover") ){
 			if(driveToPosition(this, game.frameDuration, this.homePos,
 					10, maxSpeed, turnRate, accel, decel)){

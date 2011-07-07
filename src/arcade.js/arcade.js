@@ -1693,7 +1693,7 @@ var Movable = Class.extend(
 		return prev;
 	},
 	/**Return true, if current activity is in the list.
-	 * @param {string | string array} activities
+	 * @param {string | string array} activities (seperate multiple entries with space)
 	 * @returns {boolean}
 	 */
 	isActivity: function(activities) {

@@ -1972,6 +1972,104 @@ var Movable = Class.extend(
 	/**@function Callback, triggered when this object dies.
 	 */
 	onDie: undefined,
+	/**
+	 * Adjust velocity (by applying acceleration force) to move an object towards
+	 * a target position.
+	 * @param {float} stepTime
+	 * @param {Point2} targetPos
+	 * @param {float} eps
+	 * @param {float} maxSpeed
+	 * @param {float} turnRate
+	 * @param {float} maxAccel
+	 * @param {float} maxDecel
+	 * @returns {booelan} true, if target position is reached (+/- eps)
+	 */
+	driveToPosition: function(stepTime, targetPos, eps, maxSpeed, turnRate, maxAccel, maxDecel){
+		var vTarget = this.pos.vectorTo(targetPos),
+			dTarget = vTarget.length(),
+			aTarget = LinaJS.angleDiff(this.orientation + 90*LinaJS.D2R, vTarget.angle()),
+			curSpeed = this.velocity.length();
+
+		if(dTarget <= eps && curSpeed < eps){
+			this.velocity.setNull();
+			return true;
+		}
+		if(this.velocity.isNull()){
+			this.velocity = vTarget.copy().setLength(stepTime * maxAccel).limit(maxSpeed);
+			curSpeed = this.velocity.length();
+			maxAccel = 0;
+		}
+		// Turn to target (within 0.1° accuracy)
+		if(Math.abs(aTarget) > 0.1 * LinaJS.D2R){
+			if(aTarget > 0){
+				this.orientation += Math.min(aTarget, stepTime * turnRate);
+			}else{
+				this.orientation -= Math.min(-aTarget, stepTime * turnRate);
+			}
+			this.velocity.setAngle(this.orientation + 90*LinaJS.D2R);
+//			this.game.debug("driveToPosition: turning to " + this.orientation * LinaJS.R2D + "°");
+		}
+		// Decelerate, if desired and target is in reach
+		if(maxDecel > 0 && dTarget < curSpeed){
+			this.velocity.setLength(Math.max(LinaJS.EPS, curSpeed - stepTime * maxDecel));
+//			this.game.debug("driveToPosition: breaking to speed = " + this.velocity.length());
+		}else if(maxAccel > 0 && maxSpeed > 0 && Math.abs(curSpeed - maxSpeed) > LinaJS.EPS){
+			// otherwise accelerate to max speed, if this is desired
+			this.velocity.setLength(Math.min(maxSpeed, curSpeed + stepTime * maxAccel));
+//			this.game.debug("driveToPosition: accelerating to speed = " + this.velocity.length());
+		}
+		return false;
+	},
+///**
+// * Adjust velocity (by applying acceleration force) to move an object towards
+// * a target position.
+// */
+//	floatToPosition: function(targetPos, maxAccel, maxSpeed, maxDecel){
+//		//TODO
+//		var vDest = this.pos.vectorTo(targetPos);
+//		this.velocity.accelerate(vDest.setLength(maxAccel), maxSpeed);
+//		// make sure we are heading to the moving direction
+//		this.orientation = this.velocity.angle() - 90*LinaJS.D2R;
+////		this.game.debug("v: " + this.velocity);
+////		if( this.attackMode && vTarget.length() < minFireDist
+////				&& Math.abs(vTarget.angle() - this.orientation - 90*LinaJS.D2R) < 25*LinaJS.D2R){
+////			this.fire();
+////		}
+//	},
+
+
+	/**
+	 * Turn game object to direction or target point.
+	 * @param {float} stepTime
+	 * @param {float | Vec2 | Point2} target angle, vector or position
+	 * @param {float} turnRate
+	 * @returns {booelan} true, if target angle is reached
+	 */
+	turnToDirection: function(stepTime, target, turnRate){
+		var angle = target;
+		if(target.x !== undefined){
+			// target is a point: calc angle from current pos top this point
+			angle = this.pos.vectorTo(target).angle();
+		}else if(target.dx !== undefined){
+			// target is a vector
+			angle = target.angle();
+		}
+		// now calc the delta-angle
+		angle = LinaJS.angleDiff(this.orientation + 90*LinaJS.D2R, angle);
+		// Turn to target (within 0.1° accuracy)
+		if(Math.abs(angle) <= 0.1 * LinaJS.D2R){
+			return true;
+		}
+		if(angle > 0){
+			this.orientation += Math.min(angle, stepTime * turnRate);
+		}else{
+			this.orientation -= Math.min(-angle, stepTime * turnRate);
+		}
+		this.velocity.setAngle(this.orientation + 90*LinaJS.D2R);
+		// return true, if destination orientation was reached
+		return Math.abs(angle) <= stepTime * turnRate;
+	},
+
 	// --- end of class
 	lastentry: undefined
 });

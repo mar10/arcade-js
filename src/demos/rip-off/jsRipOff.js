@@ -2,87 +2,6 @@
  * jsRipOff.js
  */
 
-/**
- * Adjust velocity (by applying acceleration force) to move an object towards
- * a target position.
- * @param {Movable} movable
- * @param {float} stepTime
- * @param {Point2} targetPos
- * @param {float} eps
- * @param {float} maxSpeed
- * @param {float} turnRate
- * @param {float} maxAccel
- * @param {float} maxDecel
- */
-function driveToPosition(movable, stepTime, targetPos, eps, maxSpeed, turnRate, maxAccel, maxDecel){
-	var vTarget = movable.pos.vectorTo(targetPos),
-		dTarget = vTarget.length(),
-		aTarget = LinaJS.angleDiff(movable.orientation + 90*LinaJS.D2R, vTarget.angle()),
-		curSpeed = movable.velocity.length();
-//	movable.game.debug("driveToPosition: " + targetPos + ", ofs=" + vTarget + ", " + aTarget + "°, d=" + dTarget);
-	if(dTarget <= eps && curSpeed < eps){
-		movable.velocity.setNull();
-		return true;
-	}
-	if(movable.velocity.isNull()){
-		movable.velocity = vTarget.copy().setLength(stepTime * maxAccel);
-		curSpeed = movable.velocity.length();
-		maxAccel = 0;
-	}
-	// Turn to target (within 0.1° accuracy)
-	if(Math.abs(aTarget) > 0.1 * LinaJS.D2R){
-		if(aTarget > 0){
-			movable.orientation += Math.min(aTarget, stepTime * turnRate);
-		}else{
-			movable.orientation -= Math.min(-aTarget, stepTime * turnRate);
-		}
-		movable.velocity.setAngle(movable.orientation + 90*LinaJS.D2R);
-//		movable.game.debug("driveToPosition: turning to " + movable.orientation * LinaJS.R2D + "°");
-	}
-	// Decelerate, if desired and target is in reach
-	if(maxDecel > 0 && dTarget < curSpeed){
-		movable.velocity.setLength(Math.max(LinaJS.EPS, curSpeed - stepTime * maxDecel));
-//		movable.game.debug("driveToPosition: breaking to speed = " + movable.velocity.length());
-	}else if(maxAccel > 0 && maxSpeed > 0 && Math.abs(curSpeed - maxSpeed) > LinaJS.EPS){
-		// otherwise accelerate to max speed, if this is desired
-		movable.velocity.setLength(Math.min(maxSpeed, curSpeed + stepTime * maxAccel));
-//		movable.game.debug("driveToPosition: accelerating to speed = " + movable.velocity.length());
-	}
-	return false;
-}
-
-/**
- * Turn game object to direction or target point.
- * @param {Movable} movable
- * @param {float} stepTime
- * @param {float | Vec2 | Point2} target angle, vector or position
- * @param {float} turnRate
- */
-function turnToDirection(movable, stepTime, target, turnRate){
-	var angle = target;
-	if(target.x !== undefined){
-		// target is a point: calc angle from current pos top this point
-		angle = movable.pos.vectorTo(target).angle();
-	}else if(target.dx !== undefined){
-		// target is a vector
-		angle = target.angle();
-	}
-	// now calc the delta-angle
-	angle = LinaJS.angleDiff(movable.orientation + 90*LinaJS.D2R, angle);
-	// Turn to target (within 0.1° accuracy)
-	if(Math.abs(angle) <= 0.1 * LinaJS.D2R){
-		return true;
-	}
-	if(angle > 0){
-		movable.orientation += Math.min(angle, stepTime * turnRate);
-	}else{
-		movable.orientation -= Math.min(-angle, stepTime * turnRate);
-	}
-	movable.velocity.setAngle(movable.orientation + 90*LinaJS.D2R);
-	// return true, if destination orientation was reached
-	return Math.abs(angle) <= stepTime * turnRate;
-}
-
 var pgTank1 = new Polygon2([
 	-4,  3,
 	-4,  6,
@@ -208,23 +127,6 @@ var banditsDefs = [
 ];
 // pgTank1.copy().transform(LinaJS.scale33(.9))
 
-
-///**
-// * Adjust velocity (by applying acceleration force) to move an object towards
-// * a target position.
-// */
-//function floatToPosition(movable, targetPos, maxAccel, maxSpeed, maxDecel){
-//	//TODO
-//	var vDest = movable.pos.vectorTo(targetPos);
-//	movable.velocity.accelerate(vDest.setLength(maxAccel), maxSpeed);
-//	// make sure we are heading to the moving direction
-//	movable.orientation = movable.velocity.angle() - 90*LinaJS.D2R;
-////	movable.game.debug("v: " + movable.velocity);
-////	if( this.attackMode && vTarget.length() < minFireDist
-////			&& Math.abs(vTarget.angle() - this.orientation - 90*LinaJS.D2R) < 25*LinaJS.D2R){
-////		this.fire();
-////	}
-//}
 
 /**
  * Rip-off game object
@@ -506,9 +408,11 @@ var Tank = Movable.extend({
 		ArcadeJS.extendAttributes(this, opts, "color");
 		this.pg = pgTank1.copy();
 //		this.pgHull = this.pg.getConvexHull();
-		this.outerPos = opts.pos.copy();
+		// Start here
 		this.homePos = opts.homePos.copy();
-//		this.homePos = this.pos.copy();
+		// Drive from here to homePos after a hit (recover mode).
+		this.recoverPos = opts.pos.copy();
+//		alert("init: " + this.id + " home:" + this.homePos + ", recover:" + this.recoverPos);
 		this.fireRate = 330; // ms
 		this.fireRange = 1.3; // sec
 	},
@@ -524,7 +428,7 @@ var Tank = Movable.extend({
 
 		// In recover mode (after it was hit), the tank drives back to it's home
 		if(this.isActivity("recover") ){
-			if(driveToPosition(this, game.frameDuration, this.homePos,
+			if(this.driveToPosition(game.frameDuration, this.homePos,
 					10, maxSpeed, turnRate, accel, decel)){
 				this.setActivity("idle");
 				this.clipModeX = "stop";
@@ -554,14 +458,14 @@ var Tank = Movable.extend({
 		if(!game.twoPlayer || this.id == "player2"){
 			// Player 2 is mouse controlled
 			if(game.leftButtonDown){ // left mouse button is pressed
-				driveToPosition(this, game.frameDuration, game.mousePos,
+				this.driveToPosition(game.frameDuration, game.mousePos,
 					10, maxSpeed, turnRate, accel, decel);
 			}else{
 				this.velocity.accelerate(-decel * game.frameDuration);
 			}
 			if(game.rightButtonDown){ // right mouse is pressed
 				// Turn to mouse pos and fire
-				if(turnToDirection(this, game.frameDuration, game.mousePos, turnRate)){
+				if(this.turnToDirection(game.frameDuration, game.mousePos, turnRate)){
 					this.fire();
 				}
 			}
@@ -612,7 +516,8 @@ var Tank = Movable.extend({
 	},
 	/**Move outside screen and activate 'recover' mode (i.e. drive back to home)*/
 	restart: function(){
-		this.pos.set(this.outerPos);
+		this.pos.set(this.recoverPos);
+//		alert("restart: " + this.id + " home:" + this.homePos + ", recover:" + this.recoverPos);
 		this.clipModeX = "none";
 		this.setActivity("recover");
 	},
@@ -694,7 +599,7 @@ var Bandit = Movable.extend({
 //		}, "canister");
 
 		// --- move to target
-		var reached = driveToPosition(this, this.game.frameDuration, target.pos,
+		var reached = this.driveToPosition(this.game.frameDuration, target.pos,
 				epsTarget, this.maxSpeed, this.turnRate, this.accel, this.decel);
 		if(reached){
 			if(target.type == "canister"){

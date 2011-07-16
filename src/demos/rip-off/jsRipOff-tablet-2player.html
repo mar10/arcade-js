@@ -16,7 +16,7 @@
 	<meta name="apple-mobile-web-app-status-bar-style" content="black">
 	<!-- Safari/iPhone: Set fixed viewport -->
 	<meta name="viewport" content="width=device-width, initial-scale=1.0,
-		maximum-scale=1.0, user-scalable=0;">
+		maximum-scale=1.0, user-scalable=0">
 	<!-- Safari/iPhone: Define App icon -->
 	<link rel="apple-touch-icon" href="apple-touch-icon.png">
 	<!-- Safari/iPhone: Define startup icon -->
@@ -42,7 +42,7 @@
 					// Scroll one pixel down, so Safari URL toolbar disappears
 					setTimeout(scrollTo, 10, 0, 1);
 					if(navigator.platform == "iPhone" || navigator.platform == "iPod"){
-						startMessage += "<p>This page is optimized to run on iPads or other tablets in fullscreen mode.<br>"
+						startMessage += "<p>This page is optimized to run on iP<u>a</u>ds in fullscreen mode.<br>"
 							+ "Use the 'Add to Home Screen' function at the bottom of this page and restart this game from the new link icon.";
 							+ "</p>"
 					}else if(navigator.platform == "iPad"){
@@ -154,20 +154,20 @@
 			if( bottomTouch && !this.player1.isActivity("recover") ){
 				dist = bottomTouch.pos.distanceTo(this.player1.pos);
 				if(dist < moveEps){
-					turnToDirection(this.player1, this.frameDuration,
+					this.player1.turnToDirection(this.frameDuration,
 						bottomTouch.pos, turnRate);
 				}else{
-					driveToPosition(this.player1, this.frameDuration,
+					this.player1.driveToPosition(this.frameDuration,
 						bottomTouch.pos, targetEps, maxSpeed, turnRate, accel, decel);
 				}
 			}
 			if( topTouch && !this.player2.isActivity("recover") ){
 				dist = topTouch.pos.distanceTo(this.player2.pos);
 				if(dist < moveEps){
-					turnToDirection(this.player2, this.frameDuration,
+					this.player2.turnToDirection(this.frameDuration,
 						topTouch.pos, turnRate);
 				}else{
-					driveToPosition(this.player2, this.frameDuration,
+					this.player2.driveToPosition(this.frameDuration,
 						topTouch.pos, targetEps, maxSpeed, turnRate, accel, decel);
 				}
 			}

@@ -27,6 +27,7 @@
   var initializing = false, fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
 
   // The base Class implementation (does nothing)
+  /**@ignore*/
   this.Class = function(){};
 
   // Create a new Class that inherits from this class
@@ -97,6 +98,11 @@
  * var sound3 = new AudioJS({src: ['click.ogg', 'click.mp3'], loop: true)
  * [...]
  * clickSound.play();
+ * 
+ * @param {string|string[]|object} opts Audio URL, list of URLs or option dictionary.
+ * @param {string|string[]} opts.src Audio URL or list of URLs.
+ * @param {boolean} [opts.loop=false]  
+ * @param {float} [opts.volume=1] 
  */
 AudioJS = function(opts){
 	if(typeof opts == "string"){
@@ -113,18 +119,19 @@ $.extend(AudioJS,
 	{
 	_soundElement: null,
 	_audioList: {},
-	/**@field {boolean} */
+	/**true, if browser supports the Audio class.*/
 	audioObjSupport: undefined,
-	/**@field {boolean} */
+	/**true, if browser supports Audio.play().*/
 	basicAudioSupport: undefined,
-	/**@field {boolean} */
+	/**true if browser supports looping (repeating) */
 	loopSupport: undefined,
 	defaultOpts: {
 		loop: false,
 		volume: 1
 	},
 	/**Load and cache audio element for this URL.
-	 *  @param {string} url
+	 * This internal function is called by the constructor. 
+	 * @param {string} url
 	 */
 	load: function(src) {
 		var tag;
@@ -202,7 +209,7 @@ AudioJS.prototype = {
 			}
 		}
 	},
-	__lastEntry: undefined
+	__lastentry: undefined
 }
 
 
@@ -215,12 +222,20 @@ var ArcadeJS = Class.extend(
 {
 	/**
 	 * A canvas based 2d game engine.
-	 * @param {canvas} canvas
-	 * @param {dictionary} opts
+	 * @param {canvas|string} canvas Canvas element or element id
+	 * @param {object} opts Game configuration
+	 * @param {string} [opts.name]
+	 * @param {int} [opts.fps=30] 
+	 * @param {string} [opts.resizeMode='adjust'] Adjust internal canvas width/height to match its outer dimensions
+	 * @param {boolean} [opts.fullscreenMode=false] Resize canvas to window extensions
+	 * @param {object} [opts.fullscreenMargin={top: 0, right: 0, bottom: 0, left: 0}]
+	 * @param {boolean} [opts.timeCorrection=true] Adjust object velocities for constant speed when frame rate drops.
+	 * @param {object} opts.debug Additional debug settings
+	 * 
 	 * @constructs
 	 */
 	init: function(canvas, opts) {
-		/**Game options (defaultGameOptions + options passed to the constructor).*/
+		/**Game options (ArcadeJS.defaultGameOptions + options passed to the constructor).*/
 		this.opts = $.extend(true, {}, ArcadeJS.defaultGameOptions, opts);
 		// TODO: required?
 		this.opts.debug = $.extend({}, ArcadeJS.defaultGameOptions.debug, opts.debug);
@@ -237,9 +252,10 @@ var ArcadeJS = Class.extend(
 			canvas = document.getElementById(canvas);
 		}
 		if(!canvas || !canvas.getContext){
-			throw "Invalid canvas (expeced Canvas element or element ID)";
+			throw "Invalid canvas (expected Canvas element or element ID)";
 		}
-		/**The HTML &lt;canvas&gt; element */
+		/**The augmented HTML &lt;canvas&gt; element. 
+		 * @See CanvasObject */
 		this.canvas = canvas;
 		/**The 2D Rendering Context*/
 		this.context = canvas.getContext("2d");
@@ -614,8 +630,8 @@ var ArcadeJS = Class.extend(
 	},
 	/**Schedule a callback to be triggered after a number of seconds.
 	 * @param {float} seconds delay until callback is triggered
-	 * @param {function} callback (optional), if ommited, this.onTimout is called.
-	 * @param data (optional) additional data passed to callback
+	 * @param {function} [callback=this.onTimout] function to be called
+	 * @param {Misc} [data] Additional data passed to callback
 	 */
 	later: function(seconds, callback, data) {
 		var timeout = {
@@ -1156,45 +1172,54 @@ var ArcadeJS = Class.extend(
 		// Narrow check required
 		return true;
 	},
-	/**@function Callback, triggered when timeout expires (and no callback was given).
-	 * @param data data object passed to later()
+	/**Callback, triggered when this.later() timeout expires (and no callback was given).
+	 * @param data data object passed to this.later()
+	 * @event
 	 */
 	onTimeout: undefined,
-	/**@function Called when window is resized (and on start).
+	/**Called when window is resized (and on start).
 	 * The default processing depends on the 'resizeMode' option.
 	 * @param {Int} width
 	 * @param {Int} height
 	 * @param {Event} e
 	 * @returns false to prevent default handling
+	 * @event
 	 */
 	onResize: undefined,
-	/**@function Called after window was resized.
+	/**Called after window was resized.
 	 * @param {Event} e
+	 * @event
 	 */
 	afterResize: undefined,
-	/**@function Called on miscelaneous touch... and gesture... events.
+	/**Called on miscelaneous touch and gesture events.
 	 * @param {Event} event jQuery event
 	 * @param {OriginalEvent} originalEvent depends on mobile device
+	 * @event
 	 */
 	onTouchevent: undefined,
-	/**@function Called before object.step() is called on all game ojects.
+	/**Called before object.step() is called on all game ojects.
+	 * @event
 	 */
 	preStep: undefined,
-	/**@function Called after object.step() was called on all game ojects.
+	/**Called after object.step() was called on all game ojects.
+	 * @event
 	 */
 	postStep: undefined,
-	/**@function Called before object.render() is called on all game ojects.
+	/**Called before object.render() is called on all game ojects.
 	 * object.step() calls have been executed and canvas was cleared.
 	 * @param ctx Canvas 2D context.
+	 * @event
 	 */
 	preDraw: undefined,
-	/**@function Called after object.render() was called on all game ojects.
+	/**Called after object.render() was called on all game ojects.
 	 * @param ctx Canvas 2D context.
+	 * @event
 	 */
 	postDraw: undefined,
-	/**@function Called after all rendering happened and transformations are reset.
+	/**Called after all rendering happened and transformations are reset.
 	 * Allows accessing the full, untransformed canvas in Canvas Coordinates.
 	 * @param ctx Canvas 2D context.
+	 * @event
 	 */
 	postDrawCC: undefined,
 	// --- end of class
@@ -1202,6 +1227,7 @@ var ArcadeJS = Class.extend(
 });
 
 /**Return a string array from a space or comma separated string.
+ * @param {string} s Space or comma separated string.
  */
 ArcadeJS.explode = function(s){
 	if($.isArray(s)){
@@ -1233,13 +1259,13 @@ ArcadeJS.extendAttributes = function(object, dict, attrNames){
  *
  * Note: this is different from `$.extend()`, because only values are copied that
  * are present in `template`. This prevents accidently overriding protected
- * target members in `target`.
+ * members in `target`.
  * If `temnplate` members have a value of `undefined`, they are mandatory. An
  * exception will be raised, if they are not found in `opts`.
  *
- * @param {object} target class object that will receive the properties (typically `this`).
- * @param {object} template defines names and default values of all members to copy
- * @param {object} opts dictionary with methods and values that override `template` (typically passed to the target constructor).
+ * @param {object} target Object that will receive the properties (typically `this`).
+ * @param {object} template Defines names and default values of all members to copy.
+ * @param {object} opts Object with methods and values that override `template` (typically passed to the target constructor).
  */
 ArcadeJS.guerrillaDerive = function(target, template, source){
 	var missing = [];
@@ -1321,7 +1347,7 @@ ArcadeJS.defaultGameOptions = {
 		showBCircle: undefined
 	},
 	purgeRate: 0.5,
-	lastEntry: undefined
+	_lastEntry: undefined
 }
 
 
@@ -1332,6 +1358,8 @@ ArcadeJS.defaultGameOptions = {
  * This functions are added to a ArcadeJS canvas.
  * @class
  * @augments Canvas
+ * @see <a href='http://www.w3.org/TR/html5/the-canvas-element.html#the-canvas-element'>The canvas element</a>
+ * @see <a href='https://developer.mozilla.org/en/canvas_tutorial'>Canvas tutorial</a>
  */
 ArcadeCanvas =
 {
@@ -1488,7 +1516,7 @@ ArcadeCanvas =
 	/**Render a text field to the canvas using canvas coordinates.
 	 * Negative coordinates will align to opposite borders.
 	 * Pass x = 0 or y = 0 for centered output.
-	 * @param {String} text
+	 * @param {string} text
 	 * @param {float} x Horizontal position in CC (use negative value to align at right border)
 	 * @param {float} y Vertical position in CC (use negative value to align at bottom)
 	 */
@@ -1606,7 +1634,14 @@ var Movable = Class.extend(
 /** @lends Movable.prototype */
 {
 	/**Represents a game object with kinetic properties.
+	 * Used as base class for all game objects.
+	 *  
 	 * @constructs
+	 * @param {string} type Instance type identifier used to filter objects.
+	 * @param [opts] Additional options.
+	 * @param {string} [opts.id=random] Unique instance identifier.
+	 * @param {object} [opts.debug] Additional debug options.
+	 * @see Movable.defaultOptions
 	 */
 	init: function(type, opts) {
 		/**Type identifier used to filter objects.*/
@@ -1615,6 +1650,7 @@ var Movable = Class.extend(
 		this.id = (opts && opts.id) ? opts.id : "#" + ArcadeJS._nextObjectId++;
 		/**Parent ArcadeJS object (set by game.addObject() method).*/
 		this.game = undefined;
+		/**True, if object is hidden and not tested for collisions*/
 		this.hidden = false;
 		this._dead = false;
 		this._activity = null;
@@ -1659,7 +1695,7 @@ var Movable = Class.extend(
 		 * Values: ('none', 'wrap', 'stop', 'bounce')*/
 		this.clipModeX = opts.clipModeX || "none";
 		/**Defines, what happens when object leaves the viewport to the left or right.
-		 * @See clipModeX
+		 * @See Movable#clipModeX
 		 */
 		this.clipModeY = opts.clipModeY || "none";
 		this._timeout = null; //+opts.timeout;
@@ -1710,8 +1746,8 @@ var Movable = Class.extend(
 	},
 	/**Schedule a callback to be triggered after a number of seconds.
 	 * @param {float} seconds delay until callback is triggered
-	 * @param {function} callback (optional), if ommited, this.onTimout is called.
-	 * @param data (optional) additional data passed to callback
+	 * @param {function} [callback=this.onTimeout] Function to be called.
+	 * @param {Misc} [data] Additional data passed to callback
 	 */
 	later: function(seconds, callback, data) {
 		var timeout = {
@@ -1904,76 +1940,88 @@ var Movable = Class.extend(
 		}
 		return undefined;
 	},
-	/**@function Override this to apply additional transformations.
+	/**Override this to apply additional transformations.
+	 * @event
 	 */
 	step: undefined,
-	/**@function Draw the object to the canvas.
+	/**Draw the object to the canvas.
 	 * The objects transformation is already applied to the canvas when this
 	 * function is called. Therefore drawing commands should use modeling
 	 * coordinates.
 	 * @param ctx Canvas 2D context.
+	 * @event
 	 */
 	render: undefined,
-	/**@function Callback, triggered when document keydown event occurs.
+	/**Callback, triggered when document keydown event occurs.
 	 * @param {Event} e
-	 * @param {String} key stringified key, e.g. 'a', 'A', 'ctrl+a', or 'shift+enter'.
+	 * @param {string} key stringified key, e.g. 'a', 'A', 'ctrl+a', or 'shift+enter'.
+	 * @event
 	 */
 	onKeydown: undefined,
-	/**@function Callback, triggered when document keyup event occurs.
+	/**Callback, triggered when document keyup event occurs.
 	 * @param {Event} e
-	 * @param {String} key stringified key, e.g. 'a', 'A', 'ctrl+a', or 'shift+enter'.
+	 * @param {string} key stringified key, e.g. 'a', 'A', 'ctrl+a', or 'shift+enter'.
+	 * @event
 	 */
 	onKeyup: undefined,
-	/**@function Callback, triggered when document keypress event occurs.
+	/**Callback, triggered when document keypress event occurs.
 	 * Synchronous keys are supported
 	 * @param {Event} e
 	 * @see ArcadeJS.isKeyDown(keyCode)
+	 * @event
 	 */
 	onKeypress: undefined,
-	/**@function Callback, triggered when mouse wheel was used.
+	/**Callback, triggered when mouse wheel was used.
 	 * Note: this requires to include the jquery.mouseweheel.js plugin.
 	 * @param {Event} e
 	 * @param {int} delta +1 or -1
+	 * @event
 	 */
 	onMousewheel: undefined,
-	/**@function Callback, triggered when a mouse drag starts over this object.
+	/**Callback, triggered when a mouse drag starts over this object.
 	 * @param {Point2} clickPos
 	 * @returns {boolean} must return true, if object wants to receive drag events
+	 * @event
 	 */
 	onDragstart: undefined,
-	/**@function Callback, triggered while this object is dragged.
+	/**Callback, triggered while this object is dragged.
 	 * @param {Vec2} dragOffset
+	 * @event
 	 */
 	onDrag: undefined,
-	/**@function Callback, triggered when a drag operation is cancelled.
+	/**Callback, triggered when a drag operation is cancelled.
 	 * @param {Vec2} dragOffset
+	 * @event
 	 */
 	onDragcancel: undefined,
-	/**@function Callback, triggered when a drag operation ends with mouseup.
+	/**Callback, triggered when a drag operation ends with mouseup.
 	 * @param {Vec2} dragOffset
+	 * @event
 	 */
 	onDrop: undefined,
-	/**@function Called on miscelaneous touch... and gesture... events.
+	/**Called on miscelaneous touch... and gesture... events.
 	 * @param {Event} event jQuery event
 	 * @param {OriginalEvent} originalEvent depends on mobile device
+	 * @event
 	 */
 	onTouchevent: undefined,
-	/**@function Callback, triggered when game or an object activity changes.
-	 * @param {Movable} target object that changed its activity
-	 * (May be the ArcadeJS object too).
+	/**Callback, triggered when game or an object activity changes.
+	 * @param {Movable} target object that changed its activity (May be the ArcadeJS object too).
 	 * @param {string} activity new activity
 	 * @param {string} prevActivity previous activity
+	 * @event
 	 */
 	onSetActivity: undefined,
-	/**@function Callback, triggered when timeout expires (and no callback was given).
+	/**Callback, triggered when timeout expires (and no callback was given).
 	 * @param data data object passed to later()
+	 * @event
 	 */
 	onTimeout: undefined,
-	/**@function Callback, triggered when this object dies.
+	/**Callback, triggered when this object dies.
+	 * @event
 	 */
 	onDie: undefined,
-	/**
-	 * Adjust velocity (by applying acceleration force) to move an object towards
+	/**Adjust velocity (by applying acceleration force) to move an object towards
 	 * a target position.
 	 * @param {float} stepTime
 	 * @param {Point2} targetPos
@@ -1995,7 +2043,8 @@ var Movable = Class.extend(
 			return true;
 		}
 		if(this.velocity.isNull()){
-			this.velocity = vTarget.copy().setLength(stepTime * maxAccel).limit(maxSpeed);
+//			this.velocity = vTarget.copy().setLength(stepTime * maxAccel).limit(maxSpeed);
+			this.velocity = LinaJS.polarToVec(this.orientation, LinaJS.EPS);
 			curSpeed = this.velocity.length();
 			maxAccel = 0;
 		}
@@ -2038,8 +2087,7 @@ var Movable = Class.extend(
 //	},
 
 
-	/**
-	 * Turn game object to direction or target point.
+	/**Turn game object to direction or target point.
 	 * @param {float} stepTime
 	 * @param {float | Vec2 | Point2} target angle, vector or position
 	 * @param {float} turnRate
@@ -2071,18 +2119,12 @@ var Movable = Class.extend(
 	},
 
 	// --- end of class
-	lastentry: undefined
+	__lastentry: undefined
 });
 
-/**Default options used when a Movable or derived object is constructed.*/
+/**Default options used when a Movable or derived object is constructed. */
 Movable.defaultOptions = {
-//		type: undefined,
-//		id: undefined,
-//		tags: [],
-//	collisionList: [], // list of types and tags that will report collisions
-//	eventList: [], // list of event names that this object wants
 	pos: null,
-	/**@field {string} 'wrap', 'bounce', 'collision', or 'none'.*/
 	clipModeX: "wrap",
 	clipModeY: "wrap",
 	debug: {
@@ -2093,5 +2135,5 @@ Movable.defaultOptions = {
 		showVelocity: false,
 		velocityScale: 1.0
 	},
-	lastEntry: undefined
+	__lastentry: undefined
 }

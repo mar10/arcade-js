@@ -1,3 +1,9 @@
+> Arcade.js is a 2d game engine based on JavaScript and HTML5 Canvas.
+
+**NOTE: This repository was migrated from Google Code at 2015-03-15.**<br>
+[Google announced](http://google-opensource.blogspot.de/2015/03/farewell-to-google-code.html)
+that Google Code Project Hosting will be turned down.<br>
+(Original project site was: https://code.google.com/p/arcade-js/ )
 
   A R C A D E . J S  - 0.0.1
   
@@ -10,9 +16,7 @@
 
   Web Site          http://wwWendt.de/jsripoff 
 
-  
-Arcade.js is a 2d game engine based on JavaScript and HTML5 Canvas.
-  
+
 Part of the distribution is
   
   - lina.js
@@ -26,8 +30,17 @@ Part of the distribution is
     A port of the Rip-Off arcade game written by Tim Skelly / Cinematronix in 
     1980.
 
-Rip-off
-=======
+**Under Construction**, but there are already some preliminary artifacts:
+
+  * [jsRipOff sample game](http://arcade-js.googlecode.com/hg/src/demos/rip-off/index.html)
+  * [jsAsteroids sample game](http://arcade-js.googlecode.com/hg/src/demos/asteroids/index.html)
+  * [Demo page](http://arcade-js.googlecode.com/hg/src/demos/index.html)
+  * API Documentation of the math lib [LinaJS API](http://docs.arcade-js.googlecode.com/hg/lina.js/jsdoc/index.html)
+  * API Documentation of the game engine [ArcadeJS API](http://docs.arcade-js.googlecode.com/hg/arcade.js/jsdoc/index.html)
+
+
+## Rip-off
+
 Rip-Off, was the first arcade game with two-player cooperative play.
 Written by Tim Skelly for Cinematronix in 1980.
 
@@ -40,3 +53,5 @@ Written by Tim Skelly for Cinematronix in 1980.
   Chrome and Opera but is not currently supported in Internet Explorer.
    
   //////////////////////////////////////////////////////////////////////////////
+  
+  

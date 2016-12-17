@@ -1,0 +1,2322 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="generator" content="JsDoc Toolkit" />
+		
+		<title>JsDoc Reference - Vec2</title>
+
+		<style type="text/css">
+			/* default.css */
+body
+{
+	font: 12px "Lucida Grande", Tahoma, Arial, Helvetica, sans-serif;
+	width: 800px;
+}
+
+.header
+{
+	clear: both;
+	background-color: #ccc;
+	padding: 8px;
+}
+
+h1
+{
+	font-size: 150%;
+	font-weight: bold;
+	padding: 0;
+	margin: 1em 0 0 .3em;
+}
+
+hr
+{
+	border: none 0;
+	border-top: 1px solid #7F8FB1;
+	height: 1px;
+}
+
+pre.code
+{
+	display: block;
+	padding: 8px;
+	border: 1px dashed #ccc;
+}
+
+#index
+{
+	margin-top: 24px;
+	float: left;
+	width: 160px;
+	position: absolute;
+	left: 8px;
+	background-color: #F3F3F3;
+	padding: 8px;
+}
+
+#content
+{
+	margin-left: 190px;
+	width: 600px;
+}
+
+.classList
+{
+	list-style-type: none;
+	padding: 0;
+	margin: 0 0 0 8px;
+	font-family: arial, sans-serif;
+	font-size: 1em;
+	overflow: auto;
+}
+
+.classList li
+{
+	padding: 0;
+	margin: 0 0 8px 0;
+}
+
+.summaryTable { width: 100%; }
+
+h1.classTitle
+{
+	font-size:170%;
+	line-height:130%;
+}
+
+h2 { font-size: 110%; }
+caption, div.sectionTitle
+{
+	background-color: #7F8FB1;
+	color: #fff;
+	font-size:130%;
+	text-align: left;
+	padding: 2px 6px 2px 6px;
+	border: 1px #7F8FB1 solid;
+}
+
+div.sectionTitle { margin-bottom: 8px; }
+.summaryTable thead { display: none; }
+
+.summaryTable td
+{
+	vertical-align: top;
+	padding: 4px;
+	border-bottom: 1px #7F8FB1 solid;
+	border-right: 1px #7F8FB1 solid;
+}
+
+/*col#summaryAttributes {}*/
+.summaryTable td.attributes
+{
+	border-left: 1px #7F8FB1 solid;
+	width: 140px;
+	text-align: right;
+}
+
+td.attributes, .fixedFont
+{
+	line-height: 15px;
+	color: #002EBE;
+	font-family: "Courier New",Courier,monospace;
+	font-size: 13px;
+}
+
+.summaryTable td.nameDescription
+{
+	text-align: left;
+	font-size: 13px;
+	line-height: 15px;
+}
+
+.summaryTable td.nameDescription, .description
+{
+	line-height: 15px;
+	padding: 4px;
+	padding-left: 4px;
+}
+
+.summaryTable { margin-bottom: 8px; }
+
+ul.inheritsList
+{
+	list-style: square;
+	margin-left: 20px;
+	padding-left: 0;
+}
+
+.detailList {
+	margin-left: 20px; 
+	line-height: 15px;
+}
+.detailList dt { margin-left: 20px; }
+
+.detailList .heading
+{
+	font-weight: bold;
+	padding-bottom: 6px;
+	margin-left: 0;
+}
+
+.light, td.attributes, .light a:link, .light a:visited
+{
+	color: #777;
+	font-style: italic;
+}
+
+.fineprint
+{
+	text-align: right;
+	font-size: 10px;
+}
+		</style>
+	</head>
+
+	<body>
+<!-- ============================== header ================================= -->	
+		<!-- begin static/header.html -->
+		<div id="header">
+</div>
+		<!-- end static/header.html -->
+
+<!-- ============================== classes index ============================ -->
+		<div id="index">
+			<!-- begin publish.classesIndex -->
+			<div align="center"><a href="../index.html">Class Index</a>
+| <a href="../files.html">File Index</a></div>
+<hr />
+<h2>Classes</h2>
+<ul class="classList">
+	
+	<li><i><a href="../symbols/_global_.html">_global_</a></i></li>
+	
+	<li><a href="../symbols/BiTran2.html">BiTran2</a></li>
+	
+	<li><a href="../symbols/Circle2.html">Circle2</a></li>
+	
+	<li><a href="../symbols/LinaJS.html">LinaJS</a></li>
+	
+	<li><a href="../symbols/Matrix3.html">Matrix3</a></li>
+	
+	<li><a href="../symbols/Point2.html">Point2</a></li>
+	
+	<li><a href="../symbols/Polygon2.html">Polygon2</a></li>
+	
+	<li><a href="../symbols/Vec2.html">Vec2</a></li>
+	
+</ul>
+<hr />
+			<!-- end publish.classesIndex -->
+		</div>
+		
+		<div id="content">
+<!-- ============================== class title ============================ -->
+			<h1 class="classTitle">
+				
+				Class Vec2
+			</h1>
+
+<!-- ============================== class summary ========================== -->			
+			<p class="description">
+				
+				
+			
+				
+				
+				
+					<br /><i>Defined in: </i> <a href="../symbols/src/src_lina.js_lina.js.html">lina.js</a>.
+				
+			</p>
+
+<!-- ============================== constructor summary ==================== -->			
+			
+			<table class="summaryTable" cellspacing="0" summary="A summary of the constructor documented in the class Vec2.">
+				<caption>Class Summary</caption>
+				<thead>
+					<tr>
+						<th scope="col">Constructor Attributes</th>
+						<th scope="col">Constructor Name and Description</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="attributes">&nbsp;</td>
+						<td class="nameDescription" >
+							<div class="fixedFont">
+								<b><a href="../symbols/Vec2.html#constructor">Vec2</a></b>(dx, dy)
+							</div>
+							<div class="description">2D vector that has an internal cartesian representation (dx, dy)
+and support for transformations.</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			
+
+<!-- ============================== properties summary ===================== -->
+			
+
+<!-- ============================== methods summary ======================== -->
+			
+				
+				
+				<table class="summaryTable" cellspacing="0" summary="A summary of the methods documented in the class Vec2.">
+					<caption>Method Summary</caption>
+					<thead>
+						<tr>
+							<th scope="col">Method Attributes</th>
+							<th scope="col">Method Name and Description</th>
+						</tr>
+					</thead>
+					<tbody>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#accelerate">accelerate</a></b>(force, maxLength, minLength)
+								</div>
+								<div class="description">Apply a 'force' vector or offset (in-place) within given limits.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Vec2.<b><a href="../symbols/Vec2.html#.add">add</a></b>(v1, vecOrDx, dy)
+								</div>
+								<div class="description">Return a new vector that combines two vectors.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#add">add</a></b>(vecOrDx, dy)
+								</div>
+								<div class="description">Add another vector to this vector and return the current instance.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#angle">angle</a></b>()
+								</div>
+								<div class="description">Return the angle between positive x axis and this vector.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#angleTo">angleTo</a></b>(v2)
+								</div>
+								<div class="description">Return the angle between this vector and v2.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#copy">copy</a></b>()
+								</div>
+								<div class="description">Return a new copy of this vector.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Vec2.<b><a href="../symbols/Vec2.html#.cross">cross</a></b>(v1, v2)
+								</div>
+								<div class="description">Calculate the cross product of this vector and v2.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#cross">cross</a></b>(v2)
+								</div>
+								<div class="description">Calculate the cross product of this vector and v2.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Vec2.<b><a href="../symbols/Vec2.html#.dot">dot</a></b>(v1, v2)
+								</div>
+								<div class="description">Calculate the dot product (inner product) of this vector and v2.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#dot">dot</a></b>(v2)
+								</div>
+								<div class="description">Calculate the dot product (inner product) of this vector and v2.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#getPolar">getPolar</a></b>()
+								</div>
+								<div class="description">Return polar coordinates for this vector.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#isColinear">isColinear</a></b>(v2)
+								</div>
+								<div class="description">Check if v2 is parallel to this vector.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#isNull">isNull</a></b>()
+								</div>
+								<div class="description">Check, if vector is (0, 0)</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#isPerp">isPerp</a></b>(v2)
+								</div>
+								<div class="description">Check if v2 is perpendicular to this vector.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#length">length</a></b>()
+								</div>
+								<div class="description">Return vector length.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Vec2.<b><a href="../symbols/Vec2.html#.limit">limit</a></b>(length)
+								</div>
+								<div class="description">Return copy of vector with limited length.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#limit">limit</a></b>(length)
+								</div>
+								<div class="description">Clamp vector length (in-place).</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Vec2.<b><a href="../symbols/Vec2.html#.normalize">normalize</a></b>()
+								</div>
+								<div class="description">Return a normalized copy of v1.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#normalize">normalize</a></b>()
+								</div>
+								<div class="description">Normalize to a unit vector (in-place) and return this instance.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#perp">perp</a></b>()
+								</div>
+								<div class="description">Set vector orientation to perpendicular of itself (in-place) and return this
+instance.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Vec2.<b><a href="../symbols/Vec2.html#.perp">perp</a></b>(v1)
+								</div>
+								<div class="description">Return a perpendicluar copy of a vector.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Vec2.<b><a href="../symbols/Vec2.html#.revert">revert</a></b>(v1)
+								</div>
+								<div class="description">Return a flipped copy of vector.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#revert">revert</a></b>()
+								</div>
+								<div class="description">Flip this vector (in-place) and return this instance.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#rotate">rotate</a></b>(a)
+								</div>
+								<div class="description">Rotate this vector (in-place) and return this instance.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Vec2.<b><a href="../symbols/Vec2.html#.rotate">rotate</a></b>(v1, a)
+								</div>
+								<div class="description">Return a rotated copy of a vector.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Vec2.<b><a href="../symbols/Vec2.html#.scale">scale</a></b>(v1, f)
+								</div>
+								<div class="description">Return a copy of v1 with length multiplied by a factor.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#scale">scale</a></b>(f)
+								</div>
+								<div class="description">Multiply vector length by a factor (in-place) and return this instance.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#set">set</a></b>(dx, dy)
+								</div>
+								<div class="description">Set coordinates.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#setAngle">setAngle</a></b>(a)
+								</div>
+								<div class="description">Set the angle (in-place, relative to positive x axis).</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#setLength">setLength</a></b>(length)
+								</div>
+								<div class="description">Set vector length (in-place) and return this instance.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Vec2.<b><a href="../symbols/Vec2.html#.setLength">setLength</a></b>(v1, length)
+								</div>
+								<div class="description">Return a copy of vector with a defined length.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#setNull">setNull</a></b>()
+								</div>
+								<div class="description">Set vector to (0, 0)</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#sqrLength">sqrLength</a></b>()
+								</div>
+								<div class="description">Return vector length ^2.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#sub">sub</a></b>(vecOrDx, dy)
+								</div>
+								<div class="description">Subtract another vector from this vector and return the current instance.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Vec2.<b><a href="../symbols/Vec2.html#.sub">sub</a></b>(v1, vecOrDx, dy)
+								</div>
+								<div class="description">Return a new vector that combines v1 minus v2.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#toString">toString</a></b>(prec)
+								</div>
+								<div class="description">Return string representation '(dx, dy)'.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Vec2.html#transform">transform</a></b>(m)
+								</div>
+								<div class="description">Apply transformation matrix (in-place) and return this instance.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&lt;static&gt; &nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">Vec2.<b><a href="../symbols/Vec2.html#.transform">transform</a></b>(v1, m)
+								</div>
+								<div class="description">Return a transformed copy of a vector.</div>
+							</td>
+						</tr>
+					
+					</tbody>
+				</table>
+				
+				
+				
+			
+<!-- ============================== events summary ======================== -->
+			
+
+<!-- ============================== constructor details ==================== -->		
+			
+			<div class="details"><a name="constructor"> </a>
+				<div class="sectionTitle">
+					Class Detail
+				</div>
+				
+				<div class="fixedFont">
+						<b>Vec2</b>(dx, dy)
+				</div>
+				
+				<div class="description">
+					2D vector that has an internal cartesian representation (dx, dy)
+and support for transformations.
+When applying transformations, a vector is handled as [dx, dy, 0].
+					
+				</div>
+				
+				
+				
+				<pre class="code">  var v = new Vec2(3, 4);
+  v.rotate(Math.PI).translate(1, 2);</pre>
+				
+				
+				
+				
+					
+						<dl class="detailList">
+						<dt class="heading">Parameters:</dt>
+						
+							<dt>
+								<span class="light fixedFont">{float|<a href="../symbols/Vec2.html">Vec2</a>|JS-object}</span>  <b>dx</b>
+								
+							</dt>
+								<dd>X-coordinate or a Vec2 instance or {dx:_, dy:_}</dd>
+						
+							<dt>
+								<span class="light fixedFont">{float}</span>  <b>dy</b>
+								
+							</dt>
+								<dd>Y-coordinate or undefined, if x is a Vec2 instance or {dx:_, dy:_}</dd>
+						
+						</dl>
+					
+					
+					
+					
+					
+					
+					
+
+			</div>
+			
+
+<!-- ============================== field details ========================== -->		
+			
+
+<!-- ============================== method details ========================= -->		
+			
+				<div class="sectionTitle">
+					Method Detail
+				</div>
+				
+					<a name="accelerate"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<b>accelerate</b>(force, maxLength, minLength)
+					
+					</div>
+					<div class="description">
+						Apply a 'force' vector or offset (in-place) within given limits.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{float | Vec2}</span> <b>force</b>
+									
+								</dt>
+								<dd>vector. If a float is passed, then it is
+assumed to be the length of a vector along current direction.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{float}</span> <b>maxLength</b>
+									
+								</dt>
+								<dd>(optional) maximum length of resulting vector.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{float}</span> <b>minLength</b>
+									
+								</dt>
+								<dd>(optional) minimum length. If omitted, a Null-Vector is returned when EPS is reached.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".add"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<span class="light">Vec2.</span><b>add</b>(v1, vecOrDx, dy)
+					
+					</div>
+					<div class="description">
+						Return a new vector that combines two vectors.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v1</b>
+									
+								</dt>
+								<dd>First vector.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>vecOrDx</b>
+									
+								</dt>
+								<dd>Second vector.</dd>
+							
+								<dt>
+									<b>dy</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="add"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<b>add</b>(vecOrDx, dy)
+					
+					</div>
+					<div class="description">
+						Add another vector to this vector and return the current instance.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>vecOrDx</b>
+									
+								</dt>
+								<dd>Second vector.</dd>
+							
+								<dt>
+									<b>dy</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="angle"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{float}</span>
+					<b>angle</b>()
+					
+					</div>
+					<div class="description">
+						Return the angle between positive x axis and this vector.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{float}</span> [-pi .. pi], ccw</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="angleTo"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{float}</span>
+					<b>angleTo</b>(v2)
+					
+					</div>
+					<div class="description">
+						Return the angle between this vector and v2.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>v2</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{float}</span> [-pi .. pi], ccw</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="copy"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<b>copy</b>()
+					
+					</div>
+					<div class="description">
+						Return a new copy of this vector.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".cross"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{float}</span>
+					<span class="light">Vec2.</span><b>cross</b>(v1, v2)
+					
+					</div>
+					<div class="description">
+						Calculate the cross product of this vector and v2.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v1</b>
+									
+								</dt>
+								<dd>First vector.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v2</b>
+									
+								</dt>
+								<dd>Other vector.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{float}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="cross"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{float}</span>
+					<b>cross</b>(v2)
+					
+					</div>
+					<div class="description">
+						Calculate the cross product of this vector and v2.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v2</b>
+									
+								</dt>
+								<dd>Other vector.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{float}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".dot"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{float}</span>
+					<span class="light">Vec2.</span><b>dot</b>(v1, v2)
+					
+					</div>
+					<div class="description">
+						Calculate the dot product (inner product) of this vector and v2.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v1</b>
+									
+								</dt>
+								<dd>First vector.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v2</b>
+									
+								</dt>
+								<dd>Other vector.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{float}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="dot"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{float}</span>
+					<b>dot</b>(v2)
+					
+					</div>
+					<div class="description">
+						Calculate the dot product (inner product) of this vector and v2.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v2</b>
+									
+								</dt>
+								<dd>Other vector.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{float}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="getPolar"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{JS-Object}</span>
+					<b>getPolar</b>()
+					
+					</div>
+					<div class="description">
+						Return polar coordinates for this vector.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{JS-Object}</span> {a:angle in rad, r: radius}.</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="isColinear"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{boolaen}</span>
+					<b>isColinear</b>(v2)
+					
+					</div>
+					<div class="description">
+						Check if v2 is parallel to this vector.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v2</b>
+									
+								</dt>
+								<dd>Other vector.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{boolaen}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="isNull"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{boolean}</span>
+					<b>isNull</b>()
+					
+					</div>
+					<div class="description">
+						Check, if vector is (0, 0)
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{boolean}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="isPerp"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{boolaen}</span>
+					<b>isPerp</b>(v2)
+					
+					</div>
+					<div class="description">
+						Check if v2 is perpendicular to this vector.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v2</b>
+									
+								</dt>
+								<dd>Other vector.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{boolaen}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="length"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{float}</span>
+					<b>length</b>()
+					
+					</div>
+					<div class="description">
+						Return vector length.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{float}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".limit"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<span class="light">Vec2.</span><b>limit</b>(length)
+					
+					</div>
+					<div class="description">
+						Return copy of vector with limited length.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v1.</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<span class="light fixedFont">{float}</span> <b>length</b>
+									
+								</dt>
+								<dd>Maximum length.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="limit"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<b>limit</b>(length)
+					
+					</div>
+					<div class="description">
+						Clamp vector length (in-place).
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{float}</span> <b>length</b>
+									
+								</dt>
+								<dd>Maximum length.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".normalize"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<span class="light">Vec2.</span><b>normalize</b>()
+					
+					</div>
+					<div class="description">
+						Return a normalized copy of v1.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v1.</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="normalize"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<b>normalize</b>()
+					
+					</div>
+					<div class="description">
+						Normalize to a unit vector (in-place) and return this instance.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="perp"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<b>perp</b>()
+					
+					</div>
+					<div class="description">
+						Set vector orientation to perpendicular of itself (in-place) and return this
+instance.
+This is equivalent to a rotation by 90�, only faster.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".perp"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<span class="light">Vec2.</span><b>perp</b>(v1)
+					
+					</div>
+					<div class="description">
+						Return a perpendicluar copy of a vector.
+This is equivalent to a rotation by 90�, only faster.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v1</b>
+									
+								</dt>
+								<dd>First vector.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".revert"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<span class="light">Vec2.</span><b>revert</b>(v1)
+					
+					</div>
+					<div class="description">
+						Return a flipped copy of vector.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v1</b>
+									
+								</dt>
+								<dd>First vector.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="revert"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<b>revert</b>()
+					
+					</div>
+					<div class="description">
+						Flip this vector (in-place) and return this instance.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="rotate"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<b>rotate</b>(a)
+					
+					</div>
+					<div class="description">
+						Rotate this vector (in-place) and return this instance.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{float}</span> <b>a</b>
+									
+								</dt>
+								<dd>Angle in radians.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".rotate"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<span class="light">Vec2.</span><b>rotate</b>(v1, a)
+					
+					</div>
+					<div class="description">
+						Return a rotated copy of a vector.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v1</b>
+									
+								</dt>
+								<dd>First vector.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{float}</span> <b>a</b>
+									
+								</dt>
+								<dd>Angle in radians.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".scale"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<span class="light">Vec2.</span><b>scale</b>(v1, f)
+					
+					</div>
+					<div class="description">
+						Return a copy of v1 with length multiplied by a factor.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v1</b>
+									
+								</dt>
+								<dd>First vector.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{float}</span> <b>f</b>
+									
+								</dt>
+								<dd>Scaling factor.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="scale"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<b>scale</b>(f)
+					
+					</div>
+					<div class="description">
+						Multiply vector length by a factor (in-place) and return this instance.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{float}</span> <b>f</b>
+									
+								</dt>
+								<dd>Scaling factor.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="set"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<b>set</b>(dx, dy)
+					
+					</div>
+					<div class="description">
+						Set coordinates.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{float|<a href="../symbols/Vec2.html">Vec2</a>|JS-object}</span> <b>dx</b>
+									
+								</dt>
+								<dd>X-coordinate or a Vec2 instance or {dx:_, dy:_}</dd>
+							
+								<dt>
+									<span class="light fixedFont">{float}</span> <b>dy</b>
+									
+								</dt>
+								<dd>Y-coordinate or undefined, if y is a Vec2 instance or {dx:_, dy:_}</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="setAngle"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<b>setAngle</b>(a)
+					
+					</div>
+					<div class="description">
+						Set the angle (in-place, relative to positive x axis).
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>a</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="setLength"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<b>setLength</b>(length)
+					
+					</div>
+					<div class="description">
+						Set vector length (in-place) and return this instance.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{float}</span> <b>length</b>
+									
+								</dt>
+								<dd>New length.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".setLength"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<span class="light">Vec2.</span><b>setLength</b>(v1, length)
+					
+					</div>
+					<div class="description">
+						Return a copy of vector with a defined length.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v1</b>
+									
+								</dt>
+								<dd>First vector.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{float}</span> <b>length</b>
+									
+								</dt>
+								<dd>New length.</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="setNull"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<b>setNull</b>()
+					
+					</div>
+					<div class="description">
+						Set vector to (0, 0)
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="sqrLength"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{float}</span>
+					<b>sqrLength</b>()
+					
+					</div>
+					<div class="description">
+						Return vector length ^2.
+This is faster than calling length().
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{float}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="sub"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<b>sub</b>(vecOrDx, dy)
+					
+					</div>
+					<div class="description">
+						Subtract another vector from this vector and return the current instance.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Point2.html">Point2</a>|JS-Object}</span> <b>vecOrDx</b>
+									
+								</dt>
+								<dd>Second point.</dd>
+							
+								<dt>
+									<b>dy</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".sub"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<span class="light">Vec2.</span><b>sub</b>(v1, vecOrDx, dy)
+					
+					</div>
+					<div class="description">
+						Return a new vector that combines v1 minus v2.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v1</b>
+									
+								</dt>
+								<dd>First vector.</dd>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>vecOrDx</b>
+									
+								</dt>
+								<dd>Second vector.</dd>
+							
+								<dt>
+									<b>dy</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="toString"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>toString</b>(prec)
+					
+					</div>
+					<div class="description">
+						Return string representation '(dx, dy)'.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>prec</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="transform"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<b>transform</b>(m)
+					
+					</div>
+					<div class="description">
+						Apply transformation matrix (in-place) and return this instance.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>m</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name=".transform"> </a>
+					<div class="fixedFont">&lt;static&gt; 
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<span class="light">Vec2.</span><b>transform</b>(v1, m)
+					
+					</div>
+					<div class="description">
+						Return a transformed copy of a vector.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>|JS-Object}</span> <b>v1</b>
+									
+								</dt>
+								<dd>First vector.</dd>
+							
+								<dt>
+									<b>m</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					
+				
+			
+			
+<!-- ============================== event details ========================= -->		
+			
+			
+			<hr />
+		</div>
+
+		
+<!-- ============================== footer ================================= -->
+		<div class="fineprint" style="clear:both">
+			
+			Documentation generated by <a href="http://code.google.com/p/jsdoc-toolkit/" target="_blank">JsDoc Toolkit</a> 2.4.0 on Mon Jul 18 2011 14:05:15 GMT+0200 (MESZ)
+		</div>
+	</body>
+</html>

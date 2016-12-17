@@ -6,7 +6,7 @@
  * http://code.google.com/p/arcade-js/wiki/LicenseInfo
  *
  * A current version and some documentation is available at
- *     http://arcade-js.googlecode.com/
+ *     https://github.com/mar10/arcade-js/
  *
  * @fileOverview A 2D game engine that provides a render loop and support for
  * multiple moving objects.

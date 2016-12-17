@@ -7,7 +7,7 @@
  * http://code.google.com/p/arcade-js/wiki/LicenseInfo
  *
  * A current version and some documentation is available at
- *     http://arcade-js.googlecode.com/
+ *     https://github.com/mar10/arcade-js/
  *
  * @fileOverview An independent object oriented library for points, vectors,
  * and homogeneous transformations in 2D space.

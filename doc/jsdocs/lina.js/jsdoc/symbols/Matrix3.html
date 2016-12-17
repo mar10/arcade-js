@@ -1,0 +1,1090 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="generator" content="JsDoc Toolkit" />
+		
+		<title>JsDoc Reference - Matrix3</title>
+
+		<style type="text/css">
+			/* default.css */
+body
+{
+	font: 12px "Lucida Grande", Tahoma, Arial, Helvetica, sans-serif;
+	width: 800px;
+}
+
+.header
+{
+	clear: both;
+	background-color: #ccc;
+	padding: 8px;
+}
+
+h1
+{
+	font-size: 150%;
+	font-weight: bold;
+	padding: 0;
+	margin: 1em 0 0 .3em;
+}
+
+hr
+{
+	border: none 0;
+	border-top: 1px solid #7F8FB1;
+	height: 1px;
+}
+
+pre.code
+{
+	display: block;
+	padding: 8px;
+	border: 1px dashed #ccc;
+}
+
+#index
+{
+	margin-top: 24px;
+	float: left;
+	width: 160px;
+	position: absolute;
+	left: 8px;
+	background-color: #F3F3F3;
+	padding: 8px;
+}
+
+#content
+{
+	margin-left: 190px;
+	width: 600px;
+}
+
+.classList
+{
+	list-style-type: none;
+	padding: 0;
+	margin: 0 0 0 8px;
+	font-family: arial, sans-serif;
+	font-size: 1em;
+	overflow: auto;
+}
+
+.classList li
+{
+	padding: 0;
+	margin: 0 0 8px 0;
+}
+
+.summaryTable { width: 100%; }
+
+h1.classTitle
+{
+	font-size:170%;
+	line-height:130%;
+}
+
+h2 { font-size: 110%; }
+caption, div.sectionTitle
+{
+	background-color: #7F8FB1;
+	color: #fff;
+	font-size:130%;
+	text-align: left;
+	padding: 2px 6px 2px 6px;
+	border: 1px #7F8FB1 solid;
+}
+
+div.sectionTitle { margin-bottom: 8px; }
+.summaryTable thead { display: none; }
+
+.summaryTable td
+{
+	vertical-align: top;
+	padding: 4px;
+	border-bottom: 1px #7F8FB1 solid;
+	border-right: 1px #7F8FB1 solid;
+}
+
+/*col#summaryAttributes {}*/
+.summaryTable td.attributes
+{
+	border-left: 1px #7F8FB1 solid;
+	width: 140px;
+	text-align: right;
+}
+
+td.attributes, .fixedFont
+{
+	line-height: 15px;
+	color: #002EBE;
+	font-family: "Courier New",Courier,monospace;
+	font-size: 13px;
+}
+
+.summaryTable td.nameDescription
+{
+	text-align: left;
+	font-size: 13px;
+	line-height: 15px;
+}
+
+.summaryTable td.nameDescription, .description
+{
+	line-height: 15px;
+	padding: 4px;
+	padding-left: 4px;
+}
+
+.summaryTable { margin-bottom: 8px; }
+
+ul.inheritsList
+{
+	list-style: square;
+	margin-left: 20px;
+	padding-left: 0;
+}
+
+.detailList {
+	margin-left: 20px; 
+	line-height: 15px;
+}
+.detailList dt { margin-left: 20px; }
+
+.detailList .heading
+{
+	font-weight: bold;
+	padding-bottom: 6px;
+	margin-left: 0;
+}
+
+.light, td.attributes, .light a:link, .light a:visited
+{
+	color: #777;
+	font-style: italic;
+}
+
+.fineprint
+{
+	text-align: right;
+	font-size: 10px;
+}
+		</style>
+	</head>
+
+	<body>
+<!-- ============================== header ================================= -->	
+		<!-- begin static/header.html -->
+		<div id="header">
+</div>
+		<!-- end static/header.html -->
+
+<!-- ============================== classes index ============================ -->
+		<div id="index">
+			<!-- begin publish.classesIndex -->
+			<div align="center"><a href="../index.html">Class Index</a>
+| <a href="../files.html">File Index</a></div>
+<hr />
+<h2>Classes</h2>
+<ul class="classList">
+	
+	<li><i><a href="../symbols/_global_.html">_global_</a></i></li>
+	
+	<li><a href="../symbols/BiTran2.html">BiTran2</a></li>
+	
+	<li><a href="../symbols/Circle2.html">Circle2</a></li>
+	
+	<li><a href="../symbols/LinaJS.html">LinaJS</a></li>
+	
+	<li><a href="../symbols/Matrix3.html">Matrix3</a></li>
+	
+	<li><a href="../symbols/Point2.html">Point2</a></li>
+	
+	<li><a href="../symbols/Polygon2.html">Polygon2</a></li>
+	
+	<li><a href="../symbols/Vec2.html">Vec2</a></li>
+	
+</ul>
+<hr />
+			<!-- end publish.classesIndex -->
+		</div>
+		
+		<div id="content">
+<!-- ============================== class title ============================ -->
+			<h1 class="classTitle">
+				
+				Class Matrix3
+			</h1>
+
+<!-- ============================== class summary ========================== -->			
+			<p class="description">
+				
+				
+			
+				
+				
+				
+					<br /><i>Defined in: </i> <a href="../symbols/src/src_lina.js_lina.js.html">lina.js</a>.
+				
+			</p>
+
+<!-- ============================== constructor summary ==================== -->			
+			
+			<table class="summaryTable" cellspacing="0" summary="A summary of the constructor documented in the class Matrix3.">
+				<caption>Class Summary</caption>
+				<thead>
+					<tr>
+						<th scope="col">Constructor Attributes</th>
+						<th scope="col">Constructor Name and Description</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="attributes">&nbsp;</td>
+						<td class="nameDescription" >
+							<div class="fixedFont">
+								<b><a href="../symbols/Matrix3.html#constructor">Matrix3</a></b>(m)
+							</div>
+							<div class="description">Creates a new 3x3 matrix for transforming in 2d space.</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			
+
+<!-- ============================== properties summary ===================== -->
+			
+				
+				
+				<table class="summaryTable" cellspacing="0" summary="A summary of the fields documented in the class Matrix3.">
+					<caption>Field Summary</caption>
+					<thead>
+						<tr>
+							<th scope="col">Field Attributes</th>
+							<th scope="col">Field Name and Description</th>
+						</tr>
+					</thead>
+					<tbody>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">
+								<b><a href="../symbols/Matrix3.html#isAffine">isAffine</a></b>
+								</div>
+								<div class="description">Defines, if this matrix is non-perspective, i.e.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont">
+								<b><a href="../symbols/Matrix3.html#m">m</a></b>
+								</div>
+								<div class="description">Matrix value stored as array of 9 floats.</div>
+							</td>
+						</tr>
+					
+					</tbody>
+				</table>
+				
+				
+				
+			
+
+<!-- ============================== methods summary ======================== -->
+			
+				
+				
+				<table class="summaryTable" cellspacing="0" summary="A summary of the methods documented in the class Matrix3.">
+					<caption>Method Summary</caption>
+					<thead>
+						<tr>
+							<th scope="col">Method Attributes</th>
+							<th scope="col">Method Name and Description</th>
+						</tr>
+					</thead>
+					<tbody>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Matrix3.html#copy">copy</a></b>()
+								</div>
+								<div class="description">Create and return a copy of this matrix.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Matrix3.html#det">det</a></b>()
+								</div>
+								<div class="description">Calculate the determinant.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Matrix3.html#invert">invert</a></b>()
+								</div>
+								<div class="description">Invert (in-place) and return this instance.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Matrix3.html#mult">mult</a></b>(mb)
+								</div>
+								<div class="description">Apply transformation (in-place) and return this instance.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Matrix3.html#orientation">orientation</a></b>()
+								</div>
+								<div class="description">Calculate the vector (dx:0, dy:1) tranformed by this.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Matrix3.html#reset">reset</a></b>()
+								</div>
+								<div class="description">Reset the current matrix to identity.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Matrix3.html#rotate">rotate</a></b>(a, pt)
+								</div>
+								<div class="description">Apply rotation (in-place) and return this instance.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Matrix3.html#scale">scale</a></b>(fx, fy)
+								</div>
+								<div class="description">Apply scaling (in-place) and return this instance.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Matrix3.html#set">set</a></b>(m)
+								</div>
+								<div class="description">Set the current matrix.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Matrix3.html#toString">toString</a></b>()
+								</div>
+								<div class="description">Return string representation '[[0, 1, 2], [3, 4, 5], [6, 7, 8]]'.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Matrix3.html#transformPt">transformPt</a></b>(x, y)
+								</div>
+								<div class="description">Return transformed x and y as JS-object {x:x', y:y'}.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Matrix3.html#transformVec">transformVec</a></b>(dx, dy)
+								</div>
+								<div class="description">Return transformed dx and dy as JS-object {dx:_, dy:_}.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Matrix3.html#translate">translate</a></b>(dx, dy)
+								</div>
+								<div class="description">Apply translation (in-place) and return this instance.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/Matrix3.html#transpose">transpose</a></b>()
+								</div>
+								<div class="description">Transpose (in-place) and return this instance.</div>
+							</td>
+						</tr>
+					
+					</tbody>
+				</table>
+				
+				
+				
+			
+<!-- ============================== events summary ======================== -->
+			
+
+<!-- ============================== constructor details ==================== -->		
+			
+			<div class="details"><a name="constructor"> </a>
+				<div class="sectionTitle">
+					Class Detail
+				</div>
+				
+				<div class="fixedFont">
+						<b>Matrix3</b>(m)
+				</div>
+				
+				<div class="description">
+					Creates a new 3x3 matrix for transforming in 2d space.
+					
+				</div>
+				
+				
+				
+				<pre class="code">[1  0  0,
+ 0  1  0,
+ Tx Ty 1]
+
+Scale:</pre>
+				
+				<pre class="code">[Sx 0  0,
+ 0  Sy 0,
+ 0  0  1]
+
+Rotation:</pre>
+				
+				<pre class="code">[ c  s 0,
+ -s  c 0,
+  0  0 1]</pre>
+				
+				
+				
+				
+					
+						<dl class="detailList">
+						<dt class="heading">Parameters:</dt>
+						
+							<dt>
+								<span class="light fixedFont">{undefined|<a href="../symbols/Matrix3.html">Matrix3</a>|float[9]}</span>  <b>m</b>
+								
+							</dt>
+								<dd>Translation:</dd>
+						
+						</dl>
+					
+					
+					
+					
+					
+					
+					
+
+			</div>
+			
+
+<!-- ============================== field details ========================== -->		
+			
+				<div class="sectionTitle">
+					Field Detail
+				</div>
+				
+					<a name="isAffine"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>isAffine</b>
+					
+					</div>
+					<div class="description">
+						Defines, if this matrix is non-perspective, i.e. the right column is
+[0, 0, 1] so that m[2] = m[5] = 0 and m[8] = 1.
+In this case transformations can be processed more efficiently.
+Default: true.
+						
+						
+					</div>
+					
+					
+
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="m"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>m</b>
+					
+					</div>
+					<div class="description">
+						Matrix value stored as array of 9 floats.
+						
+						
+					</div>
+					
+					
+
+						
+						
+						
+						
+
+					
+				
+			
+
+<!-- ============================== method details ========================= -->		
+			
+				<div class="sectionTitle">
+					Method Detail
+				</div>
+				
+					<a name="copy"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>copy</b>()
+					
+					</div>
+					<div class="description">
+						Create and return a copy of this matrix.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="det"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{float}</span>
+					<b>det</b>()
+					
+					</div>
+					<div class="description">
+						Calculate the determinant.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{float}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="invert"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Matrix3.html">Matrix3</a>}</span>
+					<b>invert</b>()
+					
+					</div>
+					<div class="description">
+						Invert (in-place) and return this instance.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Throws:</dt>
+							
+								<dt>
+									 <b></b>
+								</dt>
+								<dd>"Cannot invert", if det(m) == 0</dd>
+							
+							</dl>
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Matrix3.html">Matrix3</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="mult"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>mult</b>(mb)
+					
+					</div>
+					<div class="description">
+						Apply transformation (in-place) and return this instance.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>mb</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="orientation"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Vec2.html">Vec2</a>}</span>
+					<b>orientation</b>()
+					
+					</div>
+					<div class="description">
+						Calculate the vector (dx:0, dy:1) tranformed by this.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Vec2.html">Vec2</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="reset"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Matrix3.html">Matrix3</a>}</span>
+					<b>reset</b>()
+					
+					</div>
+					<div class="description">
+						Reset the current matrix to identity.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Matrix3.html">Matrix3</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="rotate"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>rotate</b>(a, pt)
+					
+					</div>
+					<div class="description">
+						Apply rotation (in-place) and return this instance.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>a</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>pt</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="scale"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>scale</b>(fx, fy)
+					
+					</div>
+					<div class="description">
+						Apply scaling (in-place) and return this instance.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>fx</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>fy</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="set"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Matrix3.html">Matrix3</a>}</span>
+					<b>set</b>(m)
+					
+					</div>
+					<div class="description">
+						Set the current matrix.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<span class="light fixedFont">{<a href="../symbols/Matrix3.html">Matrix3</a>|float[9]}</span> <b>m</b>
+									
+								</dt>
+								<dd>(optional) defaults to identity matrix [1, 0, 0, 0, 1, 0, 0, 0, 1]</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Matrix3.html">Matrix3</a>}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="toString"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{string}</span>
+					<b>toString</b>()
+					
+					</div>
+					<div class="description">
+						Return string representation '[[0, 1, 2], [3, 4, 5], [6, 7, 8]]'.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{string}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="transformPt"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>transformPt</b>(x, y)
+					
+					</div>
+					<div class="description">
+						Return transformed x and y as JS-object {x:x', y:y'}.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>x</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>y</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="transformVec"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>transformVec</b>(dx, dy)
+					
+					</div>
+					<div class="description">
+						Return transformed dx and dy as JS-object {dx:_, dy:_}.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>dx</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>dy</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="translate"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>translate</b>(dx, dy)
+					
+					</div>
+					<div class="description">
+						Apply translation (in-place) and return this instance.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>dx</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>dy</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="transpose"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>transpose</b>()
+					
+					</div>
+					<div class="description">
+						Transpose (in-place) and return this instance.
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+						
+						
+
+					
+				
+			
+			
+<!-- ============================== event details ========================= -->		
+			
+			
+			<hr />
+		</div>
+
+		
+<!-- ============================== footer ================================= -->
+		<div class="fineprint" style="clear:both">
+			
+			Documentation generated by <a href="http://code.google.com/p/jsdoc-toolkit/" target="_blank">JsDoc Toolkit</a> 2.4.0 on Mon Jul 18 2011 14:05:14 GMT+0200 (MESZ)
+		</div>
+	</body>
+</html>

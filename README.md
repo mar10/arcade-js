@@ -73,7 +73,7 @@ A simple render loop with two reflecting points.
 
 [![Quirks demo](src/demos/quirks/screenshot-1.png?raw=true)](https://cdn.rawgit.com/mar10/arcade-js/master/src/demos/quirks/jsQuirks.html)
 
-[Desktop](https://cdn.rawgit.com/mar10/arcade-js/master/src/demos/quirks/jsQuirks-mobile.html)
+[Desktop](https://cdn.rawgit.com/mar10/arcade-js/master/src/demos/quirks/jsQuirks.html)
 &mdash; [Mobile](https://cdn.rawgit.com/mar10/arcade-js/master/src/demos/quirks/jsQuirks-mobile.html)
 
 

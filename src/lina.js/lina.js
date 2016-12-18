@@ -3,8 +3,8 @@
  *
  * Copyright (c) 2010-2011,  Martin Wendt (http://wwWendt.de)
  *
- * Dual licensed under the MIT or GPL Version 2 licenses.
- * http://code.google.com/p/arcade-js/wiki/LicenseInfo
+ * Released under the MIT license
+ * http://www.opensource.org/licenses/mit-license.php
  *
  * A current version and some documentation is available at
  *     https://github.com/mar10/arcade-js/
@@ -16,7 +16,20 @@
  * @author Martin Wendt
  * @version 0.0.1
  */
+
+ * jquery.fancytree.js
+ * Tree view control with support for lazy loading and much more.
+ * https://github.com/mar10/fancytree/
+ *
+ * Copyright (c) 2008-2016, Martin Wendt (http://wwWendt.de)
+ * Released under the MIT license
+ * https://github.com/mar10/fancytree/wiki/LicenseInfo
+ *
+ * @version @VERSION
+ * @date @DATE
+
 /*jslint laxbreak: true */
+
 /*******************************************************************************
  * Tools
  */
@@ -809,7 +822,7 @@ Vec2.prototype = {
 	},
 	/** Set vector orientation to perpendicular of itself (in-place) and return this
 	 * instance.
-	 * This is equivalent to a rotation by 90°, only faster.
+	 * This is equivalent to a rotation by 90Â°, only faster.
 	 * @returns {Vec2}
 	 */
 	perp: function() {
@@ -935,7 +948,7 @@ Vec2.setLength = function(v1, length) {
 	return v1.copy().setLength(length);
 };
 /** Return a perpendicluar copy of a vector.
- * This is equivalent to a rotation by 90°, only faster.
+ * This is equivalent to a rotation by 90Â°, only faster.
  * @param {Vec2|JS-Object} v1 First vector.
  * @returns {Vec2}
  */
@@ -1764,7 +1777,7 @@ Polygon2.prototype = {
 				v = pt0.vectorTo(pt);
 				a = LinaJS.normAngle(v0.angleTo(v));
 				l = v.length();
-//				window.console.log("    vectorTo #" + i + " -> " + pt.toString(1) + ", v=" + v.toString(1) + ": " + a*LinaJS.R2D, "° l=", l);
+//				window.console.log("    vectorTo #" + i + " -> " + pt.toString(1) + ", v=" + v.toString(1) + ": " + a*LinaJS.R2D, "Â° l=", l);
 				if(l > LinaJS.EPS && (a < aBest || (a === aBest && l > lBest))){
 //					window.console.log("    -> is best!");
 					iBest = i % n;

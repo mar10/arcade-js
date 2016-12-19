@@ -17,17 +17,6 @@
  * @version 0.0.1
  */
 
- * jquery.fancytree.js
- * Tree view control with support for lazy loading and much more.
- * https://github.com/mar10/fancytree/
- *
- * Copyright (c) 2008-2016, Martin Wendt (http://wwWendt.de)
- * Released under the MIT license
- * https://github.com/mar10/fancytree/wiki/LicenseInfo
- *
- * @version @VERSION
- * @date @DATE
-
 /*jslint laxbreak: true */
 
 /*******************************************************************************

@@ -587,3 +587,148 @@ var HtmlOverlay = Class.extend(
 	// --- end of class
 	__lastentry: undefined
 });
+
+
+/**Maintains a virtual joystick and 8 buttons, connected to an iCade controller
+ * (see https://en.wikipedia.org/wiki/ICade).
+ * @class
+ * @extends Class
+ */
+var IcadeController = Class.extend(
+/** @lends IcadeController.prototype */
+{
+	init: function(opts){
+		// Define and override default properties
+		ArcadeJS.guerrillaDerive(this, {
+//			onClick: null, // Called when button is clicked
+			game: undefined
+		}, opts);
+
+		/* iCade control Ids:
+		   https://en.wikipedia.org/wiki/ICade
+		   https://www.ionaudio.com/downloads/ICADE_QuickStart.pdf
+
+		   Buttons and stick generate different key events when pressed and
+		   released.
+		   Buttons also have a digit assigned, that is used for entering the
+		   Bluetooth PIN.
+		   
+			ID              down  up   #
+			// Stick
+			up              w     e    1        north
+			down            x     y    2        south
+			left            a     q    3        west
+			right           d     c    4        east
+			// Buttons
+			btnTR           z     t    5        top red
+			btnBR           h     r    6        bottom red
+			btnTLB          u     f    7        top left black
+			btnBLB          j     n    8        bottom left black
+			btnTRB          i     m    9        top right black
+			btnBRB          k     p    0        bottom right black
+			btnTW           o     g    (Enter)  top white 
+			btnBW           l     v    (Enter)  bottom white
+		*/
+		var i,
+			self = this,
+			iCadeAttrs = "up down left right btnTR btnBR btnTLB btnBLB btnTRB btnBRB btnTW btnBW".split(" "),
+			ctrlCodes = {
+				87: {id: "up", val: true}, 		// 'w'
+				69: {id: "up", val: false}, 	// 'e'
+				88: {id: "down", val: true}, 	// 'x'
+				89: {id: "down", val: false}, 	// 'y'
+				65: {id: "left", val: true}, 	// 'a'
+				81: {id: "left", val: false}, 	// 'q'
+				68: {id: "right", val: true}, 	// 'd'
+				67: {id: "right", val: false}, 	// 'c'
+				90: {id: "btnTR", val: true}, 	// 'z'
+				84: {id: "btnTR", val: false}, 	// 't'
+				72: {id: "btnBR", val: true}, 	// 'h'
+				82: {id: "btnBR", val: false}, 	// 'r'
+				85: {id: "btnTLB", val: true}, 	// 'u'
+				70: {id: "btnTLB", val: false}, // 'f'
+				74: {id: "btnBLB", val: true}, 	// 'j'
+				78: {id: "btnBLB", val: false}, // 'n'
+				73: {id: "btnTRB", val: true}, 	// 'i'
+				77: {id: "btnTRB", val: false}, // 'm'
+				75: {id: "btnBRB", val: true}, 	// 'k'
+				80: {id: "btnBRB", val: false}, // 'p'
+				79: {id: "btnTW", val: true}, 	// 'o'
+				71: {id: "btnTW", val: false}, 	// 'g'
+				76: {id: "btnBW", val: true}, 	// 'l'
+				86: {id: "btnBW", val: false} 	// 'v'
+			};
+
+		// Time stamps of last queried 'down' by button ID:
+		this.lastReportedDown = {};
+		// Time stamps of down push by button ID
+		this.lastDownClick = {};
+		// Up/down status by button ID:
+		this.state = {};
+		for( i=0; i<iCadeAttrs.length; i++) {
+			this.state[iCadeAttrs[i]] = false;
+		}
+
+		$(document).on("keydown", function(e){
+			var code = ctrlCodes[e.which];
+
+			if( code ) {
+				if( code.val && !self.state[code.id] ) {
+					// Store time when button was pushed
+					self.lastDownClick[code.id] = Date.now();
+				}
+				self.state[code.id] = code.val;
+				// console.log("icade: " + e.which + " => " + self);
+				// self.game.debug("icade: " + e.which + " => " + self);
+			}
+		});
+	},
+	toString: function() {
+		states = [];
+		for(var k in this.state) {
+			if( this.state[k] ) { states.push(k); }
+		}
+		return "<IcadeController(" + states.join(",") + ")>";
+	},
+	/** Return true if button or stick position is 'down'.
+	 *
+	 * The `minDelaySecs` argument may be passed to throttle the maximum permanent
+	 * fire rate of buttons, i.e. when keeping the button pushed.
+	 * The `minClickDelaySecs` argument may be used to allow faster rates when 
+	 * users hit the buttons with a high frequency.
+	 *
+	 * @param {string} btnId One of 'up', 'down', 'left', 'right', 'btnTR',
+	 *	         'btnBR', 'btnTLB', 'btnBLB', 'btnTRB', 'btnBRB', 'btnTW', 'btnBW'
+	 * @param {float} [minDelaySecs=0] minimum delay between permanent fire triggers in seconds
+	 *                    0: maximum rate, i.e. once per frame
+	 * @param {float} [minClickDelaySecs=0] minimum delay between two fast clicks in seconds
+	 *                    0: maximum rate. 
+	 * @returns {boolean} true if button / stick id is 'down' 
+	 */
+	isDown: function(btnId, minDelaySecs, minClickDelaySecs) {
+		var now = Date.now(),
+			state = this.state[btnId];
+
+		// this.game.debug("isDown2(" + btnId + ", " + minDelaySecs + "), "+ this + ", " + state);
+		// this.game.debug("isDown3(" + btnId + ", " + minDelaySecs + "), "+ this.lastReportedDown[btnId]);
+		// If a max fire rate was passed, return false if frequency is too high
+		if( state && minDelaySecs && this.lastReportedDown[btnId] ) {
+			if( (now - this.lastReportedDown[btnId]) < (1000 * minDelaySecs) ) {
+				// The last reported time is too short ago, so we would reply
+				// isDown as `false`
+				// if( minClickDelaySecs && (now - this.lastDownClick[btnId]) < (1000 * minClickDelaySecs) ) {
+				// 	// Faster *manual* clicks are accepted
+				// 	this.lastDownClick[btnId] = false;
+				// } else {
+				// 	return false;
+				// }
+			}
+		}
+		if( state ) {
+			this.lastReportedDown[btnId] = now;
+		}
+		return state;
+	},
+	// --- end of class
+	__lastentry: undefined
+});

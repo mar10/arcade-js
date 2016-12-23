@@ -426,7 +426,7 @@ var Tank = Movable.extend({
 			turnRate = 90 * LinaJS.D2R,
 			game = this.game;
 
-		// In recover mode (after it was hit), the tank drives back to it's home
+		// In recover mode (after it was hit), the tank drives back to its home
 		if(this.isActivity("recover") ){
 			if(this.driveToPosition(game.frameDuration, this.homePos,
 					10, maxSpeed, turnRate, accel, decel)){

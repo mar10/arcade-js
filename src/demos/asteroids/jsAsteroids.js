@@ -29,6 +29,8 @@ var AsteroidsGame = ArcadeJS.extend({
 		this.gunSound = new AudioJS(["fire.mp3", "fire.oga", "fire.wav"]);
 		this.explosionSound = new AudioJS(["damage.mp3", "damage.oga"]);
 
+		this.icade = new IcadeController({game: this});
+
 		// Set the scene
 		var obj;
 		// Player rocket
@@ -76,12 +78,12 @@ var AsteroidsGame = ArcadeJS.extend({
 		var stick = this.stick,
 			button = this.button,
 			rocket = this.rocket;
+
 		if(stick && button){
 			var dx = stick.getX();
 			if(Math.abs(dx) > 0.2){
 				rocket.orientation += 3 * dx * LinaJS.DEG_TO_RAD;
 			}
-			var dy = stick.getX();
 			if(stick.getY() < -0.8){ // Up
 				var vAccel = LinaJS.polarToVec(this.rocket.orientation - 90*LinaJS.DEG_TO_RAD, 3);
 				this.rocket.velocity.add(vAccel).limit(300);
@@ -90,6 +92,20 @@ var AsteroidsGame = ArcadeJS.extend({
 			if(button.isDown()){
 				rocket.fire();
 			}
+		}
+		// iCade Controller
+		if( this.icade.isDown("left") ){
+			rocket.orientation -= 3 * LinaJS.DEG_TO_RAD;
+		} else if( this.icade.isDown("right") ){
+			rocket.orientation += 3 * LinaJS.DEG_TO_RAD;
+		}
+		if( this.icade.isDown("up") ) {
+			var vAccel = LinaJS.polarToVec(this.rocket.orientation - 90*LinaJS.DEG_TO_RAD, 3);
+			this.rocket.velocity.add(vAccel).limit(300);
+			this.rocket.isThrust = true;
+		}
+		if( this.icade.isDown("btnBR") ) {
+			rocket.fire();
 		}
 	},
 	preDraw: function(ctx){

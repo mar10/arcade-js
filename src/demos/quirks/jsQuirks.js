@@ -44,7 +44,7 @@ var Quirk = Movable.extend({
 	},
 	step: function() {
 		// Add another line (discard oldest, if max. is reached)
-		// Note that we use pos.copy() so every line has it's own Point2 instance
+		// Note that we use pos.copy() so every line has its own Point2 instance
 		while( this.lines.length > this.maxLines ){
 			this.lines.shift();
 		}

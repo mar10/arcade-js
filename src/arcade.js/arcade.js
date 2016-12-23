@@ -1260,7 +1260,7 @@ ArcadeJS.extendAttributes = function(object, dict, attrNames){
  * Note: this is different from `$.extend()`, because only values are copied that
  * are present in `template`. This prevents accidently overriding protected
  * members in `target`.
- * If `temnplate` members have a value of `undefined`, they are mandatory. An
+ * If `template` members have a value of `undefined`, they are mandatory. An
  * exception will be raised, if they are not found in `opts`.
  *
  * @param {object} target Object that will receive the properties (typically `this`).

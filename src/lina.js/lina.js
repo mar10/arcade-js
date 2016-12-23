@@ -1898,7 +1898,7 @@ Circle2.prototype = {
 		var c = coll.vNormal.dot(vRel);
 		var vColl = coll.vNormal.copy().scale(c);
 		var vPerp = vRel.copy().sub(vColl);
-		// Total inelastic collision: circle1 transfers it's energy to circle2
+		// Total inelastic collision: circle1 transfers its energy to circle2
 		coll.velocityReflected1 = vPerp;
 		coll.velocityReflected2 = vStep2.copy().add(vColl);
 //		var e1 = velocity.length() + velocity2.length();

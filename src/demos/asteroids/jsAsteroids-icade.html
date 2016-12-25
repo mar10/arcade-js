@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>jsAsteroids - iCade version</title>
+
+	<script src="../../depends/jquery.js"></script>
+	<script src="../../lina.js/lina.js"></script>
+	<script src="../../arcade.js/arcade.js"></script>
+	<script src="../../arcade.js/arcade-controls.js"></script>
+	<script src="jsAsteroids.js"></script>
+
+	<script type="text/javascript">
+
+	$(function(){
+		var game = new AsteroidsGame("#gameCanvas", {
+				icadeControls: true,
+				fullscreenMode: true,
+				debug: {
+					showFps: true,
+					logToCanvas: true
+				}
+			});
+
+		if(window.navigator && window.navigator.standalone ){
+			alert("The iCade version does not work as iPhones/iPad standalone app, " +
+				"because keyboard events are required.");
+		}
+	});
+	</script>
+
+<style>
+* {
+	margin: 0;
+	padding: 0;
+}
+body, html {
+	width: 100%;
+	height: 100%;
+}
+</style>
+</head>
+
+<body>
+	<canvas id="gameCanvas" class="arcade-js">This game requires HTML 5 support.</canvas>
+</body>
+</html>

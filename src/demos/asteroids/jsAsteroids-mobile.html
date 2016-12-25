@@ -23,43 +23,16 @@
 
 	<script type="text/javascript">
 
-	var MobileAsteroidsGame = AsteroidsGame.extend({
-		init: function(canvas, opts) {
-			// Call parent constructor
-			this._super(canvas, opts);
-			// Add iPod extensions
-			this.stick = this.addObject(new TouchStick({
-//              id: "stick",
-				r1: 10,
-				r2: 30,
-				r3: 60,
-				onResize: function(width, height){
-					this.pos.x = 60;
-					this.pos.y = height - 60;
-				}
-			}));
-			this.button = this.addObject(new TouchButton({
-//              id: "button",
-				r: 20,
-				r3: 40,
-				onResize: function(width, height){
-					this.pos.x = width - 40;
-					this.pos.y = height - 40;
-				},
-				onClick: function(){ }
-			}));
-		},
-		// --- end of class
-		lastentry: undefined
-	});
 	$(function(){
-		var game = new MobileAsteroidsGame("#gameCanvas", {
-			fullscreenMode: true,
-			debug: {
-				showFps: true,
-				logToCanvas: false
-			}
+		var game = new AsteroidsGame("#gameCanvas", {
+				mobileControls: true,
+				fullscreenMode: true,
+				debug: {
+					showFps: true,
+					logToCanvas: false
+				}
 			});
+
 		if(window.navigator){
 			if(window.navigator.standalone === false){
 				// Scroll one pixel down, so Safari URL toolbar disappears

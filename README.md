@@ -74,6 +74,7 @@ A remake of the famous arcade game.
 
 [![Asteroids Demo](src/demos/asteroids/screenshot-3.png?raw=true)](https://gitcdn.xyz/repo/mar10/arcade-js/master/src/demos/asteroids/index.html) 
 [![Asteroids Demo (mobile version)](src/demos/asteroids/screenshot-2.png?raw=true)](https://gitcdn.xyz/repo/mar10/arcade-js/master/src/demos/asteroids/index.html)
+[![Asteroids Demo (iCade version)](src/demos/asteroids/screenshot-4.png?raw=true)](https://gitcdn.xyz/repo/mar10/arcade-js/master/src/demos/asteroids/index.html)
 
 
 ## Billiards

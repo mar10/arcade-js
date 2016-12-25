@@ -12,6 +12,11 @@ var AsteroidsGame = ArcadeJS.extend({
 		var opts = $.extend({
 			name: "jsAsteroids",
 			fps: 30,
+			keyboardControls: true,
+			icadeControls: false,
+			mobileControls: false,
+			button: null,  // used by mobile version
+			stick: null,   // used by mobile version
 			debug: {
 				showFps: true
 			}
@@ -28,8 +33,34 @@ var AsteroidsGame = ArcadeJS.extend({
 		// --- Cache sounds ----------------------------------------------------
 		this.gunSound = new AudioJS(["fire.mp3", "fire.oga", "fire.wav"]);
 		this.explosionSound = new AudioJS(["damage.mp3", "damage.oga"]);
-
-		this.icade = new IcadeController({game: this});
+		if( opts.icadeControls ) {
+			this.icade = new IcadeController({game: this});
+		} else {		
+			this.icade = null;
+		}
+		if( opts.mobileControls ) {
+			this.stick = this.addObject(new TouchStick({
+//              id: "stick",
+				r1: 10,
+				r2: 30,
+				r3: 60,
+				onResize: function(width, height){
+					this.pos.x = 60;
+					this.pos.y = height - 60;
+				}
+			}));
+			this.button = this.addObject(new TouchButton({
+//              id: "button",
+				r: 20,
+				r3: 40,
+				onResize: function(width, height){
+					this.pos.x = width - 40;
+					this.pos.y = height - 40;
+				}
+			}));
+		} else {		
+			this.button = this.stick = null;
+		}
 
 		// Set the scene
 		var obj;
@@ -74,37 +105,59 @@ var AsteroidsGame = ArcadeJS.extend({
 			this._restartGame();
 			return;
 		}
-		//
-		var stick = this.stick,
-			button = this.button,
+
+		// --- Evaluate controllers ---
+		var fire, thrust, turn,
 			rocket = this.rocket;
 
-		if(stick && button){
-			var dx = stick.getX();
-			if(Math.abs(dx) > 0.2){
-				rocket.orientation += 3 * dx * LinaJS.DEG_TO_RAD;
+		// Handle key controls
+		if( this.opts.keyboardControls ) {
+			if(this.isKeyDown(37)){ // Left
+				turn = -5;
+			} else if(this.isKeyDown(39)) { // Right
+				turn = 5;
 			}
-			if(stick.getY() < -0.8){ // Up
-				var vAccel = LinaJS.polarToVec(this.rocket.orientation - 90*LinaJS.DEG_TO_RAD, 3);
-				this.rocket.velocity.add(vAccel).limit(300);
-				this.rocket.isThrust = true;
+			if(this.isKeyDown(38)){ // Up
+				thrust = 3;
 			}
-			if(button.isDown()){
-				rocket.fire();
-			}
+			fire = this.isKeyDown(32);  // Space
 		}
+
+		// --- Mobile mode: use virtual touch button and joystick
+		if( this.opts.mobileControls ){
+			var dx = this.stick.getX();
+
+			if( Math.abs(dx) > 0.2 ) {
+				turn = 3 * dx;
+			}
+			if( this.stick.getY() < -0.8 ) { // Up
+				thrust = 3;
+			}
+			fire = fire || this.button.isDown();
+		}
+
 		// iCade Controller
-		if( this.icade.isDown("left") ){
-			rocket.orientation -= 3 * LinaJS.DEG_TO_RAD;
-		} else if( this.icade.isDown("right") ){
-			rocket.orientation += 3 * LinaJS.DEG_TO_RAD;
+		if( this.opts.icadeControls ) {		
+			if( this.icade.isDown("left") ){
+				turn = -3;
+			} else if( this.icade.isDown("right") ){
+				turn = 3;
+			}
+			if( this.icade.isDown("up") ) {
+				thrust = 3;
+			}
+			fire = fire || this.icade.isDown("btnBR");
 		}
-		if( this.icade.isDown("up") ) {
+
+		if( turn ){
+			rocket.orientation += turn * LinaJS.DEG_TO_RAD;
+		}
+		if( thrust ) {
 			var vAccel = LinaJS.polarToVec(this.rocket.orientation - 90*LinaJS.DEG_TO_RAD, 3);
-			this.rocket.velocity.add(vAccel).limit(300);
-			this.rocket.isThrust = true;
+			rocket.velocity.add(vAccel).limit(300);
+			rocket.isThrust = true;
 		}
-		if( this.icade.isDown("btnBR") ) {
+		if( fire ) {
 			rocket.fire();
 		}
 	},
@@ -220,21 +273,21 @@ var Rocket = Movable.extend({
 		return new Circle2({x:this.pos.x, y:this.pos.y}, 13);
 	},
 	step: function() {
-		// --- Handle key controls ---
-		if(this.game.isKeyDown(32)){ // Space
-			this.fire();
-		}
-		if(this.game.isKeyDown(37)){ // Left
-			this.orientation -= 5 * LinaJS.DEG_TO_RAD;
-		}else if(this.game.isKeyDown(39)){ // Right
-			this.orientation += 5 * LinaJS.DEG_TO_RAD;
-		}
-		if(this.game.isKeyDown(38)){ // Up
-			this.isThrust = true;
-			var vAccel = LinaJS.polarToVec(this.orientation - 90*LinaJS.DEG_TO_RAD, 3);
-//			this.velocity.add(vAccel).limit(300);
-			this.velocity.accelerate(vAccel, 300);
-		}
+// 		// --- Handle key controls ---
+// 		if(this.game.isKeyDown(32)){ // Space
+// 			this.fire();
+// 		}
+// 		if(this.game.isKeyDown(37)){ // Left
+// 			this.orientation -= 5 * LinaJS.DEG_TO_RAD;
+// 		}else if(this.game.isKeyDown(39)){ // Right
+// 			this.orientation += 5 * LinaJS.DEG_TO_RAD;
+// 		}
+// 		if(this.game.isKeyDown(38)){ // Up
+// 			this.isThrust = true;
+// 			var vAccel = LinaJS.polarToVec(this.orientation - 90*LinaJS.DEG_TO_RAD, 3);
+// //			this.velocity.add(vAccel).limit(300);
+// 			this.velocity.accelerate(vAccel, 300);
+// 		}
 		// --- Collision detection ---
 		if(this.isActivity("grace") || this.game.isActivity("over")){
 			return;

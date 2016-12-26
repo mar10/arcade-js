@@ -68,46 +68,46 @@ function initArcadeGameDebugControls(game)
 {
 	// Handle debug controls
     $("#cbDebug")
-    .attr("checked", false)
-    .click(function(){
-        var flag = $(this).is(":checked");
-        game.opts.debug.showActivity = flag;
-        game.opts.debug.showVelocity = flag;
-        game.opts.debug.showBCircle = flag;
-        game.opts.debug.showKeys = flag;
-        game.opts.debug.showObjects = flag;
-        game.opts.debug.showMouse = flag;
-    });
+        .attr("checked", false)
+        .click(function(){
+            var flag = $(this).is(":checked");
+            game.opts.debug.showActivity = flag;
+            game.opts.debug.showVelocity = flag;
+            game.opts.debug.showBCircle = flag;
+            game.opts.debug.showKeys = flag;
+            game.opts.debug.showObjects = flag;
+            game.opts.debug.showMouse = flag;
+        });
     $("#cbLogToCanvas")
-    .attr("checked", false)
-    .click(function(){
-        var flag = $(this).is(":checked");
-        game.opts.debug.logToCanvas = flag;
-    });
+        .attr("checked", false)
+        .click(function(){
+            var flag = $(this).is(":checked");
+            game.opts.debug.logToCanvas = flag;
+        });
     $("#cbMaxFps")
-    .attr("checked", false)
-    .click(function(){
-        if($(this).is(":checked")){
-            game.fps = 1000;
-        }else{
-            game.fps = game.opts.fps;
-        }
-        game.stopLoop();
-        game.startLoop();
-        game.freezeMode = false;
-        $("#rbStepmode1").attr("checked", true);
-    });
+        .attr("checked", false)
+        .click(function(){
+            if($(this).is(":checked")){
+                game.fps = 1000;
+            }else{
+                game.fps = game.opts.fps;
+            }
+            game.stopLoop();
+            game.startLoop();
+            game.freezeMode = false;
+            $("#rbStepmode1").attr("checked", true);
+        });
     $("#cbTimeCorrection")
-    .attr("checked", true)
-    .click(function(){
-        game.timeCorrection = $(this).is(":checked");
-    });
+        .attr("checked", true)
+        .click(function(){
+            game.timeCorrection = $(this).is(":checked");
+        });
     $("#rbStepmode1")
-    .attr("checked", true)
-    .click(function(){
-        game.freezeMode = false;
-        game.startLoop();
-    });
+        .attr("checked", true)
+        .click(function(){
+            game.freezeMode = false;
+            game.startLoop();
+        });
     $("#rbStepmode2").click(function(){
         game.freezeMode = true;
         game.startLoop();

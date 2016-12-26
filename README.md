@@ -63,14 +63,14 @@ Rip-Off, was the first arcade game with two-player cooperative play. The *bandit
 use some early 'artifical intelligence' / flocking behavior.
 
   - [Read about the algorithm](https://gitcdn.xyz/repo/mar10/arcade-js/master/doc/rip-off_spec.pdf)
-  - [Play single player, dual player, or dual player split screen](https://gitcdn.xyz/repo/mar10/arcade-js/master/src/demos/rip-off/index.html)
+  - [Play single player, dual player, dual player split screen, or iCade version](https://gitcdn.xyz/repo/mar10/arcade-js/master/src/demos/rip-off/index.html)
 
 [![Rip-Off demo](src/demos/rip-off/screenshot-1.png?raw=true)](https://gitcdn.xyz/repo/mar10/arcade-js/master/src/demos/rip-off/index.html)
 
 
 ## Asteroids
 
-A remake of the famous arcade game.
+A remake of the famous arcade game (~420 lines of code).
 
 [![Asteroids Demo](src/demos/asteroids/screenshot-3.png?raw=true)](https://gitcdn.xyz/repo/mar10/arcade-js/master/src/demos/asteroids/index.html) 
 [![Asteroids Demo (mobile version)](src/demos/asteroids/screenshot-2.png?raw=true)](https://gitcdn.xyz/repo/mar10/arcade-js/master/src/demos/asteroids/index.html)

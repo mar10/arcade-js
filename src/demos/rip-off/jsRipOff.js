@@ -1,5 +1,12 @@
 /*******************************************************************************
  * jsRipOff.js
+ * Copyright (c) 2010, Martin Wendt (http://wwWendt.de)
+ *
+ * Released under the MIT license
+ * http://www.opensource.org/licenses/mit-license.php
+ *
+ * A current version and some documentation is available at
+ *     https://github.com/mar10/arcade-js/
  */
 
 var pgTank1 = new Polygon2([

@@ -387,7 +387,7 @@ var ArcadeJS = Class.extend(
 //            	self.debug("Keypress %s: %o", self.key, e);
 				// Ctrl+Shift+D toggles debug mode
 				if( self.key === "ctrl+meta+D" ) {
-					self.setDebug(!self.opts.debug.showActivity);
+					self.setDebug("toggle");
 				}
 			}
 			for(var i=0; i<self.keyListeners.length; i++) {
@@ -573,13 +573,21 @@ var ArcadeJS = Class.extend(
 		return "ArcadeJS<" + this.name + ">";
 	},
 	/**Enable debug output
-	 *
+	 * @param: {boolean|string} flag Pass "toggle" to flip current state
+	 * @param: {boolean} includeLogToCanvas also set/toggle `logToanvas`
 	 */
-	setDebug: function(flag){
-		flag = !!flag;
+	setDebug: function(flag, includeLogToCanvas){
 		var d = this.opts.debug;
+
+		if( flag === "toggle" ) {
+			flag = !d.showActivity;
+		}
+		flag = !!flag;
 		d.showActivity = d.showKeys = d.showObjects = d.showMouse
-		= d.showVelocity = d.showBCircle = flag;
+			= d.showVelocity = d.showBCircle = flag;
+		if( includeLogToCanvas ) {
+			d.logToCanvas = flag;
+		}
 	},
 	/**Output string to console.
 	 * @param: {string} msg

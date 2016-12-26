@@ -616,6 +616,10 @@ var HtmlOverlay = Class.extend(
 
 /**Maintains a virtual joystick and 8 buttons, connected to an iCade controller
  * (see https://en.wikipedia.org/wiki/ICade).
+ *
+ * Use icade.isDown(), .isClicked(), or $(document).on("icadeclick", ...) to handle
+ * controller events.
+ *
  * @class
  * @extends Class
  */
@@ -707,9 +711,12 @@ var IcadeController = Class.extend(
 				if( code.val && !self.downMap[code.id] ) {
 					// Store time when button was pushed
 					self.clickMap[code.id] = Date.now();
+					if( $(document).trigger("icadeclick", [{btnId: code.id}]) === false ) {
+						delete self.clickMap[code.id];
+					}
 					// Hold top red & click bottom white to toggle debug mode
 					if( code.id === "btnBW" && self.downMap["btnTR"] ) {
-						self.game.setDebug(!self.game.opts.debug.showActivity);
+						self.game.setDebug("toggle");
 					}
 				}
 				self.downMap[code.id] = code.val;

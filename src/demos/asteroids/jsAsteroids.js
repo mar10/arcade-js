@@ -1,5 +1,12 @@
 /*******************************************************************************
  * jsAsteroids.js
+ * Copyright (c) 2010, Martin Wendt (http://wwWendt.de)
+ *
+ * Released under the MIT license
+ * http://www.opensource.org/licenses/mit-license.php
+ *
+ * A current version and some documentation is available at
+ *     https://github.com/mar10/arcade-js/
  */
 
 /*******************************************************************************
@@ -288,21 +295,6 @@ var Rocket = Movable.extend({
 		return new Circle2({x:this.pos.x, y:this.pos.y}, 13);
 	},
 	step: function() {
-// 		// --- Handle key controls ---
-// 		if(this.game.isKeyDown(32)){ // Space
-// 			this.fire();
-// 		}
-// 		if(this.game.isKeyDown(37)){ // Left
-// 			this.orientation -= 5 * LinaJS.DEG_TO_RAD;
-// 		}else if(this.game.isKeyDown(39)){ // Right
-// 			this.orientation += 5 * LinaJS.DEG_TO_RAD;
-// 		}
-// 		if(this.game.isKeyDown(38)){ // Up
-// 			this.isThrust = true;
-// 			var vAccel = LinaJS.polarToVec(this.orientation - 90*LinaJS.DEG_TO_RAD, 3);
-// //			this.velocity.add(vAccel).limit(300);
-// 			this.velocity.accelerate(vAccel, 300);
-// 		}
 		// --- Collision detection ---
 		if(this.isActivity("grace") || this.game.isActivity("over")){
 			return;
@@ -357,40 +349,10 @@ var Rocket = Movable.extend({
 			this.isThrust = false;
 		}
 	},
-//	onKeydown: function(e, key) {
-////    	this.game.debug("%s: '%s', %o", e.type, this.game.downKeyCodes);
-//		if(this.game.isKeyDown(32)){ // Space
-//			this.fire();
-//		}
-//		if(this.game.isKeyDown(37)){ // Left
-//			this.orientation -= 5 * LinaJS.DEG_TO_RAD;
-//		}else if(this.game.isKeyDown(39)){ // Right
-//			this.orientation += 5 * LinaJS.DEG_TO_RAD;
-//		}
-//		if(this.game.isKeyDown(38)){ // Up
-//			this.isThrust = true;
-//			var vAccel = LinaJS.polarToVec(this.orientation - 90*LinaJS.DEG_TO_RAD, 3);
-//			this.velocity.add(vAccel).limit(300);
-//			e.stopImmediatePropagation();
-//			e.preventDefault();
-//			return false;
-//		}
-//	},
-//    onMousewheel: function(e, delta) {
-//    	this.game.debug("onMousewheel: %o, %s", e, delta);
-//    	this.rotationalSpeed += delta * LinaJS.DEG_TO_RAD;
-//		e.stopImmediatePropagation();
-//    },
 	fire: function() {
 		if(this.isActivity("grace") || this.game.isActivity("over")){
 			return;
 		}
-		// if((this.game.time - this.lastShotTime) < this.game.shotDelay ){
-		// 	return;
-		// }
-		// if( this.game.getObjectsByType("bullet").length >= this.game.maxBullets ) {
-		// 	return;
-		// }
 		this.lastShotTime = this.game.time;
 		var aim = LinaJS.polarToVec(this.orientation - 0.5 * Math.PI, 300);
 		this.game.addObject(new Bullet({
@@ -451,13 +413,13 @@ var Asteroid = Movable.extend({
 		if(this.size==3){
 			this.game._makeAsteroid(2, this.pos, this.velocity);
 			this.game._makeAsteroid(2, this.pos, this.velocity);
-			this.game.score += 10;
+			this.game.score += 20;
 		}else if(this.size==2){
 			this.game._makeAsteroid(1, this.pos, this.velocity);
 			this.game._makeAsteroid(1, this.pos, this.velocity);
-			this.game.score += 20;
+			this.game.score += 50;
 		}else{
-			this.game.score += 40;
+			this.game.score += 100;
 		}
 		this.die();
 	},

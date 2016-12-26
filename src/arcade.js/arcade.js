@@ -812,7 +812,8 @@ var ArcadeJS = Class.extend(
 			}
 		} catch(e) {
 		   this.stopLoop();
-		   this.debug("Exception in render loop: %o", e);
+		   console.error("Exception in _renderLoop", e);
+		   this.debug("Exception in render loop: " + e);
 		   throw e;
 		}
 	},
@@ -1136,7 +1137,7 @@ var ArcadeJS = Class.extend(
 		pt = pt || this.mousePos;
 		var matches = [];
 		this.visitObjects(function(obj){
-			if(obj.contains(pt)){
+			if(obj.contains && obj.contains(pt)){
 				matches.push(obj);
 				if(stopOnFirst){
 					return false;
@@ -1780,8 +1781,9 @@ var Movable = Class.extend(
 		this._activity = activity;
 		for(var i=0; i<this.game.activityListeners.length; i++) {
 			var obj = this.game.activityListeners[i];
-			if(obj.onSetActivity)
+			if(obj.onSetActivity) {
 				obj.onSetActivity(this, activity, prev);
+			}
 		}
 		return prev;
 	},
@@ -1790,9 +1792,6 @@ var Movable = Class.extend(
 	 * @returns {boolean}
 	 */
 	isActivity: function(activities) {
-//		if(typeof activities == "string"){
-//			activities = activities.replace(",", " ").split(" ");
-//		}
 		activities = ArcadeJS.explode(activities);
 		for(var i=0, l=activities.length; i<l; i++) {
 			if(activities[i] == this._activity){

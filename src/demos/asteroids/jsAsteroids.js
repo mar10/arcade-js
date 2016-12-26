@@ -126,6 +126,8 @@ var AsteroidsGame = ArcadeJS.extend({
 			// [space] fires. Fast-clicking allows 5 shots per second.
 			// Permanent fire (keep spacebar pushed) onl< 1 shots per sec
 			fire = this.isKeyClicked(32, this.shotDelay, this.permanentShotDelay);
+			// [backspace] starts hyperspace
+			if( this.isKeyClicked(8) ) { rocket.hyperspace(); }
 		}
 
 		// --- Mobile mode: use virtual touch button and joystick
@@ -154,6 +156,8 @@ var AsteroidsGame = ArcadeJS.extend({
 			}
 			// bottom right black button: fire
 			fire = fire || this.icade.isClicked("btnBRB", this.shotDelay, this.permanentShotDelay);
+			// bottom red button starts hyperspace
+			if( this.icade.isClicked("btnBR") ) { rocket.hyperspace(); }
 		}
 
 		if( turn ){
@@ -394,6 +398,18 @@ var Rocket = Movable.extend({
 			velocity: aim
 			}));
 		this.game.gunSound.play();
+	},
+	hyperspace: function() {
+		if(this.isActivity("grace") || this.game.isActivity("over")){
+			return;
+		}
+		// this.setActivity("grace");
+		this.velocity.setNull();
+		this.pos = new Point2(LinaJS.random(this.game.canvas.width),
+			LinaJS.random(this.game.canvas.height));
+		// this.later(this.game.gracePeriod, function(){
+		// 	this.setActivity("idle");
+		// });
 	},
 	// --- end of class
 	__lastentry: undefined

@@ -92,6 +92,7 @@ var TouchButton = CanvasObject.extend(
 		this.touchDownId = null;
 		this.clicked = false;
 		this.down = false;
+		this.lastReportedClick = 0;
 	},
 	containsCC: function(ptCC) {
 		return this.pos.distanceTo(ptCC) <= this.r3;
@@ -173,6 +174,30 @@ var TouchButton = CanvasObject.extend(
 	/**Return true if button is down (but mouse key is also still down). */
 	isDown: function() {
 		return this.down === true;
+	},
+	/**Return true if button was clicked since last call.
+	 * 
+	 * @param: {float} [minDelayMS=0]
+	 * @param: {float} [repeatDelayMS=false]
+	 * @returns {boolean}
+	 */
+	isClicked: function(minDelayMS, repeatDelayMS) {
+		var now = Date.now(),
+			last = this.lastReportedClick,
+			elap = now - last,
+			res = false;
+
+		if( this.clicked && (!minDelayMS || elap >= minDelayMS) ) {
+			res = true;
+		} else if ( this.down && typeof repeatDelayMS === "number" && 
+				elap >= repeatDelayMS ) {
+			res = true;
+		}
+		if( res ) {
+			this.lastReportedClick = now;
+			this.clicked = false;
+		}
+		return res;
 	},
 	/**Called when button was clicked (i.e. pushed and released). */
 	onClick: undefined,
@@ -608,11 +633,17 @@ var IcadeController = Class.extend(
 		   https://en.wikipedia.org/wiki/ICade
 		   https://www.ionaudio.com/downloads/ICADE_QuickStart.pdf
 
-		   Buttons and stick generate different key events when pressed and
-		   released.
-		   Buttons also have a digit assigned, that is used for entering the
-		   Bluetooth PIN.
-		   
+			Button ID layout:
+
+			    up
+			left + right    TR  TLB  TRB  TW
+			   down         BR  BLB  BRB  BW
+
+			Buttons and stick generate different key events when pressed and
+			released.
+			Buttons also have a digit assigned, that is used for entering the
+			Bluetooth PIN:
+
 			ID              down  up   #
 			// Stick
 			up              w     e    1        north
@@ -659,25 +690,29 @@ var IcadeController = Class.extend(
 				86: {id: "btnBW", val: false} 	// 'v'
 			};
 
-		// Time stamps of last queried 'down' by button ID:
-		this.lastReportedDown = {};
-		// Time stamps of down push by button ID
-		this.lastDownClick = {};
 		// Up/down status by button ID:
-		this.state = {};
-		for( i=0; i<iCadeAttrs.length; i++) {
-			this.state[iCadeAttrs[i]] = false;
-		}
+		this.downMap = {};
+		// for( i=0; i<iCadeAttrs.length; i++) {
+		// 	this.downMap[iCadeAttrs[i]] = false;
+		// }
+		// Time stamps of down push by button ID
+		this.clickMap = {};
+		// Time stamps of last queried 'down' by button ID:
+		this.lastClickReportMap = {};
 
 		$(document).on("keydown", function(e){
 			var code = ctrlCodes[e.which];
 
 			if( code ) {
-				if( code.val && !self.state[code.id] ) {
+				if( code.val && !self.downMap[code.id] ) {
 					// Store time when button was pushed
-					self.lastDownClick[code.id] = Date.now();
+					self.clickMap[code.id] = Date.now();
+					// Hold top red & click bottom white to toggle debug mode
+					if( code.id === "btnBW" && self.downMap["btnTR"] ) {
+						self.game.setDebug(!self.game.opts.debug.showActivity);
+					}
 				}
-				self.state[code.id] = code.val;
+				self.downMap[code.id] = code.val;
 				// console.log("icade: " + e.which + " => " + self);
 				// self.game.debug("icade: " + e.which + " => " + self);
 			}
@@ -685,49 +720,56 @@ var IcadeController = Class.extend(
 	},
 	toString: function() {
 		states = [];
-		for(var k in this.state) {
-			if( this.state[k] ) { states.push(k); }
+		for(var k in this.downMap) {
+			if( this.downMap[k] ) { states.push(k); }
 		}
 		return "<IcadeController(" + states.join(",") + ")>";
 	},
 	/** Return true if button or stick position is 'down'.
 	 *
-	 * The `minDelaySecs` argument may be passed to throttle the maximum permanent
-	 * fire rate of buttons, i.e. when keeping the button pushed.
-	 * The `minClickDelaySecs` argument may be used to allow faster rates when 
-	 * users hit the buttons with a high frequency.
+	 * @param {string} btnId One of 'up', 'down', 'left', 'right', 'btnTR',
+	 *	         'btnBR', 'btnTLB', 'btnBLB', 'btnTRB', 'btnBRB', 'btnTW', 'btnBW'
+	 * @returns {boolean}
+	 */
+	isDown: function(btnId) {
+		return !!this.downMap[btnId];
+	},
+	/** Return true if button (or stick position) was clicked since last call.
+	 *
+	 * The `minDelay` argument may be used to throttle the maximum click rate.
+	 * The `repeatDelayMS` argument defines the maximum permanent fire rate of 
+	 * buttons, i.e. when keeping the button pushed.
 	 *
 	 * @param {string} btnId One of 'up', 'down', 'left', 'right', 'btnTR',
 	 *	         'btnBR', 'btnTLB', 'btnBLB', 'btnTRB', 'btnBRB', 'btnTW', 'btnBW'
-	 * @param {float} [minDelaySecs=0] minimum delay between permanent fire triggers in seconds
-	 *                    0: maximum rate, i.e. once per frame
-	 * @param {float} [minClickDelaySecs=0] minimum delay between two fast clicks in seconds
+	 * @param {float} [minDelayMS=0] minimum delay between two fast clicks in miliseconds
 	 *                    0: maximum rate. 
-	 * @returns {boolean} true if button / stick id is 'down' 
+	 * @param {float} [repeatDelayMS=false] minimum delay between permanent fire triggers in miliseconds
+	 *                    0: maximum rate, i.e. once per frame
+	 *                    false: no auto-repeat
+	 * @returns {boolean}
 	 */
-	isDown: function(btnId, minDelaySecs, minClickDelaySecs) {
+	isClicked: function(btnId, minDelayMS, repeatDelayMS) {
 		var now = Date.now(),
-			state = this.state[btnId];
+			last = this.lastClickReportMap[btnId] || 0,
+			elap = now - last,
+			res = false;
 
-		// this.game.debug("isDown2(" + btnId + ", " + minDelaySecs + "), "+ this + ", " + state);
-		// this.game.debug("isDown3(" + btnId + ", " + minDelaySecs + "), "+ this.lastReportedDown[btnId]);
-		// If a max fire rate was passed, return false if frequency is too high
-		if( state && minDelaySecs && this.lastReportedDown[btnId] ) {
-			if( (now - this.lastReportedDown[btnId]) < (1000 * minDelaySecs) ) {
-				// The last reported time is too short ago, so we would reply
-				// isDown as `false`
-				// if( minClickDelaySecs && (now - this.lastDownClick[btnId]) < (1000 * minClickDelaySecs) ) {
-				// 	// Faster *manual* clicks are accepted
-				// 	this.lastDownClick[btnId] = false;
-				// } else {
-				// 	return false;
-				// }
-			}
+		// this.debug("isKeyClicked(" + btnId + ", " + minDelaySecs + ", "
+		// 	+ repeatDelaySecs + "): " + elap);
+		if( this.clickMap[btnId] && (!minDelayMS || elap >= minDelayMS) ) {
+			res = true;
+		} else if ( this.downMap[btnId] && typeof repeatDelayMS === "number" && 
+				elap >= repeatDelayMS ) {
+			res = true;
 		}
-		if( state ) {
-			this.lastReportedDown[btnId] = now;
+		if( res ) {
+			// this.debug("isKeyClicked(" + btnId + ", " + minDelayMS + ", "
+			// 	+ repeatDelayMS + "): " + res);
+			this.lastClickReportMap[btnId] = now;
+			delete this.clickMap[btnId];
 		}
-		return state;
+		return res;
 	},
 	// --- end of class
 	__lastentry: undefined

@@ -1,7 +1,9 @@
 # 0.0.2 / (unreleased)
 
-  * Add iCade support (https://en.wikipedia.org/wiki/ICade)
   * Changed license to MIT only (was MIT + GPL)
+  * Add methods `game.isKeyClicked()` and `button.isClicked()` with support for
+    limited click rates and permanent fire (unlike the existing `isDown` methods).
+  * Add iCade support (https://en.wikipedia.org/wiki/ICade)
 
 
 # 0.0.1 / 2010-07-17

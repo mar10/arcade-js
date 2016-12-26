@@ -235,6 +235,8 @@ var ArcadeJS = Class.extend(
 	 * @constructs
 	 */
 	init: function(canvas, opts) {
+		var self = this;
+
 		/**Game options (ArcadeJS.defaultGameOptions + options passed to the constructor).*/
 		this.opts = $.extend(true, {}, ArcadeJS.defaultGameOptions, opts);
 		// TODO: required?
@@ -293,11 +295,10 @@ var ArcadeJS = Class.extend(
 		this.dragListeners = [];
 		this._draggedObjects = [];
 		this.typeMap = {};
-//		this.downKeyCodes = [];
 		this._activity = "idle";
 
 		/**Current time in ticks*/
-		this.time = new Date().getTime();
+		this.time = Date.now();
 		/**Total number of frames rendered so far.*/
 		this.frameCount = 0;
 		/**Time elapsed since previous frame in seconds.*/
@@ -343,54 +344,70 @@ var ArcadeJS = Class.extend(
 
 		this.keyCode = undefined;
 		this.key = undefined;
-		this.downKeyCodes = [];
+
+		this.clickMap = {};
+		this.downMap = {};
+		this.lastClickReportMap = {};
+		// this.downKeyCodes = [];
 
 		if(!ArcadeJS._firstGame) {
 			ArcadeJS._firstGame = this;
 		}
-		// Bind keyboard events
-		var self = this;
-		$(document).bind("keyup keydown keypress", function(e){
-			if( e.type === "keyup"){
+		
+		// Bind keyboard events		
+		$(document).on("keyup keydown keypress", function(e){
+			var now = Date.now(),
+				keyCode = e.keyCode;
+
+			if( e.type === "keyup" ){
 				self.keyCode = null;
 				self.key = null;
-				var idx = self.downKeyCodes.indexOf(e.keyCode);
-				if(idx >= 0){
-					self.downKeyCodes.splice(idx, 1);
-				}
-//            	self.debug("Keyup %s: %o", ArcadeJS.keyCodeToString(e), self.downKeyCodes);
-			} else if( e.type === "keydown"){
-				self.keyCode = e.keyCode;
+				delete self.downMap[keyCode];
+				// var idx = self.downKeyCodes.indexOf(e.keyCode);
+				// if(idx >= 0){
+				// 	self.downKeyCodes.splice(idx, 1);
+				// }
+           		// self.debug("Keyup " + ArcadeJS.keyCodeToString(e) + ": " + self.getDownKeys().join(","));
+
+			} else if( e.type === "keydown" ){
+				self.keyCode = keyCode;
 				self.key = ArcadeJS.keyCodeToString(e);
-				if( self.downKeyCodes.indexOf(self.keyCode) < 0){
-					self.downKeyCodes.push(self.keyCode);
+				if( !self.downMap[keyCode] ) {
+					// keydown is sent repeatedly, but we only want the click
+					// events on the first down.
+					self.clickMap[keyCode] = now;
 				}
-//            	self.debug("Keydown %s: %o", self.key, self.downKeyCodes);
+				self.downMap[keyCode] = now;
+				// if( self.downKeyCodes.indexOf(self.keyCode) < 0){
+				// 	self.downKeyCodes.push(self.keyCode);
+				// }
+           		// self.debug("Keydown " + ArcadeJS.keyCodeToString(e) + ": " + self.getDownKeys().join(","));
+
 			} else { // keypress
 //            	self.debug("Keypress %s: %o", self.key, e);
 				// Ctrl+Shift+D toggles debug mode
-				if(self.key == "ctrl+meta+D"){
+				if( self.key === "ctrl+meta+D" ) {
 					self.setDebug(!self.opts.debug.showActivity);
 				}
 			}
 			for(var i=0; i<self.keyListeners.length; i++) {
 				var obj = self.keyListeners[i];
-				if(e.type == "keypress" && obj.onKeypress) {
+				if(e.type === "keypress" && obj.onKeypress) {
 					obj.onKeypress(e);
-				} else if(e.type == "keyup" && obj.onKeyup) {
+				} else if(e.type === "keyup" && obj.onKeyup) {
 					obj.onKeyup(e, self.key);
-				} else if(e.type == "keydown" && obj.onKeydown) {
+				} else if(e.type === "keydown" && obj.onKeydown) {
 					obj.onKeydown(e, self.key);
 				}
 			}
-		});
-		// Prevent context menu on right clicks
-		$(document).bind("contextmenu", function(e){
+
+		}).on("contextmenu", function(e){
+			// Prevent context menu on right clicks
 			return false;
-		});
-		// Bind mouse events
-		// Note: jquery.mousehweel.js plugin is required for Mousewheel events
-		$(document).bind("mousemove mousedown mouseup mousewheel", function(e){
+
+		}).on("mousemove mousedown mouseup mousewheel", function(e){
+			// Bind mouse events
+			// Note: jquery.mousehweel.js plugin is required for Mousewheel events
 			// Mouse position in canvas coordinates
 //        	self.mousePos = new Point2(e.clientX-e.target.offsetLeft, e.clientY-e.target.offsetTop);
 			self.mousePosCC = new Point2(e.pageX - self.canvas.offsetLeft,
@@ -478,7 +495,7 @@ var ArcadeJS = Class.extend(
 			}
 		});
 		// Bind touch and gesture events
-		$(canvas).bind("touchstart touchend touchmove touchcancel gesturestart gestureend gesturechange", function(e){
+		$(canvas).on("touchstart touchend touchmove touchcancel gesturestart gestureend gesturechange", function(e){
 			self.touches = e.originalEvent.touches;
 //			self.touches = e.originalEvent.targetTouches;
 			self.debug("game got " + e.type + ": " + e.target.nodeName + ", touches.length=" + self.touches.length);
@@ -636,7 +653,7 @@ var ArcadeJS = Class.extend(
 	later: function(seconds, callback, data) {
 		var timeout = {
 			id: ArcadeJS._nextTimeoutId++,
-			time: new Date().getTime() + 1000 * seconds,
+			time: Date.now() + 1000 * seconds,
 			frame: this.fps * seconds,
 			callback: callback || this.onTimeout,
 			data: (data === undefined ? null : data)
@@ -801,7 +818,7 @@ var ArcadeJS = Class.extend(
 	},
 	_stepAll: function() {
 		// Some bookkeeping and timings
-		var ticks = new Date().getTime(),
+		var ticks = Date.now(),
 			sampleDuration = .001 * (ticks - this._sampleTime);
 
 		if(this.timeCorrection){
@@ -904,7 +921,8 @@ var ArcadeJS = Class.extend(
 			infoList.push("Activity: '" + this._activity + "'");
 		}
 		if(this.opts.debug.showKeys){
-			infoList.push("Keys: [" + this.downKeyCodes + "]");
+			// infoList.push("Keys: [" + this.downKeyCodes + "]");
+			infoList.push("Keys: " + this.getDownKeys().join(","));
 			infoList.push("Mouse: [" + (this.leftButtonDown ? "L" : ".")  + (this.middleButtonDown ? "M" : ".") + (this.rightButtonDown ? "R" : ".") + "]");
 		}
 		if(this.opts.debug.showObjects){
@@ -946,7 +964,7 @@ var ArcadeJS = Class.extend(
 	startLoop: function(){
 		if( !this._runLoopId) {
 			this.realFps = 0;
-			this._sampleTime = new Date().getTime();
+			this._sampleTime = Date.now();
 			this._sampleFrameCount = this.frameCount;
 			var self = this;
 			this._runLoopId = window.setInterval(
@@ -1127,13 +1145,52 @@ var ArcadeJS = Class.extend(
 		}, types);
 		return matches;
 	},
-	/**Return true, if a key is currently pressed.
+	/**Return true if a key is currently pressed.
 	 * @param: {int} keyCode
 	 * @returns {boolean}
 	 * @see Movable.onKeypress
 	 */
 	isKeyDown: function(keyCode) {
-		return this.downKeyCodes.indexOf(keyCode) >= 0;
+		return !!this.downMap[keyCode];
+	},
+	/**Return true if a key was clicked since last call.
+	 * 
+	 * @param: {int} keyCode
+	 * @param: {float} [minDelayMS=0]
+	 * @param: {float} [repeatDelayMS=false]
+	 * @returns {boolean}
+	 * @see Movable.onKeypress
+	 */
+	isKeyClicked: function(keyCode, minDelayMS, repeatDelayMS) {
+		var now = Date.now(),
+			last = this.lastClickReportMap[keyCode] || 0,
+			elap = now - last,
+			res = false;
+
+		// this.debug("isKeyClicked(" + keyCode + ", " + minDelaySecs + ", "
+		// 	+ repeatDelaySecs + "): " + elap);
+		if( this.clickMap[keyCode] && (!minDelayMS || elap >= minDelayMS) ) {
+			res = true;
+		} else if ( this.downMap[keyCode] && typeof repeatDelayMS === "number" && 
+				elap >= repeatDelayMS ) {
+			res = true;
+		}
+		if( res ) {
+			// this.debug("isKeyClicked(" + keyCode + ", " + minDelayMS + ", "
+			// 	+ repeatDelayMS + "): " + res);
+			this.lastClickReportMap[keyCode] = now;
+			delete this.clickMap[keyCode];
+		}
+		return res;
+	},
+	/**Return list of key codes that are currently pressed.
+	 */
+	getDownKeys: function() {
+		var res = [];
+		for(var k in this.downMap){
+			res.push(k);
+		}
+		return res;
 	},
 	/**Wide check if object1 and object2 are collision candiates.
 	 * @param: {Movable} object1
@@ -1752,7 +1809,7 @@ var Movable = Class.extend(
 	later: function(seconds, callback, data) {
 		var timeout = {
 			id: ArcadeJS._nextTimeoutId++,
-			time: new Date().getTime() + 1000 * seconds,
+			time: Date.now() + 1000 * seconds,
 			// if later() is called in the constructor, 'game' may not be set
 			frame: (this.game ? this.game.fps : ArcadeJS._firstGame.fps) * seconds,
 			callback: callback || this.onTimeout,
@@ -1829,7 +1886,11 @@ var Movable = Class.extend(
 				this.pos.y = LinaJS.clamp(this.pos.y, viewport.y, viewport.y + viewport.height);
 				break;
 			case "die":
-				if(this.pos.y < viewport.y || this.pos.y > viewport.y + viewport.height){
+				// viewport heigth may be negative
+				var minY = Math.min(viewport.y, viewport.y + viewport.height),
+					maxY = Math.max(viewport.y, viewport.y + viewport.height);
+				// if(this.pos.y < viewport.y || this.pos.y > viewport.y + viewport.height){
+				if(this.pos.y < minY || this.pos.y > maxY ){
 					this.die();
 				}
 				break;

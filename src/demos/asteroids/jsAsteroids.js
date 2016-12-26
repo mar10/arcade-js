@@ -27,7 +27,10 @@ var AsteroidsGame = ArcadeJS.extend({
 		this.liveCount = 3;
 		this.level = 1;
 		this.score = 0;
-		this.shotDelay = 250; // ms
+		this.maxBullets = 4;
+		this.shotDelay = 100; // ms
+		this.permanentShotDelay = 500; // ms
+		// this.shotDuration = 2000; // ms
 		this.gracePeriod = 3; // seconds
 
 		// --- Cache sounds ----------------------------------------------------
@@ -120,7 +123,9 @@ var AsteroidsGame = ArcadeJS.extend({
 			if(this.isKeyDown(38)){ // Up
 				thrust = 3;
 			}
-			fire = this.isKeyDown(32);  // Space
+			// [space] fires. Fast-clicking allows 5 shots per second.
+			// Permanent fire (keep spacebar pushed) onl< 1 shots per sec
+			fire = this.isKeyClicked(32, this.shotDelay, this.permanentShotDelay);
 		}
 
 		// --- Mobile mode: use virtual touch button and joystick
@@ -133,7 +138,7 @@ var AsteroidsGame = ArcadeJS.extend({
 			if( this.stick.getY() < -0.8 ) { // Up
 				thrust = 3;
 			}
-			fire = fire || this.button.isDown();
+			fire = fire || this.button.isClicked(this.shotDelay, this.permanentShotDelay);
 		}
 
 		// iCade Controller
@@ -143,10 +148,12 @@ var AsteroidsGame = ArcadeJS.extend({
 			} else if( this.icade.isDown("right") ){
 				turn = 3;
 			}
-			if( this.icade.isDown("up") ) {
+			// bottom left black button: thrust
+			if( this.icade.isDown("btnBLB") ) {
 				thrust = 3;
 			}
-			fire = fire || this.icade.isDown("btnBR");
+			// bottom right black button: fire
+			fire = fire || this.icade.isClicked("btnBRB", this.shotDelay, this.permanentShotDelay);
 		}
 
 		if( turn ){
@@ -158,7 +165,9 @@ var AsteroidsGame = ArcadeJS.extend({
 			rocket.isThrust = true;
 		}
 		if( fire ) {
-			rocket.fire();
+			if( this.getObjectsByType("bullet").length < this.maxBullets ) {
+				rocket.fire();
+			}
 		}
 	},
 	preDraw: function(ctx){
@@ -200,15 +209,17 @@ var AsteroidsGame = ArcadeJS.extend({
 var Bullet = Movable.extend({
 	init: function(opts) {
 		opts = $.extend({
-
+			clipModeX: "die",
+			clipModeY: "die"
 //			scale: 2,
 //			ttl: 20,
 		}, opts);
 		this._super("bullet", opts);
-		// die after 0.5 seconds
-		this.later(0.8, function(){
-			this.die();
-		});
+		this.startPos = this.pos.copy(); 
+		// Die after 0.5 seconds
+		// this.later(0.8, function(){
+		// 	this.die();
+		// });
 	},
 	step: function() {
 		var list = this.game.getObjectsByType("asteroid");
@@ -244,11 +255,11 @@ var Bullet = Movable.extend({
 var Rocket = Movable.extend({
 	init: function(opts) {
 		opts = $.extend({
-			id: "player1",
-			velocity: new Vec2(0, 0),
-			pos: new Point2(320, 200),
-			clipModeX: "wrap",
-			clipModeY: "wrap"
+				id: "player1",
+				velocity: new Vec2(0, 0),
+				pos: new Point2(320, 200),
+				clipModeX: "wrap",
+				clipModeY: "wrap"
 			}, opts);
 		this._super("rocket", opts);
 		this.pg = new Polygon2([0, 5,
@@ -370,9 +381,12 @@ var Rocket = Movable.extend({
 		if(this.isActivity("grace") || this.game.isActivity("over")){
 			return;
 		}
-		if((this.game.time - this.lastShotTime) < this.game.shotDelay ){
-			return;
-		}
+		// if((this.game.time - this.lastShotTime) < this.game.shotDelay ){
+		// 	return;
+		// }
+		// if( this.game.getObjectsByType("bullet").length >= this.game.maxBullets ) {
+		// 	return;
+		// }
 		this.lastShotTime = this.game.time;
 		var aim = LinaJS.polarToVec(this.orientation - 0.5 * Math.PI, 300);
 		this.game.addObject(new Bullet({

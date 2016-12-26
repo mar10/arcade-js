@@ -59,13 +59,13 @@ var DemoGame = ArcadeJS.extend({
 //        this.debug("e="+e);
 	},
 	onKeydown: function(e, key){
-		$("#keys").html("Keydown: key='"+this.key+"'; down:"+this.downKeyCodes);
+		$("#keys").html("Keydown: key='" + this.key + "'; down:" + this.getDownKeys.join(","));
 	},
 	onKeyup: function(e, key){
-		$("#keys").html("Keyup: key='"+this.key+"'; down:"+this.downKeyCodes);
+		$("#keys").html("Keyup: key='" + this.key + "'; down:" + this.getDownKeys.join(","));
 	},
 	onKeypressed: function(e){
-		$("#keys").html("Keypressed; down:"+this.downKeyCodes);
+		$("#keys").html("Keypressed; down:" + this.getDownKeys.join(","));
 	},
 	// --- end of class
 	lastentry: undefined

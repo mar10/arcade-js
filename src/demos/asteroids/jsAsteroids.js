@@ -22,8 +22,7 @@ var AsteroidsGame = ArcadeJS.extend({
 			keyboardControls: true,
 			icadeControls: false,
 			mobileControls: false,
-			button: null,  // used by mobile version
-			stick: null,   // used by mobile version
+			gameOverMsg: "Game Over.",
 			debug: {
 				showFps: true
 			}
@@ -76,13 +75,41 @@ var AsteroidsGame = ArcadeJS.extend({
 		var obj;
 		// Player rocket
 		this.rocket = this.addObject(new Rocket())
-		this._restartGame();
-
+		// this._restartGame(true);
+		this._gameOver();
 		// --- Start render loop -----------------------------------------------
 		this.startLoop()
 	},
-	_restartGame: function(){
+	_gameOver: function(){
+		this.setActivity("over");
+		var self = this,
+			popUp = new HtmlOverlay({
+				game: this,
+				html: this.opts.gameOverMsg,
+				css: {
+					backgroundColor: "transparent",
+					color: "white"
+				},
+				onClick: function(e){
+					self._restartGame(true);
+					popUp.close();
+					// window.location.reload();
+				}
+			});
+		$(document).on("icadeclick", function(e, data){
+			if( data.btnId === "btnTW" && game.isActivity("over")) {
+				$("div.arcadePopup").click();
+			}
+		});
+	},
+	_restartGame: function(resetLevel){
 		this.setActivity("prepare");
+		if( resetLevel ) {
+			this.level = 1;
+		}
+		this.visitObjects(function(obj){
+			obj.die();
+		}, "asteroid bullet");
 		this.rocket.velocity.setNull();
 		this.rocket.pos = new Point2(0.5 * this.canvas.width, 0.5 * this.canvas.height);
 		var speed = 15 * (1.0 + (this.level - 1) * 0.3);
@@ -109,7 +136,7 @@ var AsteroidsGame = ArcadeJS.extend({
 	},
 	preStep: function(){
 		var hasAsteroids = this.getObjectsByType("asteroid").length > 0;
-		if(!hasAsteroids){
+		if(!hasAsteroids && !this.isActivity("over") ){
 			this.level += 1;
 			this.score += 1000;
 			this._restartGame();
@@ -315,19 +342,7 @@ var Rocket = Movable.extend({
 					this.setActivity("idle");
 				});
 			}else if(this.game.getActivity() != "over"){
-				this.game.setActivity("over");
-				var popUp = new HtmlOverlay({
-					game: this.game,
-					html: "Game Over.",
-					css: {
-						opacity: 0.8,
-						backgroundColor: "black",
-						color: "white"
-					},
-					onClick: function(e){
-						window.location.reload();
-					}
-				});
+				this.game._gameOver();
 			}
 		}
 	},

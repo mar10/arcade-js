@@ -4,6 +4,23 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<title>jsAsteroids - iCade version</title>
 
+	<style>
+		div.arcadePopup {
+			font-family: "Lucida Console", Monaco, monospace;
+		}
+		div.arcadePopup p,
+		div.arcadePopup ul {
+			margin: 6px 0;
+		}
+		div.arcadePopup a {
+			color: white;
+		}
+		div.arcadePopup h2 {
+			text-align: center;
+			margin: 6px 0;
+		}
+	</style>
+
 	<script src="../../depends/jquery.js"></script>
 	<script src="../../lina.js/lina.js"></script>
 	<script src="../../arcade.js/arcade.js"></script>
@@ -13,32 +30,39 @@
 	<script type="text/javascript">
 
 	$(function(){
-		var game = new AsteroidsGame("#gameCanvas", {
-				icadeControls: true,
-				fullscreenMode: true,
-				debug: {
-					showFps: true,
-					logToCanvas: true
-				}
-			});
-
 		if(window.navigator && window.navigator.standalone ){
 			alert("The iCade version does not work as iPhones/iPad standalone app, " +
 				"because keyboard events are required.");
 		}
+
+		var msg = "<h2>Game Over</h2>";
+		// msg += "<p>Hit <kbd>Fire</kbd> to start.</p>";
+		msg += "<hr>";
+		msg += "<p>Controls:</p>";
+		msg += "<p><ul>";
+		msg += "<li><kbd>Stick Left/Right</kbd>: Turn ship</li>";
+		msg += "<li><kbd>Black Left Bottom</kbd>: Thrust</li>";
+		msg += "<li><kbd>Black Right Bottom</kbd>: Fire</li>";
+		msg += "<li><kbd>Red Bottom</kbd>: Hyperspace</li>";
+		msg += "<li><kbd>White Top</kbd>: Insert coin.</p>";
+		msg += "</ul></p>";
+		msg += "<hr>";
+		msg += "<p style='text-align: center; font-size: 80%;'>";
+		msg += "Asteroids.js - iCade Version.<br>";
+		msg += "Copyright &copy; 2011 Martin Wendt. Made with <a href='https://github.com/mar10/arcade-js/' target='_blank'>ArcadeJS</a>.";
+		msg += "</p>";
+
+		var game = new AsteroidsGame("#gameCanvas", {
+				icadeControls: true,
+				fullscreenMode: true,
+				gameOverMsg: msg,
+				debug: {
+					showFps: true,
+					logToCanvas: false
+				}
+			});
 	});
 	</script>
-
-<style>
-* {
-	margin: 0;
-	padding: 0;
-}
-body, html {
-	width: 100%;
-	height: 100%;
-}
-</style>
 </head>
 
 <body>

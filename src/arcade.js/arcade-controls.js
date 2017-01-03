@@ -45,7 +45,10 @@ var CanvasObject = Movable.extend(
 		this._super(type, $.extend({
 			useCC: true,
 			isBackground: true,
-			onClick: function() { alert("onClick is mandatory"); }
+			onClick: function() { 
+				// not mandatory, since we may use button.
+				// alert("onClick is mandatory: " + JSON.stringify(type));
+			}
 		}, opts));
 		// Copy selected options as object attributes
 		ArcadeJS.extendAttributes(this, this.opts, "onClick onResize useCC isBackground");
@@ -74,6 +77,7 @@ var CanvasObject = Movable.extend(
 /*----------------------------------------------------------------------------*/
 
 /**Button for mouse touch screen devices.
+ * Either overload `onClick` or call `isDown()` / `isClicked()` 
  * @class
  * @extends CanvasObject
  */

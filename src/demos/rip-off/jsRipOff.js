@@ -142,10 +142,20 @@ var RipOffGame = ArcadeJS.extend({
 	init: function(canvas, customOpts) {
 		// Init ArcadeJS
 		var opts = $.extend({
-			name: "jsRipOff",
-			fps: 30,
-			twoPlayer: false
-		}, customOpts);
+				name: "jsRipOff",
+				fps: 30,
+				keyboardControls: true,
+				icadeControls: false,
+				mobileControls: false,
+				gameOverMsg: "Game Over.",
+				twoPlayer: false,
+				// lineWidth: 1.5,
+				debug: {
+					showFps: true,
+					showHulls: true
+				}
+			}, customOpts);
+
 		this._super(canvas, opts);
 
 		var i;
@@ -167,6 +177,36 @@ var RipOffGame = ArcadeJS.extend({
 
 		this.attackStyle = "orange";
 
+		if( opts.icadeControls ) {
+			this.icade = new IcadeController({game: this});
+		} else {		
+			this.icade = null;
+		}
+		if( opts.mobileControls ) {
+			// Add iPod extensions
+			this.stick = this.addObject(new TouchStick({
+//              id: "stick",
+				r1: 10,
+				r2: 30,
+				r3: 60,
+				onResize: function(width, height){
+					this.pos.x = 60;
+					this.pos.y = height - 60;
+				}
+			}));
+			this.button = this.addObject(new TouchButton({
+//              id: "button",
+				r: 20,
+				r3: 40,
+				onResize: function(width, height){
+					this.pos.x = width - 40;
+					this.pos.y = height - 40;
+				}
+			}));
+		} else {		
+			this.button = this.stick = null;
+		}
+
 		this.player1 = this.addObject(new Tank({
 			id: "player1",
 			pos: new Point2(840, 100),
@@ -179,30 +219,57 @@ var RipOffGame = ArcadeJS.extend({
 			homePos: new Point2(100, 100),
 			color: "yellowgreen"
 		})) : null;
+
 		// Seed 8 canisters in the center
 		for(i=0; i<8; i++){
 			var pos = new Point2(LinaJS.random(250, 390), LinaJS.random(190, 290));
 			this.addObject(new Canister({pos: pos}));
 		}
 		//
-		this._startWave();
-		this.player1.restart();
-		if(this.player2){
-			this.player2.restart();
-		}
-
+		this.gameOver();
+		// this._startWave(true);
 		// Start render loop
 		this.startLoop();
 	},
-
-	_startWave: function(){
+	gameOver: function(){
+		this.setActivity("over");
+		var self = this,
+			popUp = new HtmlOverlay({
+				game: this,
+				html: this.opts.gameOverMsg,
+				css: {
+					backgroundColor: "transparent",
+					color: "white"
+				},
+				onClick: function(e){
+					self._startWave(true);
+					popUp.close();
+				}
+			});
+		$(document).on("icadeclick", function(e, data){
+			if( data.btnId === "btnTW" && self.isActivity("over")) {
+				$("div.arcadePopup").click();
+			}
+		});
+	},
+	_startWave: function(reset){
 		var i,
 			maxBandits = 3,
 			canisters = this.getObjectsByType("canister"),
 			forceAttack = false,
 			banditHome = new Point2(LinaJS.random(0, 640), 500);
 
-		this.wave += 1;
+		if( reset ) {
+			this.wave = 1;
+			this.score = 0;
+			this.score2 = 0;
+			this.player1.restart();
+			if(this.player2){
+				this.player2.restart();
+			}
+		} else {
+			this.wave += 1;
+		}
 
 		// Remove old bandits and bullets
 		this.visitObjects(function(obj){
@@ -294,17 +361,12 @@ var RipOffGame = ArcadeJS.extend({
 //		this.debug("postStep: " + bandits);
 		if( bandits.length < 1){
 			var canisters = this.getObjectsByType("canister");
-			if(canisters.length){
-				this._startWave();
-			}else if(this.getActivity() != "over"){
-				this.setActivity("over");
-				var popUp = new HtmlOverlay({
-					game: this,
-					html: "Game Over.",
-					onClick: function(e){
-						window.location.reload();
-					}
-				});
+			if( this.getActivity() != "over") {
+				if( canisters.length ){
+					this._startWave();  // start next wave
+				} else {
+					this.gameOver();
+				}
 			}
 		}
 	},
@@ -335,6 +397,10 @@ var RipOffGame = ArcadeJS.extend({
 		}
 		// done
 		ctx.restore();
+		// Prepare context for following object rendering
+		if( this.opts.lineWidth ) {
+			ctx.lineWidth = this.opts.lineWidth;
+		}
 	},
 	// --- end of class
 	__lastentry: undefined
@@ -414,7 +480,7 @@ var Tank = Movable.extend({
 		// Copy selected options as object attributes
 		ArcadeJS.extendAttributes(this, opts, "color");
 		this.pg = pgTank1.copy();
-//		this.pgHull = this.pg.getConvexHull();
+		this.pgHull = this.pg.getConvexHull();
 		// Start here
 		this.homePos = opts.homePos.copy();
 		// Drive from here to homePos after a hit (recover mode).
@@ -445,20 +511,45 @@ var Tank = Movable.extend({
 		// --- Handle key controls ---
 		if(this.id == "player1"){
 			// Player 1 is keyboard controlled
-			if(game.isKeyDown(32)){ // [space]
+			var doFire = false,
+				doThrust = false,
+				doTurn = 0;
+
+			if( game.opts.keyboardControls ) {			
+				if(game.isKeyDown(32)){ // [space]
+					doFire = true;
+				}
+				if(game.isKeyDown(38)){ // [up]
+					doThrust = true;
+				}
+				if(this.game.isKeyDown(37)){ // [left]
+					doTurn = +1;
+				}else if(this.game.isKeyDown(39)){ // [right]
+					doTurn = -1;
+				}
+			}
+			// iCade Controller
+			if( game.icade ) {
+				if( game.icade.isDown("left") ){
+					doTurn = +1;
+				} else if( game.icade.isDown("right") ){
+					doTurn = -1;
+				}
+				doThrust = doThrust || game.icade.isDown("up");
+				doFire = doFire || game.icade.isClicked("btnBRB", 100, 500);
+			}
+			// Apply controls
+			if(  doFire ) {
 				this.fire();
 			}
-			if(game.isKeyDown(38)){ // [up]
+			if( doThrust ) {
 				var force = LinaJS.polarToVec(this.orientation + 90*LinaJS.D2R, accel * game.frameDuration);
 				this.velocity.accelerate(force, maxSpeed);
 			}else{
 				this.velocity.accelerate(-decel * game.frameDuration);
 			}
-			if(this.game.isKeyDown(37)){ // [left]
-				this.orientation += turnRate * game.frameDuration;
-				this.velocity.setAngle(this.orientation + 90*LinaJS.D2R);
-			}else if(this.game.isKeyDown(39)){ // [right]
-				this.orientation -= turnRate * game.frameDuration;
+			if( doTurn ) {
+				this.orientation += doTurn * turnRate * game.frameDuration;
 				this.velocity.setAngle(this.orientation + 90*LinaJS.D2R);
 			}
 		}
@@ -496,9 +587,12 @@ var Tank = Movable.extend({
 	},
 	render: function(ctx) {
 		ctx.strokeStyle = this.color;
+		// ctx.lineWidth = 1.2;
 		ctx.strokePolygon2(this.pg, false);
-//		ctx.strokeStyle = "magenta";
-//		ctx.strokePolygon2(this.pgHull, false);
+		if( this.game.opts.debug.showHulls ) {		
+			ctx.strokeStyle = "magenta";
+			ctx.strokePolygon2(this.pgHull, false);
+		}
 	},
 	hitBy: function(obj) {
 		this.game.explosionSound.play();
@@ -557,7 +651,7 @@ var Bandit = Movable.extend({
 		// Copy selected options as object attributes
 		ArcadeJS.extendAttributes(this, opts, "score maxSpeed accel decel turnRate attackRange fireRate pg");
 		this.target = null;
-//		this.pgHull = this.pg.getConvexHull();
+		this.pgHull = this.pg.getConvexHull();
 	},
 	getBoundingCircle: function() {
 		return new Circle2(this.pos, 9);
@@ -649,8 +743,10 @@ var Bandit = Movable.extend({
 			ctx.strokeStyle = this.game.attackStyle; //"lightblue";
 		}
 		ctx.strokePolygon2(this.pg, false);
-//		ctx.strokeStyle = "magenta";
-//		ctx.strokePolygon2(this.pgHull, false);
+		if( this.game.opts.debug.showHulls ) {		
+			ctx.strokeStyle = "magenta";
+			ctx.strokePolygon2(this.pgHull, false);
+		}
 	},
 	hitBy: function(obj) {
 		this.game.explosionSound.play();

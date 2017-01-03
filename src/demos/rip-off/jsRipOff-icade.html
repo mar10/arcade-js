@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>jsRipOff - iCade version</title>
+
+	<style>
+		div.arcadePopup {
+			font-family: "Lucida Console", Monaco, monospace;
+		}
+		div.arcadePopup p,
+		div.arcadePopup ul {
+			margin: 6px 0;
+		}
+		div.arcadePopup a {
+			color: white;
+		}
+		div.arcadePopup h2 {
+			text-align: center;
+			margin: 6px 0;
+		}
+	</style>
+	<script src="../../depends/jquery.js"></script>
+	<script src="../../lina.js/lina.js"></script>
+	<script src="../../arcade.js/arcade.js"></script>
+	<script src="../../arcade.js/arcade-controls.js"></script>
+	<script src="jsRipOff.js"></script>
+
+	<script type="text/javascript">
+
+	$(function(){
+		if(window.navigator && window.navigator.standalone ){
+			alert("The iCade version does not work as iPhones/iPad standalone app, " +
+				"because keyboard events are required.");
+		}
+
+		var msg = "<h2>Game Over</h2>";
+		// msg += "<p>Hit <kbd>Fire</kbd> to start.</p>";
+		msg += "<hr>";
+		msg += "<p>Controls:</p>";
+		msg += "<p><ul>";
+		msg += "<li><kbd>Stick Left/Right</kbd>: Turn tank</li>";
+		msg += "<li><kbd>Black Left Bottom</kbd>: Accelerate</li>";
+		msg += "<li><kbd>Black Right Bottom</kbd>: Fire</li>";
+		msg += "<li><kbd>White Top</kbd>: Insert coin.</p>";
+		msg += "</ul></p>";
+		msg += "<hr>";
+		msg += "<p style='text-align: center; font-size: 80%;'>";
+		msg += "jsRipOff - iCade Version.<br>";
+		msg += "Copyright &copy; 2011 Martin Wendt. Made with <a href='https://github.com/mar10/arcade-js/' target='_blank'>ArcadeJS</a>.";
+		msg += "</p>";
+
+		var game = new RipOffGame("#gameCanvas", {
+				icadeControls: true,
+				fullscreenMode: true,
+				lineWidth: 1.5,
+				gameOverMsg: msg,
+				debug: {
+					showFps: true,
+					showHulls: true,
+					logToCanvas: false
+				}
+			});
+	});
+	</script>
+</head>
+
+<body>
+	<canvas id="gameCanvas" class="arcade-js">This game requires HTML 5 support.</canvas>
+</body>
+</html>

@@ -17,16 +17,18 @@ var AsteroidsGame = ArcadeJS.extend({
 	init: function(canvas, customOpts) {
 		// Init ArcadeJS
 		var opts = $.extend({
-			name: "jsAsteroids",
-			fps: 30,
-			keyboardControls: true,
-			icadeControls: false,
-			mobileControls: false,
-			gameOverMsg: "Game Over.",
-			debug: {
-				showFps: true
-			}
-		}, customOpts);
+				name: "jsAsteroids",
+				fps: 30,
+				keyboardControls: true,
+				icadeControls: false,
+				mobileControls: false,
+				gameOverMsg: "Game Over.",
+				// lineWidth: 1.5,
+				debug: {
+					showFps: true
+				}
+			}, customOpts);
+
 		this._super(canvas, opts);
 
 		// --- Status data -----------------------------------------------------
@@ -97,7 +99,7 @@ var AsteroidsGame = ArcadeJS.extend({
 				}
 			});
 		$(document).on("icadeclick", function(e, data){
-			if( data.btnId === "btnTW" && game.isActivity("over")) {
+			if( data.btnId === "btnTW" && self.isActivity("over")) {
 				$("div.arcadePopup").click();
 			}
 		});
@@ -106,6 +108,10 @@ var AsteroidsGame = ArcadeJS.extend({
 		this.setActivity("prepare");
 		if( resetLevel ) {
 			this.level = 1;
+			this.score = 0;
+		} else {
+			this.level += 1;
+			this.score += 1000;
 		}
 		this.visitObjects(function(obj){
 			obj.die();
@@ -137,8 +143,6 @@ var AsteroidsGame = ArcadeJS.extend({
 	preStep: function(){
 		var hasAsteroids = this.getObjectsByType("asteroid").length > 0;
 		if(!hasAsteroids && !this.isActivity("over") ){
-			this.level += 1;
-			this.score += 1000;
 			this._restartGame();
 			return;
 		}
@@ -235,6 +239,10 @@ var AsteroidsGame = ArcadeJS.extend({
 		}
 		// done
 		ctx.restore();
+		// Prepare context for following object rendering
+		if( this.opts.lineWidth ) {
+			ctx.lineWidth = this.opts.lineWidth;
+		}
 	},
 	// --- end of class
 	lastentry: undefined

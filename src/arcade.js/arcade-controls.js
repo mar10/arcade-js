@@ -114,6 +114,7 @@ var TouchButton = CanvasObject.extend(
 	},
 	onMousedown: function(e) {
 		this.down = this.clicked = this.containsCC(this.game.mousePosCC);
+		this.lastReportedClick = 0;
 	},
 	onMousemove: function(e) {
 		this.down = this.clicked && this.containsCC(this.game.mousePosCC);
@@ -162,6 +163,7 @@ var TouchButton = CanvasObject.extend(
 			break;
 		case "touchend":
 			if(this.down && isInside){
+				this.lastReportedClick = 0;
 				this.onClick.call(this);
 			}
 			this.touchDownId = null;
@@ -193,13 +195,13 @@ var TouchButton = CanvasObject.extend(
 
 		if( this.clicked && (!minDelayMS || elap >= minDelayMS) ) {
 			res = true;
-		} else if ( this.down && typeof repeatDelayMS === "number" && 
+		} else if ( this.clicked && typeof repeatDelayMS === "number" && 
 				elap >= repeatDelayMS ) {
 			res = true;
 		}
 		if( res ) {
 			this.lastReportedClick = now;
-			this.clicked = false;
+			// this.clicked = false;
 		}
 		return res;
 	},
